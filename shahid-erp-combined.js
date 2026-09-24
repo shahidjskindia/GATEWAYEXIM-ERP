@@ -2797,33 +2797,6 @@ function renderIslamDailyTracker(dateKey) {
     const rows = [
         ['Fajar','fajar','2'], ['Zuhar','zuhar','4'], ['Asr','asr','4'], ['Maghrib','maghrib','3'], ['Isha','isha','4']
     ];
-    root.innerHTML = `
-      <div class="islam-tracker-header"><span>🕌 Islam - Daily Tracker</span><span>📅 ${fmt}</span></div>
-      <div class="islam-tracker-body">
-        <table class="islam-tracker-table">
-          <thead><tr><th>DETAILS</th><th>TODAY</th></tr></thead>
-          <tbody>
-            <tr class="islam-group"><td colspan="2">1. All 5 Times Prayer (Mark Yes / No &amp; No. of Rakat)</td></tr>
-            ${rows.map(([label,keyName,defaultRakat]) => {
-                const pr = entry.prayers[keyName] || {status:'NO',done:false,rakat:0};
-                return `<tr><td>🕌 ${label}</td><td><span>${islamTrackerStatus(pr.status ?? pr.done)}</span> <span class="islam-rakat">${pr.rakat} Rakat</span></td></tr>`;
-            }).join('')}
-            <tr class="islam-group"><td colspan="2">2. Quran Reading <small>(Done or Not)</small></td></tr>
-            <tr><td>📖 Quran Reading</td><td>${islamTrackerYesNo(entry.quranReading)}</td></tr>
-            <tr class="islam-group"><td colspan="2">3. Meditation <small>(Done or Not)</small></td></tr>
-            <tr><td>🧘 Meditation</td><td>${islamTrackerYesNo(entry.meditation)}</td></tr>
-            <tr class="islam-group"><td colspan="2">4. Darood Counting</td></tr>
-            <tr><td>📿 DAROOD</td><td><div class="islam-darood-counter"><button type="button" class="islam-darood-btn" onclick="changeIslamDaroodCount('${key}',-1)" aria-label="Decrease Darood count">−</button><span id="islam-darood-count-${key}" class="islam-darood-count">${Math.max(0,Math.floor(Number(entry.daroodCount)||0))}</span><button type="button" class="islam-darood-btn" onclick="changeIslamDaroodCount('${key}',1)" aria-label="Increase Darood count">+</button></div></td></tr>
-            <tr class="islam-group"><td colspan="2">5. Good Deed / Bad Deed</td></tr>
-            <tr><td>✅ GOOD DEED</td><td><strong>${Math.max(0, Math.floor(Number(entry.goodDeedCount)||0))}</strong></td></tr>
-            <tr><td>❌ BAD DEED</td><td><strong>${Math.max(0, Math.floor(Number(entry.badDeedCount)||0))}</strong></td></tr>
-            <tr class="islam-group"><td colspan="2">6. Sleep &amp; Wake Up</td></tr>
-            <tr><td>😴 Yesterday Sleep (Time)</td><td>${entry.yesterdaySleep ? '🕐 ' + escapeHtml(entry.yesterdaySleep) : '—'}</td></tr>
-            <tr><td>☀️ Today Wake Up (Time)</td><td>${entry.todayWakeUp ? '🕐 ' + escapeHtml(entry.todayWakeUp) : '—'}</td></tr>
-          </tbody>
-        </table>
-        <div class="islam-tracker-actions"><button class="btn btn-sm btn-success" type="button" onclick="openIslamDailyEditor('${key}')">✏️ ${getIslamDailyEntry(key) ? 'EDIT' : 'ADD TODAY\'S ENTRY'}</button></div>
-      </div>`;
 }
 
 function openIslamDailyEditor(dateKey) {
