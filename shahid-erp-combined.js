@@ -10505,7 +10505,7 @@ function openBLModal(editIdx = null, shipmentIdx = null, mode = 'SEA') {
             <!-- Vessel & Port Details -->
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:16px; background:var(--bg); padding:12px; border-radius:8px;" id="bl-vessel-row">
                 <div class="form-group"><label id="bl-label-pre-carriage">PRE-CARRIAGE BY</label><input type="text" id="bl-pre-carriage" value="${b.preCarriage||''}" /></div>
-                <div class="form-group"><label id="bl-label-receipt">PLACE OF RECEIPT</label><input type="text" id="bl-receipt" value="${b.placeOfReceipt||(b.mode==='AIR'?'AIRPORT, INDIA':'HAZIRA PORT, INDIA')}" /></div>
+                <div class="form-group"><label id="bl-label-receipt">PLACE OF RECEIPT</label><input type="text" id="bl-receipt" value="${b.placeOfReceipt||(b.mode==='AIR'?'AIRPORT, INDIA':'')}" /></div>
                 <div class="form-group"><label id="bl-label-vessel">${b.mode==='AIR'?'15. FLIGHT NO.':'VESSEL NAME'}</label><input type="text" id="bl-vessel" value="${b.vessel||''}" /></div>
                 <div class="form-group">
                     <label id="bl-label-voyage">${b.mode==='AIR'?'DATE':'VOYAGE NO.'}</label>
