@@ -8527,127 +8527,594 @@ function removeDsrContainerRow(btn){
 
 // ===== UNIFIED DSR FORM BUILDER =====
 function buildDsrForm(s, mode, isEdit) {
-    const carriers = db.carriers.filter(c => !(db.hiddenItems.carriers || []).includes(c)).sort();
-    const polList = db.pol.filter(p => !(db.hiddenItems.pol || []).includes(p)).sort();
-    const podList = db.pod.filter(p => !(db.hiddenItems.pod || []).includes(p)).sort();
+    const carriers = db.carriers
+        .filter(c => !(db.hiddenItems.carriers || []).includes(c))
+        .sort();
 
-    // --- Cargo Status dropdown options ---
+    const polList = db.pol
+        .filter(p => !(db.hiddenItems.pol || []).includes(p))
+        .sort();
+
+    const podList = db.pod
+        .filter(p => !(db.hiddenItems.pod || []).includes(p))
+        .sort();
+
+    // =========================================================
+    // Editable Dropdown / Datalist Options
+    // =========================================================
+    const buildDatalistOptions = (list) => {
+        return list
+            .map(value => {
+                const v = String(value ?? '').trim();
+                if (!v) return '';
+                return `<option value="${v.replace(/"/g, '&quot;')}"></option>`;
+            })
+            .join('');
+    };
+
+    const polOptions = buildDatalistOptions(polList);
+    const podOptions = buildDatalistOptions(podList);
+    const linerOptions = buildDatalistOptions(carriers);
+
+    // =========================================================
+    // Cargo Status dropdown options
+    // =========================================================
     let cargoStatusOptions = '';
-    const cargoMaster = db.cargoStatusMaster || ["Booked", "Confirmed", "In Transit", "Delivered", "Cancelled"];
+    const cargoMaster = db.cargoStatusMaster || [
+        "Booked",
+        "Confirmed",
+        "In Transit",
+        "Delivered",
+        "Cancelled"
+    ];
+
     cargoMaster.forEach(status => {
         const selected = (s.cargoStatus === status) ? 'selected' : '';
-        cargoStatusOptions += `<option value="${status}" ${selected}>${status}</option>`;
+        cargoStatusOptions += `
+            <option value="${status}" ${selected}>${status}</option>
+        `;
     });
 
-    // --- Docs Status dropdown options ---
+    // =========================================================
+    // Docs Status dropdown options
+    // =========================================================
     let docsStatusOptions = '';
-    const docsMaster = db.docsStatusMaster || ["Pending", "In Progress", "Ready", "Sent", "Received"];
+    const docsMaster = db.docsStatusMaster || [
+        "Pending",
+        "In Progress",
+        "Ready",
+        "Sent",
+        "Received"
+    ];
+
     docsMaster.forEach(status => {
         const selected = (s.docsStatus === status) ? 'selected' : '';
-        docsStatusOptions += `<option value="${status}" ${selected}>${status}</option>`;
+        docsStatusOptions += `
+            <option value="${status}" ${selected}>${status}</option>
+        `;
     });
 
-        let html = `<div class="dsr-btn-bar">
+    // =========================================================
+    // Main DSR Form
+    // =========================================================
+    let html = `
+        <div class="dsr-btn-bar">
             <button class="btn btn-search" onclick="dsrSearch()">Search</button>
             <button class="btn btn-modify" onclick="dsrModify()">Modify</button>
             <button class="btn btn-addnew" onclick="dsrAddNew()">Add New</button>
             <button class="btn btn-clear-dsr" onclick="dsrClear()">Clear</button>
             <button class="btn btn-exit" onclick="closeModal('dsrModal')">Exit</button>
-            ${isEdit ? `<button class="btn btn-update-dsr" onclick="saveDsrShipment(true)">Update</button>` : `<button class="btn btn-save-dsr" onclick="saveDsrShipment(false)">Save</button>`}
+
+            ${
+                isEdit
+                    ? `<button class="btn btn-update-dsr" onclick="saveDsrShipment(true)">Update</button>`
+                    : `<button class="btn btn-save-dsr" onclick="saveDsrShipment(false)">Save</button>`
+            }
+
             <button class="btn btn-pdf-dsr" onclick="dsrPDF()">PDF</button>
             <button class="btn btn-dup-dsr" onclick="dsrDuplicate()">Duplicate</button>
-            ${isEdit ? `<button class="btn btn-del-dsr" onclick="dsrDelete()">Delete</button>` : ''}
-        </div>`;
 
-    html += `<div style="background:#f8fafc;padding:10px;border:1px solid #cbd5e1;margin-bottom:10px;">
-        <h3 style="text-align:center;font-weight:800;font-size:1.4rem;color:#1e3a8a;margin-bottom:10px;">GATEWAY EXIM <span style="font-weight:400;font-size:1rem;color:#64748b;"></span></h3>
-        
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-bottom:10px;">
-            <div class="form-group" style="flex:1;"><label>Direction</label>
-                <select id="dsr-direction" style="width:100%;"><option value="EXPORT" ${s.exportImport==='EXPORT'?'selected':''}>EXPORT</option><option value="IMPORT" ${s.exportImport==='IMPORT'?'selected':''}>IMPORT</option></select>
-            </div>
-            <div class="form-group" style="flex:1;"><label>Mode</label>
-                <select id="dsr-mode" onchange="changeDsrMode()" style="width:100%;"><option value="SEA" ${mode==='SEA'?'selected':''}>SEA</option><option value="AIR" ${mode==='AIR'?'selected':''}>AIR</option><option value="LCL" ${mode==='LCL'?'selected':''}>LCL</option></select>
-            </div>
-            <div class="form-group" style="flex:1;"><label>Service A</label>
-                <select id="dsr-service-a" style="width:100%;"><option value="SELF SEAL" ${s.service1==='SELF SEAL'?'selected':''}>SELF SEAL</option><option value="DOCS STUFFING" ${s.service1==='DOCS STUFFING'?'selected':''}>DOCS STUFFING</option><option value="ON WHEEL CLEARANCE" ${s.service1==='ON WHEEL CLEARANCE'?'selected':''}>ON WHEEL CLEARANCE</option></select>
-            </div>
-            <div class="form-group" style="flex:1;"><label>Service B</label>
-                <select id="dsr-service-b" style="width:100%;"><option value="CLEAN ONLY" ${s.service2==='CLEAN ONLY'?'selected':''}>CLEAN ONLY</option><option value="FORWARDING ONLY" ${s.service2==='FORWARDING ONLY'?'selected':''}>FORWARDING ONLY</option><option value="TRANSPORTATION ONLY" ${s.service2==='TRANSPORTATION ONLY'?'selected':''}>TRANSPORTATION ONLY</option></select>
-            </div>
+            ${
+                isEdit
+                    ? `<button class="btn btn-del-dsr" onclick="dsrDelete()">Delete</button>`
+                    : ''
+            }
         </div>
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div class="form-group"><label>JOB NO.</label><input type="text" id="dsr-job-no" list="dsr-job-quote-ref-list" value="${s.jobNo || s.code || ''}" style="width:100%;" oninput="onDsrJobReferenceChange()" onchange="onDsrJobReferenceChange()" onblur="onDsrJobReferenceChange()" placeholder="JOB NO. / select Quote Ref"><datalist id="dsr-job-quote-ref-list"></datalist><datalist id="dsr-job-list"></datalist></div>
-            <div class="form-group"><label>QUOTE REF NO.</label><input type="text" id="dsr-quote-ref" list="dsr-quote-ref-list" value="${s.quoteRef || s.quoteNumber || s.rateQuoteRef || ''}" style="width:100%;" oninput="onDsrQuoteRefChange()" onchange="onDsrQuoteRefChange()" onblur="onDsrQuoteRefChange()"><datalist id="dsr-quote-ref-list"></datalist></div>
-            <div class="form-group"><label>Shipper</label><input type="text" id="dsr-shipper" value="${s.shipper || ''}" style="width:100%;"></div>
-            <div class="form-group"><label>Booking No.</label><input type="text" id="dsr-booking-no" value="${s.bookingNo || s.jobBkg || ''}" style="width:100%;"></div>
-            
-            <div class="form-group"><label>Port of Loading (POL)</label><select id="dsr-pol" style="width:100%;"><option value="">Select</option></select></div>
-            <div class="form-group"><label>Port of Discharge (POD)</label><select id="dsr-pod" style="width:100%;"><option value="">Select</option></select></div>
-            
-            <div class="form-group"><label>Shipping Line</label><select id="dsr-liner" style="width:100%;"><option value="">Select</option></select></div>
-            <div class="form-group"><label>ETD</label><input type="date" id="dsr-etd" value="${s.etd || ''}" style="width:100%;"></div>
-            
-            <div class="form-group"><label>Shipping Bill NO.</label><input type="text" id="dsr-shipping-bill-no" value="${s.shippingBillNo || ''}" style="width:100%;"></div>
-            <div class="form-group"><label>Date</label><input type="date" id="dsr-shipping-bill-date" value="${s.shippingBillDate || ''}" style="width:100%;"></div>
-            
-            <div class="form-group"><label>MBL NO.</label><input type="text" id="dsr-mbl-no" value="${s.mblNo || ''}" style="width:100%;"></div>
-            <div class="form-group"><label>HBL NO</label><input type="text" id="dsr-hbl-no" value="${s.hblNo || ''}" style="width:100%;"></div>
-            
-            <div class="form-group"><label>Pickup Date</label><input type="date" id="dsr-pickup-date" value="${s.pickupDate || ''}" style="width:100%;"></div>
-            <div class="form-group"><label>Clearance Date</label><input type="date" id="dsr-clearance-date" value="${s.clearanceDate || ''}" style="width:100%;"></div>
-            
-            <div class="form-group"><label>Docs hand. Date</label><input type="date" id="dsr-docs-hand-date" value="${s.docsHandDate || ''}" style="width:100%;"></div>
-            <div class="form-group"><label>Gatein Date</label><input type="date" id="dsr-gatein-date" value="${s.gateinDate || ''}" style="width:100%;"></div>
-            
-            <div class="form-group"><label>DGD Indexing Date</label><input type="date" id="dsr-dgd-indexing-date" value="${s.dgdIndexingDate || ''}" style="width:100%;"></div>
-            <div class="form-group"><label>BL Release Date</label><input type="date" id="dsr-bl-release-date" value="${s.blReleaseDate || ''}" style="width:100%;"></div>
-            
-            <div class="form-group" style="grid-column:span 2;display:flex;gap:10px;">
-                <div style="flex:2;"><label>Vessel & ATD</label><input type="text" id="dsr-vessel-atd" value="${s.vesselAtd || ''}" style="width:100%;"></div>
-                <div style="flex:1;"><label>ETA</label><input type="date" id="dsr-eta" value="${s.eta || ''}" style="width:100%;"></div>
+    `;
+
+    html += `
+        <div style="background:#f8fafc;padding:10px;border:1px solid #cbd5e1;margin-bottom:10px;">
+
+            <h3 style="
+                text-align:center;
+                font-weight:800;
+                font-size:1.4rem;
+                color:#1e3a8a;
+                margin-bottom:10px;
+            ">
+                GATEWAY EXIM
+                <span style="font-weight:400;font-size:1rem;color:#64748b;"></span>
+            </h3>
+
+            <div style="
+                display:flex;
+                gap:10px;
+                flex-wrap:wrap;
+                justify-content:space-between;
+                margin-bottom:10px;
+            ">
+
+                <div class="form-group" style="flex:1;">
+                    <label>Direction</label>
+                    <select id="dsr-direction" style="width:100%;">
+                        <option value="EXPORT" ${s.exportImport === 'EXPORT' ? 'selected' : ''}>
+                            EXPORT
+                        </option>
+                        <option value="IMPORT" ${s.exportImport === 'IMPORT' ? 'selected' : ''}>
+                            IMPORT
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="flex:1;">
+                    <label>Mode</label>
+                    <select
+                        id="dsr-mode"
+                        onchange="changeDsrMode()"
+                        style="width:100%;"
+                    >
+                        <option value="SEA" ${mode === 'SEA' ? 'selected' : ''}>SEA</option>
+                        <option value="AIR" ${mode === 'AIR' ? 'selected' : ''}>AIR</option>
+                        <option value="LCL" ${mode === 'LCL' ? 'selected' : ''}>LCL</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="flex:1;">
+                    <label>Service A</label>
+                    <select id="dsr-service-a" style="width:100%;">
+                        <option value="SELF SEAL" ${s.service1 === 'SELF SEAL' ? 'selected' : ''}>
+                            SELF SEAL
+                        </option>
+                        <option value="DOCS STUFFING" ${s.service1 === 'DOCS STUFFING' ? 'selected' : ''}>
+                            DOCS STUFFING
+                        </option>
+                        <option value="ON WHEEL CLEARANCE" ${s.service1 === 'ON WHEEL CLEARANCE' ? 'selected' : ''}>
+                            ON WHEEL CLEARANCE
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="flex:1;">
+                    <label>Service B</label>
+                    <select id="dsr-service-b" style="width:100%;">
+                        <option value="CLEAN ONLY" ${s.service2 === 'CLEAN ONLY' ? 'selected' : ''}>
+                            CLEAN ONLY
+                        </option>
+                        <option value="FORWARDING ONLY" ${s.service2 === 'FORWARDING ONLY' ? 'selected' : ''}>
+                            FORWARDING ONLY
+                        </option>
+                        <option value="TRANSPORTATION ONLY" ${s.service2 === 'TRANSPORTATION ONLY' ? 'selected' : ''}>
+                            TRANSPORTATION ONLY
+                        </option>
+                    </select>
+                </div>
+
             </div>
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:10px;
+            ">
+
+                <div class="form-group">
+                    <label>JOB NO.</label>
+                    <input
+                        type="text"
+                        id="dsr-job-no"
+                        list="dsr-job-quote-ref-list"
+                        value="${s.jobNo || s.code || ''}"
+                        style="width:100%;"
+                        oninput="onDsrJobReferenceChange()"
+                        onchange="onDsrJobReferenceChange()"
+                        onblur="onDsrJobReferenceChange()"
+                        placeholder="JOB NO. / select Quote Ref"
+                    >
+                    <datalist id="dsr-job-quote-ref-list"></datalist>
+                    <datalist id="dsr-job-list"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>QUOTE REF NO.</label>
+                    <input
+                        type="text"
+                        id="dsr-quote-ref"
+                        list="dsr-quote-ref-list"
+                        value="${s.quoteRef || s.quoteNumber || s.rateQuoteRef || ''}"
+                        style="width:100%;"
+                        oninput="onDsrQuoteRefChange()"
+                        onchange="onDsrQuoteRefChange()"
+                        onblur="onDsrQuoteRefChange()"
+                    >
+                    <datalist id="dsr-quote-ref-list"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>Shipper</label>
+                    <input
+                        type="text"
+                        id="dsr-shipper"
+                        value="${s.shipper || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Booking No.</label>
+                    <input
+                        type="text"
+                        id="dsr-booking-no"
+                        value="${s.bookingNo || s.jobBkg || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <!-- =====================================================
+                     POL — EDITABLE DROPDOWN
+                     ===================================================== -->
+                <div class="form-group">
+                    <label>Port of Loading (POL)</label>
+
+                    <input
+                        type="text"
+                        id="dsr-pol"
+                        list="dsr-pol-list"
+                        value="${String(s.pol || '').replace(/"/g, '&quot;')}"
+                        style="width:100%;"
+                        autocomplete="off"
+                        placeholder="Type or select POL"
+                    >
+
+                    <datalist id="dsr-pol-list">
+                        ${polOptions}
+                    </datalist>
+                </div>
+
+                <!-- =====================================================
+                     POD — EDITABLE DROPDOWN
+                     ===================================================== -->
+                <div class="form-group">
+                    <label>Port of Discharge (POD)</label>
+
+                    <input
+                        type="text"
+                        id="dsr-pod"
+                        list="dsr-pod-list"
+                        value="${String(s.pod || '').replace(/"/g, '&quot;')}"
+                        style="width:100%;"
+                        autocomplete="off"
+                        placeholder="Type or select POD"
+                    >
+
+                    <datalist id="dsr-pod-list">
+                        ${podOptions}
+                    </datalist>
+                </div>
+
+                <!-- =====================================================
+                     SHIPPING LINE — EDITABLE DROPDOWN
+                     ===================================================== -->
+                <div class="form-group">
+                    <label>Shipping Line</label>
+
+                    <input
+                        type="text"
+                        id="dsr-liner"
+                        list="dsr-liner-list"
+                        value="${String(s.liner || '').replace(/"/g, '&quot;')}"
+                        style="width:100%;"
+                        autocomplete="off"
+                        placeholder="Type or select Shipping Line"
+                    >
+
+                    <datalist id="dsr-liner-list">
+                        ${linerOptions}
+                    </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>ETD</label>
+                    <input
+                        type="date"
+                        id="dsr-etd"
+                        value="${s.etd || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Shipping Bill NO.</label>
+                    <input
+                        type="text"
+                        id="dsr-shipping-bill-no"
+                        value="${s.shippingBillNo || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input
+                        type="date"
+                        id="dsr-shipping-bill-date"
+                        value="${s.shippingBillDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>MBL NO.</label>
+                    <input
+                        type="text"
+                        id="dsr-mbl-no"
+                        value="${s.mblNo || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>HBL NO</label>
+                    <input
+                        type="text"
+                        id="dsr-hbl-no"
+                        value="${s.hblNo || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Pickup Date</label>
+                    <input
+                        type="date"
+                        id="dsr-pickup-date"
+                        value="${s.pickupDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Clearance Date</label>
+                    <input
+                        type="date"
+                        id="dsr-clearance-date"
+                        value="${s.clearanceDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Docs hand. Date</label>
+                    <input
+                        type="date"
+                        id="dsr-docs-hand-date"
+                        value="${s.docsHandDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Gatein Date</label>
+                    <input
+                        type="date"
+                        id="dsr-gatein-date"
+                        value="${s.gateinDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>DGD Indexing Date</label>
+                    <input
+                        type="date"
+                        id="dsr-dgd-indexing-date"
+                        value="${s.dgdIndexingDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>BL Release Date</label>
+                    <input
+                        type="date"
+                        id="dsr-bl-release-date"
+                        value="${s.blReleaseDate || ''}"
+                        style="width:100%;"
+                    >
+                </div>
+
+                <div
+                    class="form-group"
+                    style="
+                        grid-column:span 2;
+                        display:flex;
+                        gap:10px;
+                    "
+                >
+                    <div style="flex:2;">
+                        <label>Vessel & ATD</label>
+                        <input
+                            type="text"
+                            id="dsr-vessel-atd"
+                            value="${s.vesselAtd || ''}"
+                            style="width:100%;"
+                        >
+                    </div>
+
+                    <div style="flex:1;">
+                        <label>ETA</label>
+                        <input
+                            type="date"
+                            id="dsr-eta"
+                            value="${s.eta || ''}"
+                            style="width:100%;"
+                        >
+                    </div>
+                </div>
+
+            </div>
+
+            ${
+                mode === 'SEA'
+                    ? `
+                        <div style="
+                            margin-top:10px;
+                            border-top:1px solid #cbd5e1;
+                            padding-top:10px;
+                        ">
+                            <div style="
+                                display:flex;
+                                justify-content:space-between;
+                                align-items:center;
+                                margin-bottom:8px;
+                            ">
+                                <strong style="color:#1e3a8a;">
+                                    📦 Container Details
+                                </strong>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-success btn-sm"
+                                    onclick="addDsrContainerRow()"
+                                >
+                                    + Add Container
+                                </button>
+                            </div>
+
+                            <div id="dsr-container-rows"></div>
+                        </div>
+
+                        <div style="
+                            margin-top:10px;
+                            border-top:1px solid #cbd5e1;
+                            padding-top:10px;
+                        ">
+                            <strong style="
+                                color:#1e3a8a;
+                                display:block;
+                                margin-bottom:8px;
+                            ">
+                                ⏱️ SEA Cut-off Defaults
+                            </strong>
+
+                            <div style="
+                                display:grid;
+                                grid-template-columns:repeat(4,1fr);
+                                gap:10px;
+                            ">
+
+                                <div class="form-group">
+                                    <label>Gate Opening</label>
+                                    <input
+                                        type="date"
+                                        id="dsr-gate-opening"
+                                        value="${s.gateOpening || ''}"
+                                        onchange="applyDsrCutoffDefaults(false)"
+                                        style="width:100%;"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gate Cut-off</label>
+                                    <input
+                                        type="date"
+                                        id="dsr-gate-cutoff"
+                                        value="${s.gateCutoff || ''}"
+                                        onchange="applyDsrCutoffDefaults(false)"
+                                        style="width:100%;"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>SB Cut-off</label>
+                                    <input
+                                        type="date"
+                                        id="dsr-sb-cutoff"
+                                        value="${s.sbCutoff || ''}"
+                                        onchange="applyDsrCutoffDefaults(false)"
+                                        style="width:100%;"
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label>SI Cut-off</label>
+                                    <input
+                                        type="date"
+                                        id="dsr-si-cutoff"
+                                        value="${s.siCutoff || ''}"
+                                        onchange="applyDsrCutoffDefaults(false)"
+                                        style="width:100%;"
+                                    >
+                                </div>
+
+                            </div>
+
+                            <small style="color:#64748b;">
+                                Defaults: SI −4 days • Gate −2 days •
+                                SB −2 days • Gate Opening = Gate Cut-off −3 days
+                            </small>
+                        </div>
+                    `
+                    : ''
+            }
+
+            <!-- STATUS DROPDOWNS -->
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:10px;
+                margin-top:10px;
+                border-top:1px solid #cbd5e1;
+                padding-top:10px;
+            ">
+
+                <div class="form-group">
+                    <label>Cargo Status</label>
+                    <select id="dsr-cargo-status" style="width:100%;">
+                        ${cargoStatusOptions}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Docs Status</label>
+                    <select id="dsr-docs-status" style="width:100%;">
+                        ${docsStatusOptions}
+                    </select>
+                </div>
+
+            </div>
+
+            <div
+                class="form-group"
+                style="margin-top:8px;"
+            >
+                <label>Remarks</label>
+                <textarea
+                    id="dsr-remarks"
+                    rows="2"
+                    style="width:100%;"
+                >${s.remarks || ''}</textarea>
+            </div>
+
+            <input
+                type="hidden"
+                id="dsr-code"
+                value="${s.code || ''}"
+            />
+
         </div>
 
-        ${mode === 'SEA' ? `
-        <div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <strong style="color:#1e3a8a;">📦 Container Details</strong>
-                <button type="button" class="btn btn-success btn-sm" onclick="addDsrContainerRow()">+ Add Container</button>
-            </div>
-            <div id="dsr-container-rows"></div>
-        </div>
-
-        <div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:10px;">
-            <strong style="color:#1e3a8a;display:block;margin-bottom:8px;">⏱️ SEA Cut-off Defaults</strong>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
-                <div class="form-group"><label>Gate Opening</label><input type="date" id="dsr-gate-opening" value="${s.gateOpening || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
-                <div class="form-group"><label>Gate Cut-off</label><input type="date" id="dsr-gate-cutoff" value="${s.gateCutoff || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
-                <div class="form-group"><label>SB Cut-off</label><input type="date" id="dsr-sb-cutoff" value="${s.sbCutoff || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
-                <div class="form-group"><label>SI Cut-off</label><input type="date" id="dsr-si-cutoff" value="${s.siCutoff || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
-            </div>
-            <small style="color:#64748b;">Defaults: SI −4 days • Gate −2 days • SB −2 days • Gate Opening = Gate Cut-off −3 days</small>
-        </div>` : ''}
-
-        <!-- ===== STATUS DROPDOWNS (NEW) ===== -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;border-top:1px solid #cbd5e1;padding-top:10px;">
-            <div class="form-group"><label>Cargo Status</label>
-                <select id="dsr-cargo-status" style="width:100%;">
-                    ${cargoStatusOptions}
-                </select>
-            </div>
-            <div class="form-group"><label>Docs Status</label>
-                <select id="dsr-docs-status" style="width:100%;">
-                    ${docsStatusOptions}
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group" style="margin-top:8px;"><label>Remarks</label><textarea id="dsr-remarks" rows="2" style="width:100%;">${s.remarks || ''}</textarea></div>
-        <input type="hidden" id="dsr-code" value="${s.code || ''}" />
-    </div>
-    <div id="dsr-charges-area"></div>`;
+        <div id="dsr-charges-area"></div>
+    `;
 
     return html;
 }
