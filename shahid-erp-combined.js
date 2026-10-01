@@ -1,3 +1,362 @@
+/* SHAHID ERP — Self-contained runtime bundle
+ * Amendment 15: Core offline/online libraries embedded in this JS file.
+ * No separate LIB folder is required for JSZip, XLSX, or Offline SQLite.
+ */
+
+/*!
+
+JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+<http://stuartk.com/jszip>
+
+(c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+
+JSZip uses the library pako released under the MIT license :
+https://github.com/nodeca/pako/blob/main/LICENSE
+*/
+
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).JSZip=e()}}(function(){return function s(a,o,h){function u(r,e){if(!o[r]){if(!a[r]){var t="function"==typeof require&&require;if(!e&&t)return t(r,!0);if(l)return l(r,!0);var n=new Error("Cannot find module '"+r+"'");throw n.code="MODULE_NOT_FOUND",n}var i=o[r]={exports:{}};a[r][0].call(i.exports,function(e){var t=a[r][1][e];return u(t||e)},i,i.exports,s,a,o,h)}return o[r].exports}for(var l="function"==typeof require&&require,e=0;e<h.length;e++)u(h[e]);return u}({1:[function(e,t,r){"use strict";var d=e("./utils"),c=e("./support"),p="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";r.encode=function(e){for(var t,r,n,i,s,a,o,h=[],u=0,l=e.length,f=l,c="string"!==d.getTypeOf(e);u<e.length;)f=l-u,n=c?(t=e[u++],r=u<l?e[u++]:0,u<l?e[u++]:0):(t=e.charCodeAt(u++),r=u<l?e.charCodeAt(u++):0,u<l?e.charCodeAt(u++):0),i=t>>2,s=(3&t)<<4|r>>4,a=1<f?(15&r)<<2|n>>6:64,o=2<f?63&n:64,h.push(p.charAt(i)+p.charAt(s)+p.charAt(a)+p.charAt(o));return h.join("")},r.decode=function(e){var t,r,n,i,s,a,o=0,h=0,u="data:";if(e.substr(0,u.length)===u)throw new Error("Invalid base64 input, it looks like a data url.");var l,f=3*(e=e.replace(/[^A-Za-z0-9+/=]/g,"")).length/4;if(e.charAt(e.length-1)===p.charAt(64)&&f--,e.charAt(e.length-2)===p.charAt(64)&&f--,f%1!=0)throw new Error("Invalid base64 input, bad content length.");for(l=c.uint8array?new Uint8Array(0|f):new Array(0|f);o<e.length;)t=p.indexOf(e.charAt(o++))<<2|(i=p.indexOf(e.charAt(o++)))>>4,r=(15&i)<<4|(s=p.indexOf(e.charAt(o++)))>>2,n=(3&s)<<6|(a=p.indexOf(e.charAt(o++))),l[h++]=t,64!==s&&(l[h++]=r),64!==a&&(l[h++]=n);return l}},{"./support":30,"./utils":32}],2:[function(e,t,r){"use strict";var n=e("./external"),i=e("./stream/DataWorker"),s=e("./stream/Crc32Probe"),a=e("./stream/DataLengthProbe");function o(e,t,r,n,i){this.compressedSize=e,this.uncompressedSize=t,this.crc32=r,this.compression=n,this.compressedContent=i}o.prototype={getContentWorker:function(){var e=new i(n.Promise.resolve(this.compressedContent)).pipe(this.compression.uncompressWorker()).pipe(new a("data_length")),t=this;return e.on("end",function(){if(this.streamInfo.data_length!==t.uncompressedSize)throw new Error("Bug : uncompressed data size mismatch")}),e},getCompressedWorker:function(){return new i(n.Promise.resolve(this.compressedContent)).withStreamInfo("compressedSize",this.compressedSize).withStreamInfo("uncompressedSize",this.uncompressedSize).withStreamInfo("crc32",this.crc32).withStreamInfo("compression",this.compression)}},o.createWorkerFrom=function(e,t,r){return e.pipe(new s).pipe(new a("uncompressedSize")).pipe(t.compressWorker(r)).pipe(new a("compressedSize")).withStreamInfo("compression",t)},t.exports=o},{"./external":6,"./stream/Crc32Probe":25,"./stream/DataLengthProbe":26,"./stream/DataWorker":27}],3:[function(e,t,r){"use strict";var n=e("./stream/GenericWorker");r.STORE={magic:"\0\0",compressWorker:function(){return new n("STORE compression")},uncompressWorker:function(){return new n("STORE decompression")}},r.DEFLATE=e("./flate")},{"./flate":7,"./stream/GenericWorker":28}],4:[function(e,t,r){"use strict";var n=e("./utils");var o=function(){for(var e,t=[],r=0;r<256;r++){e=r;for(var n=0;n<8;n++)e=1&e?3988292384^e>>>1:e>>>1;t[r]=e}return t}();t.exports=function(e,t){return void 0!==e&&e.length?"string"!==n.getTypeOf(e)?function(e,t,r,n){var i=o,s=n+r;e^=-1;for(var a=n;a<s;a++)e=e>>>8^i[255&(e^t[a])];return-1^e}(0|t,e,e.length,0):function(e,t,r,n){var i=o,s=n+r;e^=-1;for(var a=n;a<s;a++)e=e>>>8^i[255&(e^t.charCodeAt(a))];return-1^e}(0|t,e,e.length,0):0}},{"./utils":32}],5:[function(e,t,r){"use strict";r.base64=!1,r.binary=!1,r.dir=!1,r.createFolders=!0,r.date=null,r.compression=null,r.compressionOptions=null,r.comment=null,r.unixPermissions=null,r.dosPermissions=null},{}],6:[function(e,t,r){"use strict";var n=null;n="undefined"!=typeof Promise?Promise:e("lie"),t.exports={Promise:n}},{lie:37}],7:[function(e,t,r){"use strict";var n="undefined"!=typeof Uint8Array&&"undefined"!=typeof Uint16Array&&"undefined"!=typeof Uint32Array,i=e("pako"),s=e("./utils"),a=e("./stream/GenericWorker"),o=n?"uint8array":"array";function h(e,t){a.call(this,"FlateWorker/"+e),this._pako=null,this._pakoAction=e,this._pakoOptions=t,this.meta={}}r.magic="\b\0",s.inherits(h,a),h.prototype.processChunk=function(e){this.meta=e.meta,null===this._pako&&this._createPako(),this._pako.push(s.transformTo(o,e.data),!1)},h.prototype.flush=function(){a.prototype.flush.call(this),null===this._pako&&this._createPako(),this._pako.push([],!0)},h.prototype.cleanUp=function(){a.prototype.cleanUp.call(this),this._pako=null},h.prototype._createPako=function(){this._pako=new i[this._pakoAction]({raw:!0,level:this._pakoOptions.level||-1});var t=this;this._pako.onData=function(e){t.push({data:e,meta:t.meta})}},r.compressWorker=function(e){return new h("Deflate",e)},r.uncompressWorker=function(){return new h("Inflate",{})}},{"./stream/GenericWorker":28,"./utils":32,pako:38}],8:[function(e,t,r){"use strict";function A(e,t){var r,n="";for(r=0;r<t;r++)n+=String.fromCharCode(255&e),e>>>=8;return n}function n(e,t,r,n,i,s){var a,o,h=e.file,u=e.compression,l=s!==O.utf8encode,f=I.transformTo("string",s(h.name)),c=I.transformTo("string",O.utf8encode(h.name)),d=h.comment,p=I.transformTo("string",s(d)),m=I.transformTo("string",O.utf8encode(d)),_=c.length!==h.name.length,g=m.length!==d.length,b="",v="",y="",w=h.dir,k=h.date,x={crc32:0,compressedSize:0,uncompressedSize:0};t&&!r||(x.crc32=e.crc32,x.compressedSize=e.compressedSize,x.uncompressedSize=e.uncompressedSize);var S=0;t&&(S|=8),l||!_&&!g||(S|=2048);var z=0,C=0;w&&(z|=16),"UNIX"===i?(C=798,z|=function(e,t){var r=e;return e||(r=t?16893:33204),(65535&r)<<16}(h.unixPermissions,w)):(C=20,z|=function(e){return 63&(e||0)}(h.dosPermissions)),a=k.getUTCHours(),a<<=6,a|=k.getUTCMinutes(),a<<=5,a|=k.getUTCSeconds()/2,o=k.getUTCFullYear()-1980,o<<=4,o|=k.getUTCMonth()+1,o<<=5,o|=k.getUTCDate(),_&&(v=A(1,1)+A(B(f),4)+c,b+="up"+A(v.length,2)+v),g&&(y=A(1,1)+A(B(p),4)+m,b+="uc"+A(y.length,2)+y);var E="";return E+="\n\0",E+=A(S,2),E+=u.magic,E+=A(a,2),E+=A(o,2),E+=A(x.crc32,4),E+=A(x.compressedSize,4),E+=A(x.uncompressedSize,4),E+=A(f.length,2),E+=A(b.length,2),{fileRecord:R.LOCAL_FILE_HEADER+E+f+b,dirRecord:R.CENTRAL_FILE_HEADER+A(C,2)+E+A(p.length,2)+"\0\0\0\0"+A(z,4)+A(n,4)+f+b+p}}var I=e("../utils"),i=e("../stream/GenericWorker"),O=e("../utf8"),B=e("../crc32"),R=e("../signature");function s(e,t,r,n){i.call(this,"ZipFileWorker"),this.bytesWritten=0,this.zipComment=t,this.zipPlatform=r,this.encodeFileName=n,this.streamFiles=e,this.accumulate=!1,this.contentBuffer=[],this.dirRecords=[],this.currentSourceOffset=0,this.entriesCount=0,this.currentFile=null,this._sources=[]}I.inherits(s,i),s.prototype.push=function(e){var t=e.meta.percent||0,r=this.entriesCount,n=this._sources.length;this.accumulate?this.contentBuffer.push(e):(this.bytesWritten+=e.data.length,i.prototype.push.call(this,{data:e.data,meta:{currentFile:this.currentFile,percent:r?(t+100*(r-n-1))/r:100}}))},s.prototype.openedSource=function(e){this.currentSourceOffset=this.bytesWritten,this.currentFile=e.file.name;var t=this.streamFiles&&!e.file.dir;if(t){var r=n(e,t,!1,this.currentSourceOffset,this.zipPlatform,this.encodeFileName);this.push({data:r.fileRecord,meta:{percent:0}})}else this.accumulate=!0},s.prototype.closedSource=function(e){this.accumulate=!1;var t=this.streamFiles&&!e.file.dir,r=n(e,t,!0,this.currentSourceOffset,this.zipPlatform,this.encodeFileName);if(this.dirRecords.push(r.dirRecord),t)this.push({data:function(e){return R.DATA_DESCRIPTOR+A(e.crc32,4)+A(e.compressedSize,4)+A(e.uncompressedSize,4)}(e),meta:{percent:100}});else for(this.push({data:r.fileRecord,meta:{percent:0}});this.contentBuffer.length;)this.push(this.contentBuffer.shift());this.currentFile=null},s.prototype.flush=function(){for(var e=this.bytesWritten,t=0;t<this.dirRecords.length;t++)this.push({data:this.dirRecords[t],meta:{percent:100}});var r=this.bytesWritten-e,n=function(e,t,r,n,i){var s=I.transformTo("string",i(n));return R.CENTRAL_DIRECTORY_END+"\0\0\0\0"+A(e,2)+A(e,2)+A(t,4)+A(r,4)+A(s.length,2)+s}(this.dirRecords.length,r,e,this.zipComment,this.encodeFileName);this.push({data:n,meta:{percent:100}})},s.prototype.prepareNextSource=function(){this.previous=this._sources.shift(),this.openedSource(this.previous.streamInfo),this.isPaused?this.previous.pause():this.previous.resume()},s.prototype.registerPrevious=function(e){this._sources.push(e);var t=this;return e.on("data",function(e){t.processChunk(e)}),e.on("end",function(){t.closedSource(t.previous.streamInfo),t._sources.length?t.prepareNextSource():t.end()}),e.on("error",function(e){t.error(e)}),this},s.prototype.resume=function(){return!!i.prototype.resume.call(this)&&(!this.previous&&this._sources.length?(this.prepareNextSource(),!0):this.previous||this._sources.length||this.generatedError?void 0:(this.end(),!0))},s.prototype.error=function(e){var t=this._sources;if(!i.prototype.error.call(this,e))return!1;for(var r=0;r<t.length;r++)try{t[r].error(e)}catch(e){}return!0},s.prototype.lock=function(){i.prototype.lock.call(this);for(var e=this._sources,t=0;t<e.length;t++)e[t].lock()},t.exports=s},{"../crc32":4,"../signature":23,"../stream/GenericWorker":28,"../utf8":31,"../utils":32}],9:[function(e,t,r){"use strict";var u=e("../compressions"),n=e("./ZipFileWorker");r.generateWorker=function(e,a,t){var o=new n(a.streamFiles,t,a.platform,a.encodeFileName),h=0;try{e.forEach(function(e,t){h++;var r=function(e,t){var r=e||t,n=u[r];if(!n)throw new Error(r+" is not a valid compression method !");return n}(t.options.compression,a.compression),n=t.options.compressionOptions||a.compressionOptions||{},i=t.dir,s=t.date;t._compressWorker(r,n).withStreamInfo("file",{name:e,dir:i,date:s,comment:t.comment||"",unixPermissions:t.unixPermissions,dosPermissions:t.dosPermissions}).pipe(o)}),o.entriesCount=h}catch(e){o.error(e)}return o}},{"../compressions":3,"./ZipFileWorker":8}],10:[function(e,t,r){"use strict";function n(){if(!(this instanceof n))return new n;if(arguments.length)throw new Error("The constructor with parameters has been removed in JSZip 3.0, please check the upgrade guide.");this.files=Object.create(null),this.comment=null,this.root="",this.clone=function(){var e=new n;for(var t in this)"function"!=typeof this[t]&&(e[t]=this[t]);return e}}(n.prototype=e("./object")).loadAsync=e("./load"),n.support=e("./support"),n.defaults=e("./defaults"),n.version="3.10.1",n.loadAsync=function(e,t){return(new n).loadAsync(e,t)},n.external=e("./external"),t.exports=n},{"./defaults":5,"./external":6,"./load":11,"./object":15,"./support":30}],11:[function(e,t,r){"use strict";var u=e("./utils"),i=e("./external"),n=e("./utf8"),s=e("./zipEntries"),a=e("./stream/Crc32Probe"),l=e("./nodejsUtils");function f(n){return new i.Promise(function(e,t){var r=n.decompressed.getContentWorker().pipe(new a);r.on("error",function(e){t(e)}).on("end",function(){r.streamInfo.crc32!==n.decompressed.crc32?t(new Error("Corrupted zip : CRC32 mismatch")):e()}).resume()})}t.exports=function(e,o){var h=this;return o=u.extend(o||{},{base64:!1,checkCRC32:!1,optimizedBinaryString:!1,createFolders:!1,decodeFileName:n.utf8decode}),l.isNode&&l.isStream(e)?i.Promise.reject(new Error("JSZip can't accept a stream when loading a zip file.")):u.prepareContent("the loaded zip file",e,!0,o.optimizedBinaryString,o.base64).then(function(e){var t=new s(o);return t.load(e),t}).then(function(e){var t=[i.Promise.resolve(e)],r=e.files;if(o.checkCRC32)for(var n=0;n<r.length;n++)t.push(f(r[n]));return i.Promise.all(t)}).then(function(e){for(var t=e.shift(),r=t.files,n=0;n<r.length;n++){var i=r[n],s=i.fileNameStr,a=u.resolve(i.fileNameStr);h.file(a,i.decompressed,{binary:!0,optimizedBinaryString:!0,date:i.date,dir:i.dir,comment:i.fileCommentStr.length?i.fileCommentStr:null,unixPermissions:i.unixPermissions,dosPermissions:i.dosPermissions,createFolders:o.createFolders}),i.dir||(h.file(a).unsafeOriginalName=s)}return t.zipComment.length&&(h.comment=t.zipComment),h})}},{"./external":6,"./nodejsUtils":14,"./stream/Crc32Probe":25,"./utf8":31,"./utils":32,"./zipEntries":33}],12:[function(e,t,r){"use strict";var n=e("../utils"),i=e("../stream/GenericWorker");function s(e,t){i.call(this,"Nodejs stream input adapter for "+e),this._upstreamEnded=!1,this._bindStream(t)}n.inherits(s,i),s.prototype._bindStream=function(e){var t=this;(this._stream=e).pause(),e.on("data",function(e){t.push({data:e,meta:{percent:0}})}).on("error",function(e){t.isPaused?this.generatedError=e:t.error(e)}).on("end",function(){t.isPaused?t._upstreamEnded=!0:t.end()})},s.prototype.pause=function(){return!!i.prototype.pause.call(this)&&(this._stream.pause(),!0)},s.prototype.resume=function(){return!!i.prototype.resume.call(this)&&(this._upstreamEnded?this.end():this._stream.resume(),!0)},t.exports=s},{"../stream/GenericWorker":28,"../utils":32}],13:[function(e,t,r){"use strict";var i=e("readable-stream").Readable;function n(e,t,r){i.call(this,t),this._helper=e;var n=this;e.on("data",function(e,t){n.push(e)||n._helper.pause(),r&&r(t)}).on("error",function(e){n.emit("error",e)}).on("end",function(){n.push(null)})}e("../utils").inherits(n,i),n.prototype._read=function(){this._helper.resume()},t.exports=n},{"../utils":32,"readable-stream":16}],14:[function(e,t,r){"use strict";t.exports={isNode:"undefined"!=typeof Buffer,newBufferFrom:function(e,t){if(Buffer.from&&Buffer.from!==Uint8Array.from)return Buffer.from(e,t);if("number"==typeof e)throw new Error('The "data" argument must not be a number');return new Buffer(e,t)},allocBuffer:function(e){if(Buffer.alloc)return Buffer.alloc(e);var t=new Buffer(e);return t.fill(0),t},isBuffer:function(e){return Buffer.isBuffer(e)},isStream:function(e){return e&&"function"==typeof e.on&&"function"==typeof e.pause&&"function"==typeof e.resume}}},{}],15:[function(e,t,r){"use strict";function s(e,t,r){var n,i=u.getTypeOf(t),s=u.extend(r||{},f);s.date=s.date||new Date,null!==s.compression&&(s.compression=s.compression.toUpperCase()),"string"==typeof s.unixPermissions&&(s.unixPermissions=parseInt(s.unixPermissions,8)),s.unixPermissions&&16384&s.unixPermissions&&(s.dir=!0),s.dosPermissions&&16&s.dosPermissions&&(s.dir=!0),s.dir&&(e=g(e)),s.createFolders&&(n=_(e))&&b.call(this,n,!0);var a="string"===i&&!1===s.binary&&!1===s.base64;r&&void 0!==r.binary||(s.binary=!a),(t instanceof c&&0===t.uncompressedSize||s.dir||!t||0===t.length)&&(s.base64=!1,s.binary=!0,t="",s.compression="STORE",i="string");var o=null;o=t instanceof c||t instanceof l?t:p.isNode&&p.isStream(t)?new m(e,t):u.prepareContent(e,t,s.binary,s.optimizedBinaryString,s.base64);var h=new d(e,o,s);this.files[e]=h}var i=e("./utf8"),u=e("./utils"),l=e("./stream/GenericWorker"),a=e("./stream/StreamHelper"),f=e("./defaults"),c=e("./compressedObject"),d=e("./zipObject"),o=e("./generate"),p=e("./nodejsUtils"),m=e("./nodejs/NodejsStreamInputAdapter"),_=function(e){"/"===e.slice(-1)&&(e=e.substring(0,e.length-1));var t=e.lastIndexOf("/");return 0<t?e.substring(0,t):""},g=function(e){return"/"!==e.slice(-1)&&(e+="/"),e},b=function(e,t){return t=void 0!==t?t:f.createFolders,e=g(e),this.files[e]||s.call(this,e,null,{dir:!0,createFolders:t}),this.files[e]};function h(e){return"[object RegExp]"===Object.prototype.toString.call(e)}var n={load:function(){throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.")},forEach:function(e){var t,r,n;for(t in this.files)n=this.files[t],(r=t.slice(this.root.length,t.length))&&t.slice(0,this.root.length)===this.root&&e(r,n)},filter:function(r){var n=[];return this.forEach(function(e,t){r(e,t)&&n.push(t)}),n},file:function(e,t,r){if(1!==arguments.length)return e=this.root+e,s.call(this,e,t,r),this;if(h(e)){var n=e;return this.filter(function(e,t){return!t.dir&&n.test(e)})}var i=this.files[this.root+e];return i&&!i.dir?i:null},folder:function(r){if(!r)return this;if(h(r))return this.filter(function(e,t){return t.dir&&r.test(e)});var e=this.root+r,t=b.call(this,e),n=this.clone();return n.root=t.name,n},remove:function(r){r=this.root+r;var e=this.files[r];if(e||("/"!==r.slice(-1)&&(r+="/"),e=this.files[r]),e&&!e.dir)delete this.files[r];else for(var t=this.filter(function(e,t){return t.name.slice(0,r.length)===r}),n=0;n<t.length;n++)delete this.files[t[n].name];return this},generate:function(){throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.")},generateInternalStream:function(e){var t,r={};try{if((r=u.extend(e||{},{streamFiles:!1,compression:"STORE",compressionOptions:null,type:"",platform:"DOS",comment:null,mimeType:"application/zip",encodeFileName:i.utf8encode})).type=r.type.toLowerCase(),r.compression=r.compression.toUpperCase(),"binarystring"===r.type&&(r.type="string"),!r.type)throw new Error("No output type specified.");u.checkSupport(r.type),"darwin"!==r.platform&&"freebsd"!==r.platform&&"linux"!==r.platform&&"sunos"!==r.platform||(r.platform="UNIX"),"win32"===r.platform&&(r.platform="DOS");var n=r.comment||this.comment||"";t=o.generateWorker(this,r,n)}catch(e){(t=new l("error")).error(e)}return new a(t,r.type||"string",r.mimeType)},generateAsync:function(e,t){return this.generateInternalStream(e).accumulate(t)},generateNodeStream:function(e,t){return(e=e||{}).type||(e.type="nodebuffer"),this.generateInternalStream(e).toNodejsStream(t)}};t.exports=n},{"./compressedObject":2,"./defaults":5,"./generate":9,"./nodejs/NodejsStreamInputAdapter":12,"./nodejsUtils":14,"./stream/GenericWorker":28,"./stream/StreamHelper":29,"./utf8":31,"./utils":32,"./zipObject":35}],16:[function(e,t,r){"use strict";t.exports=e("stream")},{stream:void 0}],17:[function(e,t,r){"use strict";var n=e("./DataReader");function i(e){n.call(this,e);for(var t=0;t<this.data.length;t++)e[t]=255&e[t]}e("../utils").inherits(i,n),i.prototype.byteAt=function(e){return this.data[this.zero+e]},i.prototype.lastIndexOfSignature=function(e){for(var t=e.charCodeAt(0),r=e.charCodeAt(1),n=e.charCodeAt(2),i=e.charCodeAt(3),s=this.length-4;0<=s;--s)if(this.data[s]===t&&this.data[s+1]===r&&this.data[s+2]===n&&this.data[s+3]===i)return s-this.zero;return-1},i.prototype.readAndCheckSignature=function(e){var t=e.charCodeAt(0),r=e.charCodeAt(1),n=e.charCodeAt(2),i=e.charCodeAt(3),s=this.readData(4);return t===s[0]&&r===s[1]&&n===s[2]&&i===s[3]},i.prototype.readData=function(e){if(this.checkOffset(e),0===e)return[];var t=this.data.slice(this.zero+this.index,this.zero+this.index+e);return this.index+=e,t},t.exports=i},{"../utils":32,"./DataReader":18}],18:[function(e,t,r){"use strict";var n=e("../utils");function i(e){this.data=e,this.length=e.length,this.index=0,this.zero=0}i.prototype={checkOffset:function(e){this.checkIndex(this.index+e)},checkIndex:function(e){if(this.length<this.zero+e||e<0)throw new Error("End of data reached (data length = "+this.length+", asked index = "+e+"). Corrupted zip ?")},setIndex:function(e){this.checkIndex(e),this.index=e},skip:function(e){this.setIndex(this.index+e)},byteAt:function(){},readInt:function(e){var t,r=0;for(this.checkOffset(e),t=this.index+e-1;t>=this.index;t--)r=(r<<8)+this.byteAt(t);return this.index+=e,r},readString:function(e){return n.transformTo("string",this.readData(e))},readData:function(){},lastIndexOfSignature:function(){},readAndCheckSignature:function(){},readDate:function(){var e=this.readInt(4);return new Date(Date.UTC(1980+(e>>25&127),(e>>21&15)-1,e>>16&31,e>>11&31,e>>5&63,(31&e)<<1))}},t.exports=i},{"../utils":32}],19:[function(e,t,r){"use strict";var n=e("./Uint8ArrayReader");function i(e){n.call(this,e)}e("../utils").inherits(i,n),i.prototype.readData=function(e){this.checkOffset(e);var t=this.data.slice(this.zero+this.index,this.zero+this.index+e);return this.index+=e,t},t.exports=i},{"../utils":32,"./Uint8ArrayReader":21}],20:[function(e,t,r){"use strict";var n=e("./DataReader");function i(e){n.call(this,e)}e("../utils").inherits(i,n),i.prototype.byteAt=function(e){return this.data.charCodeAt(this.zero+e)},i.prototype.lastIndexOfSignature=function(e){return this.data.lastIndexOf(e)-this.zero},i.prototype.readAndCheckSignature=function(e){return e===this.readData(4)},i.prototype.readData=function(e){this.checkOffset(e);var t=this.data.slice(this.zero+this.index,this.zero+this.index+e);return this.index+=e,t},t.exports=i},{"../utils":32,"./DataReader":18}],21:[function(e,t,r){"use strict";var n=e("./ArrayReader");function i(e){n.call(this,e)}e("../utils").inherits(i,n),i.prototype.readData=function(e){if(this.checkOffset(e),0===e)return new Uint8Array(0);var t=this.data.subarray(this.zero+this.index,this.zero+this.index+e);return this.index+=e,t},t.exports=i},{"../utils":32,"./ArrayReader":17}],22:[function(e,t,r){"use strict";var n=e("../utils"),i=e("../support"),s=e("./ArrayReader"),a=e("./StringReader"),o=e("./NodeBufferReader"),h=e("./Uint8ArrayReader");t.exports=function(e){var t=n.getTypeOf(e);return n.checkSupport(t),"string"!==t||i.uint8array?"nodebuffer"===t?new o(e):i.uint8array?new h(n.transformTo("uint8array",e)):new s(n.transformTo("array",e)):new a(e)}},{"../support":30,"../utils":32,"./ArrayReader":17,"./NodeBufferReader":19,"./StringReader":20,"./Uint8ArrayReader":21}],23:[function(e,t,r){"use strict";r.LOCAL_FILE_HEADER="PK",r.CENTRAL_FILE_HEADER="PK",r.CENTRAL_DIRECTORY_END="PK",r.ZIP64_CENTRAL_DIRECTORY_LOCATOR="PK",r.ZIP64_CENTRAL_DIRECTORY_END="PK",r.DATA_DESCRIPTOR="PK\b"},{}],24:[function(e,t,r){"use strict";var n=e("./GenericWorker"),i=e("../utils");function s(e){n.call(this,"ConvertWorker to "+e),this.destType=e}i.inherits(s,n),s.prototype.processChunk=function(e){this.push({data:i.transformTo(this.destType,e.data),meta:e.meta})},t.exports=s},{"../utils":32,"./GenericWorker":28}],25:[function(e,t,r){"use strict";var n=e("./GenericWorker"),i=e("../crc32");function s(){n.call(this,"Crc32Probe"),this.withStreamInfo("crc32",0)}e("../utils").inherits(s,n),s.prototype.processChunk=function(e){this.streamInfo.crc32=i(e.data,this.streamInfo.crc32||0),this.push(e)},t.exports=s},{"../crc32":4,"../utils":32,"./GenericWorker":28}],26:[function(e,t,r){"use strict";var n=e("../utils"),i=e("./GenericWorker");function s(e){i.call(this,"DataLengthProbe for "+e),this.propName=e,this.withStreamInfo(e,0)}n.inherits(s,i),s.prototype.processChunk=function(e){if(e){var t=this.streamInfo[this.propName]||0;this.streamInfo[this.propName]=t+e.data.length}i.prototype.processChunk.call(this,e)},t.exports=s},{"../utils":32,"./GenericWorker":28}],27:[function(e,t,r){"use strict";var n=e("../utils"),i=e("./GenericWorker");function s(e){i.call(this,"DataWorker");var t=this;this.dataIsReady=!1,this.index=0,this.max=0,this.data=null,this.type="",this._tickScheduled=!1,e.then(function(e){t.dataIsReady=!0,t.data=e,t.max=e&&e.length||0,t.type=n.getTypeOf(e),t.isPaused||t._tickAndRepeat()},function(e){t.error(e)})}n.inherits(s,i),s.prototype.cleanUp=function(){i.prototype.cleanUp.call(this),this.data=null},s.prototype.resume=function(){return!!i.prototype.resume.call(this)&&(!this._tickScheduled&&this.dataIsReady&&(this._tickScheduled=!0,n.delay(this._tickAndRepeat,[],this)),!0)},s.prototype._tickAndRepeat=function(){this._tickScheduled=!1,this.isPaused||this.isFinished||(this._tick(),this.isFinished||(n.delay(this._tickAndRepeat,[],this),this._tickScheduled=!0))},s.prototype._tick=function(){if(this.isPaused||this.isFinished)return!1;var e=null,t=Math.min(this.max,this.index+16384);if(this.index>=this.max)return this.end();switch(this.type){case"string":e=this.data.substring(this.index,t);break;case"uint8array":e=this.data.subarray(this.index,t);break;case"array":case"nodebuffer":e=this.data.slice(this.index,t)}return this.index=t,this.push({data:e,meta:{percent:this.max?this.index/this.max*100:0}})},t.exports=s},{"../utils":32,"./GenericWorker":28}],28:[function(e,t,r){"use strict";function n(e){this.name=e||"default",this.streamInfo={},this.generatedError=null,this.extraStreamInfo={},this.isPaused=!0,this.isFinished=!1,this.isLocked=!1,this._listeners={data:[],end:[],error:[]},this.previous=null}n.prototype={push:function(e){this.emit("data",e)},end:function(){if(this.isFinished)return!1;this.flush();try{this.emit("end"),this.cleanUp(),this.isFinished=!0}catch(e){this.emit("error",e)}return!0},error:function(e){return!this.isFinished&&(this.isPaused?this.generatedError=e:(this.isFinished=!0,this.emit("error",e),this.previous&&this.previous.error(e),this.cleanUp()),!0)},on:function(e,t){return this._listeners[e].push(t),this},cleanUp:function(){this.streamInfo=this.generatedError=this.extraStreamInfo=null,this._listeners=[]},emit:function(e,t){if(this._listeners[e])for(var r=0;r<this._listeners[e].length;r++)this._listeners[e][r].call(this,t)},pipe:function(e){return e.registerPrevious(this)},registerPrevious:function(e){if(this.isLocked)throw new Error("The stream '"+this+"' has already been used.");this.streamInfo=e.streamInfo,this.mergeStreamInfo(),this.previous=e;var t=this;return e.on("data",function(e){t.processChunk(e)}),e.on("end",function(){t.end()}),e.on("error",function(e){t.error(e)}),this},pause:function(){return!this.isPaused&&!this.isFinished&&(this.isPaused=!0,this.previous&&this.previous.pause(),!0)},resume:function(){if(!this.isPaused||this.isFinished)return!1;var e=this.isPaused=!1;return this.generatedError&&(this.error(this.generatedError),e=!0),this.previous&&this.previous.resume(),!e},flush:function(){},processChunk:function(e){this.push(e)},withStreamInfo:function(e,t){return this.extraStreamInfo[e]=t,this.mergeStreamInfo(),this},mergeStreamInfo:function(){for(var e in this.extraStreamInfo)Object.prototype.hasOwnProperty.call(this.extraStreamInfo,e)&&(this.streamInfo[e]=this.extraStreamInfo[e])},lock:function(){if(this.isLocked)throw new Error("The stream '"+this+"' has already been used.");this.isLocked=!0,this.previous&&this.previous.lock()},toString:function(){var e="Worker "+this.name;return this.previous?this.previous+" -> "+e:e}},t.exports=n},{}],29:[function(e,t,r){"use strict";var h=e("../utils"),i=e("./ConvertWorker"),s=e("./GenericWorker"),u=e("../base64"),n=e("../support"),a=e("../external"),o=null;if(n.nodestream)try{o=e("../nodejs/NodejsStreamOutputAdapter")}catch(e){}function l(e,o){return new a.Promise(function(t,r){var n=[],i=e._internalType,s=e._outputType,a=e._mimeType;e.on("data",function(e,t){n.push(e),o&&o(t)}).on("error",function(e){n=[],r(e)}).on("end",function(){try{var e=function(e,t,r){switch(e){case"blob":return h.newBlob(h.transformTo("arraybuffer",t),r);case"base64":return u.encode(t);default:return h.transformTo(e,t)}}(s,function(e,t){var r,n=0,i=null,s=0;for(r=0;r<t.length;r++)s+=t[r].length;switch(e){case"string":return t.join("");case"array":return Array.prototype.concat.apply([],t);case"uint8array":for(i=new Uint8Array(s),r=0;r<t.length;r++)i.set(t[r],n),n+=t[r].length;return i;case"nodebuffer":return Buffer.concat(t);default:throw new Error("concat : unsupported type '"+e+"'")}}(i,n),a);t(e)}catch(e){r(e)}n=[]}).resume()})}function f(e,t,r){var n=t;switch(t){case"blob":case"arraybuffer":n="uint8array";break;case"base64":n="string"}try{this._internalType=n,this._outputType=t,this._mimeType=r,h.checkSupport(n),this._worker=e.pipe(new i(n)),e.lock()}catch(e){this._worker=new s("error"),this._worker.error(e)}}f.prototype={accumulate:function(e){return l(this,e)},on:function(e,t){var r=this;return"data"===e?this._worker.on(e,function(e){t.call(r,e.data,e.meta)}):this._worker.on(e,function(){h.delay(t,arguments,r)}),this},resume:function(){return h.delay(this._worker.resume,[],this._worker),this},pause:function(){return this._worker.pause(),this},toNodejsStream:function(e){if(h.checkSupport("nodestream"),"nodebuffer"!==this._outputType)throw new Error(this._outputType+" is not supported by this method");return new o(this,{objectMode:"nodebuffer"!==this._outputType},e)}},t.exports=f},{"../base64":1,"../external":6,"../nodejs/NodejsStreamOutputAdapter":13,"../support":30,"../utils":32,"./ConvertWorker":24,"./GenericWorker":28}],30:[function(e,t,r){"use strict";if(r.base64=!0,r.array=!0,r.string=!0,r.arraybuffer="undefined"!=typeof ArrayBuffer&&"undefined"!=typeof Uint8Array,r.nodebuffer="undefined"!=typeof Buffer,r.uint8array="undefined"!=typeof Uint8Array,"undefined"==typeof ArrayBuffer)r.blob=!1;else{var n=new ArrayBuffer(0);try{r.blob=0===new Blob([n],{type:"application/zip"}).size}catch(e){try{var i=new(self.BlobBuilder||self.WebKitBlobBuilder||self.MozBlobBuilder||self.MSBlobBuilder);i.append(n),r.blob=0===i.getBlob("application/zip").size}catch(e){r.blob=!1}}}try{r.nodestream=!!e("readable-stream").Readable}catch(e){r.nodestream=!1}},{"readable-stream":16}],31:[function(e,t,s){"use strict";for(var o=e("./utils"),h=e("./support"),r=e("./nodejsUtils"),n=e("./stream/GenericWorker"),u=new Array(256),i=0;i<256;i++)u[i]=252<=i?6:248<=i?5:240<=i?4:224<=i?3:192<=i?2:1;u[254]=u[254]=1;function a(){n.call(this,"utf-8 decode"),this.leftOver=null}function l(){n.call(this,"utf-8 encode")}s.utf8encode=function(e){return h.nodebuffer?r.newBufferFrom(e,"utf-8"):function(e){var t,r,n,i,s,a=e.length,o=0;for(i=0;i<a;i++)55296==(64512&(r=e.charCodeAt(i)))&&i+1<a&&56320==(64512&(n=e.charCodeAt(i+1)))&&(r=65536+(r-55296<<10)+(n-56320),i++),o+=r<128?1:r<2048?2:r<65536?3:4;for(t=h.uint8array?new Uint8Array(o):new Array(o),i=s=0;s<o;i++)55296==(64512&(r=e.charCodeAt(i)))&&i+1<a&&56320==(64512&(n=e.charCodeAt(i+1)))&&(r=65536+(r-55296<<10)+(n-56320),i++),r<128?t[s++]=r:(r<2048?t[s++]=192|r>>>6:(r<65536?t[s++]=224|r>>>12:(t[s++]=240|r>>>18,t[s++]=128|r>>>12&63),t[s++]=128|r>>>6&63),t[s++]=128|63&r);return t}(e)},s.utf8decode=function(e){return h.nodebuffer?o.transformTo("nodebuffer",e).toString("utf-8"):function(e){var t,r,n,i,s=e.length,a=new Array(2*s);for(t=r=0;t<s;)if((n=e[t++])<128)a[r++]=n;else if(4<(i=u[n]))a[r++]=65533,t+=i-1;else{for(n&=2===i?31:3===i?15:7;1<i&&t<s;)n=n<<6|63&e[t++],i--;1<i?a[r++]=65533:n<65536?a[r++]=n:(n-=65536,a[r++]=55296|n>>10&1023,a[r++]=56320|1023&n)}return a.length!==r&&(a.subarray?a=a.subarray(0,r):a.length=r),o.applyFromCharCode(a)}(e=o.transformTo(h.uint8array?"uint8array":"array",e))},o.inherits(a,n),a.prototype.processChunk=function(e){var t=o.transformTo(h.uint8array?"uint8array":"array",e.data);if(this.leftOver&&this.leftOver.length){if(h.uint8array){var r=t;(t=new Uint8Array(r.length+this.leftOver.length)).set(this.leftOver,0),t.set(r,this.leftOver.length)}else t=this.leftOver.concat(t);this.leftOver=null}var n=function(e,t){var r;for((t=t||e.length)>e.length&&(t=e.length),r=t-1;0<=r&&128==(192&e[r]);)r--;return r<0?t:0===r?t:r+u[e[r]]>t?r:t}(t),i=t;n!==t.length&&(h.uint8array?(i=t.subarray(0,n),this.leftOver=t.subarray(n,t.length)):(i=t.slice(0,n),this.leftOver=t.slice(n,t.length))),this.push({data:s.utf8decode(i),meta:e.meta})},a.prototype.flush=function(){this.leftOver&&this.leftOver.length&&(this.push({data:s.utf8decode(this.leftOver),meta:{}}),this.leftOver=null)},s.Utf8DecodeWorker=a,o.inherits(l,n),l.prototype.processChunk=function(e){this.push({data:s.utf8encode(e.data),meta:e.meta})},s.Utf8EncodeWorker=l},{"./nodejsUtils":14,"./stream/GenericWorker":28,"./support":30,"./utils":32}],32:[function(e,t,a){"use strict";var o=e("./support"),h=e("./base64"),r=e("./nodejsUtils"),u=e("./external");function n(e){return e}function l(e,t){for(var r=0;r<e.length;++r)t[r]=255&e.charCodeAt(r);return t}e("setimmediate"),a.newBlob=function(t,r){a.checkSupport("blob");try{return new Blob([t],{type:r})}catch(e){try{var n=new(self.BlobBuilder||self.WebKitBlobBuilder||self.MozBlobBuilder||self.MSBlobBuilder);return n.append(t),n.getBlob(r)}catch(e){throw new Error("Bug : can't construct the Blob.")}}};var i={stringifyByChunk:function(e,t,r){var n=[],i=0,s=e.length;if(s<=r)return String.fromCharCode.apply(null,e);for(;i<s;)"array"===t||"nodebuffer"===t?n.push(String.fromCharCode.apply(null,e.slice(i,Math.min(i+r,s)))):n.push(String.fromCharCode.apply(null,e.subarray(i,Math.min(i+r,s)))),i+=r;return n.join("")},stringifyByChar:function(e){for(var t="",r=0;r<e.length;r++)t+=String.fromCharCode(e[r]);return t},applyCanBeUsed:{uint8array:function(){try{return o.uint8array&&1===String.fromCharCode.apply(null,new Uint8Array(1)).length}catch(e){return!1}}(),nodebuffer:function(){try{return o.nodebuffer&&1===String.fromCharCode.apply(null,r.allocBuffer(1)).length}catch(e){return!1}}()}};function s(e){var t=65536,r=a.getTypeOf(e),n=!0;if("uint8array"===r?n=i.applyCanBeUsed.uint8array:"nodebuffer"===r&&(n=i.applyCanBeUsed.nodebuffer),n)for(;1<t;)try{return i.stringifyByChunk(e,r,t)}catch(e){t=Math.floor(t/2)}return i.stringifyByChar(e)}function f(e,t){for(var r=0;r<e.length;r++)t[r]=e[r];return t}a.applyFromCharCode=s;var c={};c.string={string:n,array:function(e){return l(e,new Array(e.length))},arraybuffer:function(e){return c.string.uint8array(e).buffer},uint8array:function(e){return l(e,new Uint8Array(e.length))},nodebuffer:function(e){return l(e,r.allocBuffer(e.length))}},c.array={string:s,array:n,arraybuffer:function(e){return new Uint8Array(e).buffer},uint8array:function(e){return new Uint8Array(e)},nodebuffer:function(e){return r.newBufferFrom(e)}},c.arraybuffer={string:function(e){return s(new Uint8Array(e))},array:function(e){return f(new Uint8Array(e),new Array(e.byteLength))},arraybuffer:n,uint8array:function(e){return new Uint8Array(e)},nodebuffer:function(e){return r.newBufferFrom(new Uint8Array(e))}},c.uint8array={string:s,array:function(e){return f(e,new Array(e.length))},arraybuffer:function(e){return e.buffer},uint8array:n,nodebuffer:function(e){return r.newBufferFrom(e)}},c.nodebuffer={string:s,array:function(e){return f(e,new Array(e.length))},arraybuffer:function(e){return c.nodebuffer.uint8array(e).buffer},uint8array:function(e){return f(e,new Uint8Array(e.length))},nodebuffer:n},a.transformTo=function(e,t){if(t=t||"",!e)return t;a.checkSupport(e);var r=a.getTypeOf(t);return c[r][e](t)},a.resolve=function(e){for(var t=e.split("/"),r=[],n=0;n<t.length;n++){var i=t[n];"."===i||""===i&&0!==n&&n!==t.length-1||(".."===i?r.pop():r.push(i))}return r.join("/")},a.getTypeOf=function(e){return"string"==typeof e?"string":"[object Array]"===Object.prototype.toString.call(e)?"array":o.nodebuffer&&r.isBuffer(e)?"nodebuffer":o.uint8array&&e instanceof Uint8Array?"uint8array":o.arraybuffer&&e instanceof ArrayBuffer?"arraybuffer":void 0},a.checkSupport=function(e){if(!o[e.toLowerCase()])throw new Error(e+" is not supported by this platform")},a.MAX_VALUE_16BITS=65535,a.MAX_VALUE_32BITS=-1,a.pretty=function(e){var t,r,n="";for(r=0;r<(e||"").length;r++)n+="\\x"+((t=e.charCodeAt(r))<16?"0":"")+t.toString(16).toUpperCase();return n},a.delay=function(e,t,r){setImmediate(function(){e.apply(r||null,t||[])})},a.inherits=function(e,t){function r(){}r.prototype=t.prototype,e.prototype=new r},a.extend=function(){var e,t,r={};for(e=0;e<arguments.length;e++)for(t in arguments[e])Object.prototype.hasOwnProperty.call(arguments[e],t)&&void 0===r[t]&&(r[t]=arguments[e][t]);return r},a.prepareContent=function(r,e,n,i,s){return u.Promise.resolve(e).then(function(n){return o.blob&&(n instanceof Blob||-1!==["[object File]","[object Blob]"].indexOf(Object.prototype.toString.call(n)))&&"undefined"!=typeof FileReader?new u.Promise(function(t,r){var e=new FileReader;e.onload=function(e){t(e.target.result)},e.onerror=function(e){r(e.target.error)},e.readAsArrayBuffer(n)}):n}).then(function(e){var t=a.getTypeOf(e);return t?("arraybuffer"===t?e=a.transformTo("uint8array",e):"string"===t&&(s?e=h.decode(e):n&&!0!==i&&(e=function(e){return l(e,o.uint8array?new Uint8Array(e.length):new Array(e.length))}(e))),e):u.Promise.reject(new Error("Can't read the data of '"+r+"'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?"))})}},{"./base64":1,"./external":6,"./nodejsUtils":14,"./support":30,setimmediate:54}],33:[function(e,t,r){"use strict";var n=e("./reader/readerFor"),i=e("./utils"),s=e("./signature"),a=e("./zipEntry"),o=e("./support");function h(e){this.files=[],this.loadOptions=e}h.prototype={checkSignature:function(e){if(!this.reader.readAndCheckSignature(e)){this.reader.index-=4;var t=this.reader.readString(4);throw new Error("Corrupted zip or bug: unexpected signature ("+i.pretty(t)+", expected "+i.pretty(e)+")")}},isSignature:function(e,t){var r=this.reader.index;this.reader.setIndex(e);var n=this.reader.readString(4)===t;return this.reader.setIndex(r),n},readBlockEndOfCentral:function(){this.diskNumber=this.reader.readInt(2),this.diskWithCentralDirStart=this.reader.readInt(2),this.centralDirRecordsOnThisDisk=this.reader.readInt(2),this.centralDirRecords=this.reader.readInt(2),this.centralDirSize=this.reader.readInt(4),this.centralDirOffset=this.reader.readInt(4),this.zipCommentLength=this.reader.readInt(2);var e=this.reader.readData(this.zipCommentLength),t=o.uint8array?"uint8array":"array",r=i.transformTo(t,e);this.zipComment=this.loadOptions.decodeFileName(r)},readBlockZip64EndOfCentral:function(){this.zip64EndOfCentralSize=this.reader.readInt(8),this.reader.skip(4),this.diskNumber=this.reader.readInt(4),this.diskWithCentralDirStart=this.reader.readInt(4),this.centralDirRecordsOnThisDisk=this.reader.readInt(8),this.centralDirRecords=this.reader.readInt(8),this.centralDirSize=this.reader.readInt(8),this.centralDirOffset=this.reader.readInt(8),this.zip64ExtensibleData={};for(var e,t,r,n=this.zip64EndOfCentralSize-44;0<n;)e=this.reader.readInt(2),t=this.reader.readInt(4),r=this.reader.readData(t),this.zip64ExtensibleData[e]={id:e,length:t,value:r}},readBlockZip64EndOfCentralLocator:function(){if(this.diskWithZip64CentralDirStart=this.reader.readInt(4),this.relativeOffsetEndOfZip64CentralDir=this.reader.readInt(8),this.disksCount=this.reader.readInt(4),1<this.disksCount)throw new Error("Multi-volumes zip are not supported")},readLocalFiles:function(){var e,t;for(e=0;e<this.files.length;e++)t=this.files[e],this.reader.setIndex(t.localHeaderOffset),this.checkSignature(s.LOCAL_FILE_HEADER),t.readLocalPart(this.reader),t.handleUTF8(),t.processAttributes()},readCentralDir:function(){var e;for(this.reader.setIndex(this.centralDirOffset);this.reader.readAndCheckSignature(s.CENTRAL_FILE_HEADER);)(e=new a({zip64:this.zip64},this.loadOptions)).readCentralPart(this.reader),this.files.push(e);if(this.centralDirRecords!==this.files.length&&0!==this.centralDirRecords&&0===this.files.length)throw new Error("Corrupted zip or bug: expected "+this.centralDirRecords+" records in central dir, got "+this.files.length)},readEndOfCentral:function(){var e=this.reader.lastIndexOfSignature(s.CENTRAL_DIRECTORY_END);if(e<0)throw!this.isSignature(0,s.LOCAL_FILE_HEADER)?new Error("Can't find end of central directory : is this a zip file ? If it is, see https://stuk.github.io/jszip/documentation/howto/read_zip.html"):new Error("Corrupted zip: can't find end of central directory");this.reader.setIndex(e);var t=e;if(this.checkSignature(s.CENTRAL_DIRECTORY_END),this.readBlockEndOfCentral(),this.diskNumber===i.MAX_VALUE_16BITS||this.diskWithCentralDirStart===i.MAX_VALUE_16BITS||this.centralDirRecordsOnThisDisk===i.MAX_VALUE_16BITS||this.centralDirRecords===i.MAX_VALUE_16BITS||this.centralDirSize===i.MAX_VALUE_32BITS||this.centralDirOffset===i.MAX_VALUE_32BITS){if(this.zip64=!0,(e=this.reader.lastIndexOfSignature(s.ZIP64_CENTRAL_DIRECTORY_LOCATOR))<0)throw new Error("Corrupted zip: can't find the ZIP64 end of central directory locator");if(this.reader.setIndex(e),this.checkSignature(s.ZIP64_CENTRAL_DIRECTORY_LOCATOR),this.readBlockZip64EndOfCentralLocator(),!this.isSignature(this.relativeOffsetEndOfZip64CentralDir,s.ZIP64_CENTRAL_DIRECTORY_END)&&(this.relativeOffsetEndOfZip64CentralDir=this.reader.lastIndexOfSignature(s.ZIP64_CENTRAL_DIRECTORY_END),this.relativeOffsetEndOfZip64CentralDir<0))throw new Error("Corrupted zip: can't find the ZIP64 end of central directory");this.reader.setIndex(this.relativeOffsetEndOfZip64CentralDir),this.checkSignature(s.ZIP64_CENTRAL_DIRECTORY_END),this.readBlockZip64EndOfCentral()}var r=this.centralDirOffset+this.centralDirSize;this.zip64&&(r+=20,r+=12+this.zip64EndOfCentralSize);var n=t-r;if(0<n)this.isSignature(t,s.CENTRAL_FILE_HEADER)||(this.reader.zero=n);else if(n<0)throw new Error("Corrupted zip: missing "+Math.abs(n)+" bytes.")},prepareReader:function(e){this.reader=n(e)},load:function(e){this.prepareReader(e),this.readEndOfCentral(),this.readCentralDir(),this.readLocalFiles()}},t.exports=h},{"./reader/readerFor":22,"./signature":23,"./support":30,"./utils":32,"./zipEntry":34}],34:[function(e,t,r){"use strict";var n=e("./reader/readerFor"),s=e("./utils"),i=e("./compressedObject"),a=e("./crc32"),o=e("./utf8"),h=e("./compressions"),u=e("./support");function l(e,t){this.options=e,this.loadOptions=t}l.prototype={isEncrypted:function(){return 1==(1&this.bitFlag)},useUTF8:function(){return 2048==(2048&this.bitFlag)},readLocalPart:function(e){var t,r;if(e.skip(22),this.fileNameLength=e.readInt(2),r=e.readInt(2),this.fileName=e.readData(this.fileNameLength),e.skip(r),-1===this.compressedSize||-1===this.uncompressedSize)throw new Error("Bug or corrupted zip : didn't get enough information from the central directory (compressedSize === -1 || uncompressedSize === -1)");if(null===(t=function(e){for(var t in h)if(Object.prototype.hasOwnProperty.call(h,t)&&h[t].magic===e)return h[t];return null}(this.compressionMethod)))throw new Error("Corrupted zip : compression "+s.pretty(this.compressionMethod)+" unknown (inner file : "+s.transformTo("string",this.fileName)+")");this.decompressed=new i(this.compressedSize,this.uncompressedSize,this.crc32,t,e.readData(this.compressedSize))},readCentralPart:function(e){this.versionMadeBy=e.readInt(2),e.skip(2),this.bitFlag=e.readInt(2),this.compressionMethod=e.readString(2),this.date=e.readDate(),this.crc32=e.readInt(4),this.compressedSize=e.readInt(4),this.uncompressedSize=e.readInt(4);var t=e.readInt(2);if(this.extraFieldsLength=e.readInt(2),this.fileCommentLength=e.readInt(2),this.diskNumberStart=e.readInt(2),this.internalFileAttributes=e.readInt(2),this.externalFileAttributes=e.readInt(4),this.localHeaderOffset=e.readInt(4),this.isEncrypted())throw new Error("Encrypted zip are not supported");e.skip(t),this.readExtraFields(e),this.parseZIP64ExtraField(e),this.fileComment=e.readData(this.fileCommentLength)},processAttributes:function(){this.unixPermissions=null,this.dosPermissions=null;var e=this.versionMadeBy>>8;this.dir=!!(16&this.externalFileAttributes),0==e&&(this.dosPermissions=63&this.externalFileAttributes),3==e&&(this.unixPermissions=this.externalFileAttributes>>16&65535),this.dir||"/"!==this.fileNameStr.slice(-1)||(this.dir=!0)},parseZIP64ExtraField:function(){if(this.extraFields[1]){var e=n(this.extraFields[1].value);this.uncompressedSize===s.MAX_VALUE_32BITS&&(this.uncompressedSize=e.readInt(8)),this.compressedSize===s.MAX_VALUE_32BITS&&(this.compressedSize=e.readInt(8)),this.localHeaderOffset===s.MAX_VALUE_32BITS&&(this.localHeaderOffset=e.readInt(8)),this.diskNumberStart===s.MAX_VALUE_32BITS&&(this.diskNumberStart=e.readInt(4))}},readExtraFields:function(e){var t,r,n,i=e.index+this.extraFieldsLength;for(this.extraFields||(this.extraFields={});e.index+4<i;)t=e.readInt(2),r=e.readInt(2),n=e.readData(r),this.extraFields[t]={id:t,length:r,value:n};e.setIndex(i)},handleUTF8:function(){var e=u.uint8array?"uint8array":"array";if(this.useUTF8())this.fileNameStr=o.utf8decode(this.fileName),this.fileCommentStr=o.utf8decode(this.fileComment);else{var t=this.findExtraFieldUnicodePath();if(null!==t)this.fileNameStr=t;else{var r=s.transformTo(e,this.fileName);this.fileNameStr=this.loadOptions.decodeFileName(r)}var n=this.findExtraFieldUnicodeComment();if(null!==n)this.fileCommentStr=n;else{var i=s.transformTo(e,this.fileComment);this.fileCommentStr=this.loadOptions.decodeFileName(i)}}},findExtraFieldUnicodePath:function(){var e=this.extraFields[28789];if(e){var t=n(e.value);return 1!==t.readInt(1)?null:a(this.fileName)!==t.readInt(4)?null:o.utf8decode(t.readData(e.length-5))}return null},findExtraFieldUnicodeComment:function(){var e=this.extraFields[25461];if(e){var t=n(e.value);return 1!==t.readInt(1)?null:a(this.fileComment)!==t.readInt(4)?null:o.utf8decode(t.readData(e.length-5))}return null}},t.exports=l},{"./compressedObject":2,"./compressions":3,"./crc32":4,"./reader/readerFor":22,"./support":30,"./utf8":31,"./utils":32}],35:[function(e,t,r){"use strict";function n(e,t,r){this.name=e,this.dir=r.dir,this.date=r.date,this.comment=r.comment,this.unixPermissions=r.unixPermissions,this.dosPermissions=r.dosPermissions,this._data=t,this._dataBinary=r.binary,this.options={compression:r.compression,compressionOptions:r.compressionOptions}}var s=e("./stream/StreamHelper"),i=e("./stream/DataWorker"),a=e("./utf8"),o=e("./compressedObject"),h=e("./stream/GenericWorker");n.prototype={internalStream:function(e){var t=null,r="string";try{if(!e)throw new Error("No output type specified.");var n="string"===(r=e.toLowerCase())||"text"===r;"binarystring"!==r&&"text"!==r||(r="string"),t=this._decompressWorker();var i=!this._dataBinary;i&&!n&&(t=t.pipe(new a.Utf8EncodeWorker)),!i&&n&&(t=t.pipe(new a.Utf8DecodeWorker))}catch(e){(t=new h("error")).error(e)}return new s(t,r,"")},async:function(e,t){return this.internalStream(e).accumulate(t)},nodeStream:function(e,t){return this.internalStream(e||"nodebuffer").toNodejsStream(t)},_compressWorker:function(e,t){if(this._data instanceof o&&this._data.compression.magic===e.magic)return this._data.getCompressedWorker();var r=this._decompressWorker();return this._dataBinary||(r=r.pipe(new a.Utf8EncodeWorker)),o.createWorkerFrom(r,e,t)},_decompressWorker:function(){return this._data instanceof o?this._data.getContentWorker():this._data instanceof h?this._data:new i(this._data)}};for(var u=["asText","asBinary","asNodeBuffer","asUint8Array","asArrayBuffer"],l=function(){throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.")},f=0;f<u.length;f++)n.prototype[u[f]]=l;t.exports=n},{"./compressedObject":2,"./stream/DataWorker":27,"./stream/GenericWorker":28,"./stream/StreamHelper":29,"./utf8":31}],36:[function(e,l,t){(function(t){"use strict";var r,n,e=t.MutationObserver||t.WebKitMutationObserver;if(e){var i=0,s=new e(u),a=t.document.createTextNode("");s.observe(a,{characterData:!0}),r=function(){a.data=i=++i%2}}else if(t.setImmediate||void 0===t.MessageChannel)r="document"in t&&"onreadystatechange"in t.document.createElement("script")?function(){var e=t.document.createElement("script");e.onreadystatechange=function(){u(),e.onreadystatechange=null,e.parentNode.removeChild(e),e=null},t.document.documentElement.appendChild(e)}:function(){setTimeout(u,0)};else{var o=new t.MessageChannel;o.port1.onmessage=u,r=function(){o.port2.postMessage(0)}}var h=[];function u(){var e,t;n=!0;for(var r=h.length;r;){for(t=h,h=[],e=-1;++e<r;)t[e]();r=h.length}n=!1}l.exports=function(e){1!==h.push(e)||n||r()}}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{}],37:[function(e,t,r){"use strict";var i=e("immediate");function u(){}var l={},s=["REJECTED"],a=["FULFILLED"],n=["PENDING"];function o(e){if("function"!=typeof e)throw new TypeError("resolver must be a function");this.state=n,this.queue=[],this.outcome=void 0,e!==u&&d(this,e)}function h(e,t,r){this.promise=e,"function"==typeof t&&(this.onFulfilled=t,this.callFulfilled=this.otherCallFulfilled),"function"==typeof r&&(this.onRejected=r,this.callRejected=this.otherCallRejected)}function f(t,r,n){i(function(){var e;try{e=r(n)}catch(e){return l.reject(t,e)}e===t?l.reject(t,new TypeError("Cannot resolve promise with itself")):l.resolve(t,e)})}function c(e){var t=e&&e.then;if(e&&("object"==typeof e||"function"==typeof e)&&"function"==typeof t)return function(){t.apply(e,arguments)}}function d(t,e){var r=!1;function n(e){r||(r=!0,l.reject(t,e))}function i(e){r||(r=!0,l.resolve(t,e))}var s=p(function(){e(i,n)});"error"===s.status&&n(s.value)}function p(e,t){var r={};try{r.value=e(t),r.status="success"}catch(e){r.status="error",r.value=e}return r}(t.exports=o).prototype.finally=function(t){if("function"!=typeof t)return this;var r=this.constructor;return this.then(function(e){return r.resolve(t()).then(function(){return e})},function(e){return r.resolve(t()).then(function(){throw e})})},o.prototype.catch=function(e){return this.then(null,e)},o.prototype.then=function(e,t){if("function"!=typeof e&&this.state===a||"function"!=typeof t&&this.state===s)return this;var r=new this.constructor(u);this.state!==n?f(r,this.state===a?e:t,this.outcome):this.queue.push(new h(r,e,t));return r},h.prototype.callFulfilled=function(e){l.resolve(this.promise,e)},h.prototype.otherCallFulfilled=function(e){f(this.promise,this.onFulfilled,e)},h.prototype.callRejected=function(e){l.reject(this.promise,e)},h.prototype.otherCallRejected=function(e){f(this.promise,this.onRejected,e)},l.resolve=function(e,t){var r=p(c,t);if("error"===r.status)return l.reject(e,r.value);var n=r.value;if(n)d(e,n);else{e.state=a,e.outcome=t;for(var i=-1,s=e.queue.length;++i<s;)e.queue[i].callFulfilled(t)}return e},l.reject=function(e,t){e.state=s,e.outcome=t;for(var r=-1,n=e.queue.length;++r<n;)e.queue[r].callRejected(t);return e},o.resolve=function(e){if(e instanceof this)return e;return l.resolve(new this(u),e)},o.reject=function(e){var t=new this(u);return l.reject(t,e)},o.all=function(e){var r=this;if("[object Array]"!==Object.prototype.toString.call(e))return this.reject(new TypeError("must be an array"));var n=e.length,i=!1;if(!n)return this.resolve([]);var s=new Array(n),a=0,t=-1,o=new this(u);for(;++t<n;)h(e[t],t);return o;function h(e,t){r.resolve(e).then(function(e){s[t]=e,++a!==n||i||(i=!0,l.resolve(o,s))},function(e){i||(i=!0,l.reject(o,e))})}},o.race=function(e){var t=this;if("[object Array]"!==Object.prototype.toString.call(e))return this.reject(new TypeError("must be an array"));var r=e.length,n=!1;if(!r)return this.resolve([]);var i=-1,s=new this(u);for(;++i<r;)a=e[i],t.resolve(a).then(function(e){n||(n=!0,l.resolve(s,e))},function(e){n||(n=!0,l.reject(s,e))});var a;return s}},{immediate:36}],38:[function(e,t,r){"use strict";var n={};(0,e("./lib/utils/common").assign)(n,e("./lib/deflate"),e("./lib/inflate"),e("./lib/zlib/constants")),t.exports=n},{"./lib/deflate":39,"./lib/inflate":40,"./lib/utils/common":41,"./lib/zlib/constants":44}],39:[function(e,t,r){"use strict";var a=e("./zlib/deflate"),o=e("./utils/common"),h=e("./utils/strings"),i=e("./zlib/messages"),s=e("./zlib/zstream"),u=Object.prototype.toString,l=0,f=-1,c=0,d=8;function p(e){if(!(this instanceof p))return new p(e);this.options=o.assign({level:f,method:d,chunkSize:16384,windowBits:15,memLevel:8,strategy:c,to:""},e||{});var t=this.options;t.raw&&0<t.windowBits?t.windowBits=-t.windowBits:t.gzip&&0<t.windowBits&&t.windowBits<16&&(t.windowBits+=16),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new s,this.strm.avail_out=0;var r=a.deflateInit2(this.strm,t.level,t.method,t.windowBits,t.memLevel,t.strategy);if(r!==l)throw new Error(i[r]);if(t.header&&a.deflateSetHeader(this.strm,t.header),t.dictionary){var n;if(n="string"==typeof t.dictionary?h.string2buf(t.dictionary):"[object ArrayBuffer]"===u.call(t.dictionary)?new Uint8Array(t.dictionary):t.dictionary,(r=a.deflateSetDictionary(this.strm,n))!==l)throw new Error(i[r]);this._dict_set=!0}}function n(e,t){var r=new p(t);if(r.push(e,!0),r.err)throw r.msg||i[r.err];return r.result}p.prototype.push=function(e,t){var r,n,i=this.strm,s=this.options.chunkSize;if(this.ended)return!1;n=t===~~t?t:!0===t?4:0,"string"==typeof e?i.input=h.string2buf(e):"[object ArrayBuffer]"===u.call(e)?i.input=new Uint8Array(e):i.input=e,i.next_in=0,i.avail_in=i.input.length;do{if(0===i.avail_out&&(i.output=new o.Buf8(s),i.next_out=0,i.avail_out=s),1!==(r=a.deflate(i,n))&&r!==l)return this.onEnd(r),!(this.ended=!0);0!==i.avail_out&&(0!==i.avail_in||4!==n&&2!==n)||("string"===this.options.to?this.onData(h.buf2binstring(o.shrinkBuf(i.output,i.next_out))):this.onData(o.shrinkBuf(i.output,i.next_out)))}while((0<i.avail_in||0===i.avail_out)&&1!==r);return 4===n?(r=a.deflateEnd(this.strm),this.onEnd(r),this.ended=!0,r===l):2!==n||(this.onEnd(l),!(i.avail_out=0))},p.prototype.onData=function(e){this.chunks.push(e)},p.prototype.onEnd=function(e){e===l&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=o.flattenChunks(this.chunks)),this.chunks=[],this.err=e,this.msg=this.strm.msg},r.Deflate=p,r.deflate=n,r.deflateRaw=function(e,t){return(t=t||{}).raw=!0,n(e,t)},r.gzip=function(e,t){return(t=t||{}).gzip=!0,n(e,t)}},{"./utils/common":41,"./utils/strings":42,"./zlib/deflate":46,"./zlib/messages":51,"./zlib/zstream":53}],40:[function(e,t,r){"use strict";var c=e("./zlib/inflate"),d=e("./utils/common"),p=e("./utils/strings"),m=e("./zlib/constants"),n=e("./zlib/messages"),i=e("./zlib/zstream"),s=e("./zlib/gzheader"),_=Object.prototype.toString;function a(e){if(!(this instanceof a))return new a(e);this.options=d.assign({chunkSize:16384,windowBits:0,to:""},e||{});var t=this.options;t.raw&&0<=t.windowBits&&t.windowBits<16&&(t.windowBits=-t.windowBits,0===t.windowBits&&(t.windowBits=-15)),!(0<=t.windowBits&&t.windowBits<16)||e&&e.windowBits||(t.windowBits+=32),15<t.windowBits&&t.windowBits<48&&0==(15&t.windowBits)&&(t.windowBits|=15),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new i,this.strm.avail_out=0;var r=c.inflateInit2(this.strm,t.windowBits);if(r!==m.Z_OK)throw new Error(n[r]);this.header=new s,c.inflateGetHeader(this.strm,this.header)}function o(e,t){var r=new a(t);if(r.push(e,!0),r.err)throw r.msg||n[r.err];return r.result}a.prototype.push=function(e,t){var r,n,i,s,a,o,h=this.strm,u=this.options.chunkSize,l=this.options.dictionary,f=!1;if(this.ended)return!1;n=t===~~t?t:!0===t?m.Z_FINISH:m.Z_NO_FLUSH,"string"==typeof e?h.input=p.binstring2buf(e):"[object ArrayBuffer]"===_.call(e)?h.input=new Uint8Array(e):h.input=e,h.next_in=0,h.avail_in=h.input.length;do{if(0===h.avail_out&&(h.output=new d.Buf8(u),h.next_out=0,h.avail_out=u),(r=c.inflate(h,m.Z_NO_FLUSH))===m.Z_NEED_DICT&&l&&(o="string"==typeof l?p.string2buf(l):"[object ArrayBuffer]"===_.call(l)?new Uint8Array(l):l,r=c.inflateSetDictionary(this.strm,o)),r===m.Z_BUF_ERROR&&!0===f&&(r=m.Z_OK,f=!1),r!==m.Z_STREAM_END&&r!==m.Z_OK)return this.onEnd(r),!(this.ended=!0);h.next_out&&(0!==h.avail_out&&r!==m.Z_STREAM_END&&(0!==h.avail_in||n!==m.Z_FINISH&&n!==m.Z_SYNC_FLUSH)||("string"===this.options.to?(i=p.utf8border(h.output,h.next_out),s=h.next_out-i,a=p.buf2string(h.output,i),h.next_out=s,h.avail_out=u-s,s&&d.arraySet(h.output,h.output,i,s,0),this.onData(a)):this.onData(d.shrinkBuf(h.output,h.next_out)))),0===h.avail_in&&0===h.avail_out&&(f=!0)}while((0<h.avail_in||0===h.avail_out)&&r!==m.Z_STREAM_END);return r===m.Z_STREAM_END&&(n=m.Z_FINISH),n===m.Z_FINISH?(r=c.inflateEnd(this.strm),this.onEnd(r),this.ended=!0,r===m.Z_OK):n!==m.Z_SYNC_FLUSH||(this.onEnd(m.Z_OK),!(h.avail_out=0))},a.prototype.onData=function(e){this.chunks.push(e)},a.prototype.onEnd=function(e){e===m.Z_OK&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=d.flattenChunks(this.chunks)),this.chunks=[],this.err=e,this.msg=this.strm.msg},r.Inflate=a,r.inflate=o,r.inflateRaw=function(e,t){return(t=t||{}).raw=!0,o(e,t)},r.ungzip=o},{"./utils/common":41,"./utils/strings":42,"./zlib/constants":44,"./zlib/gzheader":47,"./zlib/inflate":49,"./zlib/messages":51,"./zlib/zstream":53}],41:[function(e,t,r){"use strict";var n="undefined"!=typeof Uint8Array&&"undefined"!=typeof Uint16Array&&"undefined"!=typeof Int32Array;r.assign=function(e){for(var t=Array.prototype.slice.call(arguments,1);t.length;){var r=t.shift();if(r){if("object"!=typeof r)throw new TypeError(r+"must be non-object");for(var n in r)r.hasOwnProperty(n)&&(e[n]=r[n])}}return e},r.shrinkBuf=function(e,t){return e.length===t?e:e.subarray?e.subarray(0,t):(e.length=t,e)};var i={arraySet:function(e,t,r,n,i){if(t.subarray&&e.subarray)e.set(t.subarray(r,r+n),i);else for(var s=0;s<n;s++)e[i+s]=t[r+s]},flattenChunks:function(e){var t,r,n,i,s,a;for(t=n=0,r=e.length;t<r;t++)n+=e[t].length;for(a=new Uint8Array(n),t=i=0,r=e.length;t<r;t++)s=e[t],a.set(s,i),i+=s.length;return a}},s={arraySet:function(e,t,r,n,i){for(var s=0;s<n;s++)e[i+s]=t[r+s]},flattenChunks:function(e){return[].concat.apply([],e)}};r.setTyped=function(e){e?(r.Buf8=Uint8Array,r.Buf16=Uint16Array,r.Buf32=Int32Array,r.assign(r,i)):(r.Buf8=Array,r.Buf16=Array,r.Buf32=Array,r.assign(r,s))},r.setTyped(n)},{}],42:[function(e,t,r){"use strict";var h=e("./common"),i=!0,s=!0;try{String.fromCharCode.apply(null,[0])}catch(e){i=!1}try{String.fromCharCode.apply(null,new Uint8Array(1))}catch(e){s=!1}for(var u=new h.Buf8(256),n=0;n<256;n++)u[n]=252<=n?6:248<=n?5:240<=n?4:224<=n?3:192<=n?2:1;function l(e,t){if(t<65537&&(e.subarray&&s||!e.subarray&&i))return String.fromCharCode.apply(null,h.shrinkBuf(e,t));for(var r="",n=0;n<t;n++)r+=String.fromCharCode(e[n]);return r}u[254]=u[254]=1,r.string2buf=function(e){var t,r,n,i,s,a=e.length,o=0;for(i=0;i<a;i++)55296==(64512&(r=e.charCodeAt(i)))&&i+1<a&&56320==(64512&(n=e.charCodeAt(i+1)))&&(r=65536+(r-55296<<10)+(n-56320),i++),o+=r<128?1:r<2048?2:r<65536?3:4;for(t=new h.Buf8(o),i=s=0;s<o;i++)55296==(64512&(r=e.charCodeAt(i)))&&i+1<a&&56320==(64512&(n=e.charCodeAt(i+1)))&&(r=65536+(r-55296<<10)+(n-56320),i++),r<128?t[s++]=r:(r<2048?t[s++]=192|r>>>6:(r<65536?t[s++]=224|r>>>12:(t[s++]=240|r>>>18,t[s++]=128|r>>>12&63),t[s++]=128|r>>>6&63),t[s++]=128|63&r);return t},r.buf2binstring=function(e){return l(e,e.length)},r.binstring2buf=function(e){for(var t=new h.Buf8(e.length),r=0,n=t.length;r<n;r++)t[r]=e.charCodeAt(r);return t},r.buf2string=function(e,t){var r,n,i,s,a=t||e.length,o=new Array(2*a);for(r=n=0;r<a;)if((i=e[r++])<128)o[n++]=i;else if(4<(s=u[i]))o[n++]=65533,r+=s-1;else{for(i&=2===s?31:3===s?15:7;1<s&&r<a;)i=i<<6|63&e[r++],s--;1<s?o[n++]=65533:i<65536?o[n++]=i:(i-=65536,o[n++]=55296|i>>10&1023,o[n++]=56320|1023&i)}return l(o,n)},r.utf8border=function(e,t){var r;for((t=t||e.length)>e.length&&(t=e.length),r=t-1;0<=r&&128==(192&e[r]);)r--;return r<0?t:0===r?t:r+u[e[r]]>t?r:t}},{"./common":41}],43:[function(e,t,r){"use strict";t.exports=function(e,t,r,n){for(var i=65535&e|0,s=e>>>16&65535|0,a=0;0!==r;){for(r-=a=2e3<r?2e3:r;s=s+(i=i+t[n++]|0)|0,--a;);i%=65521,s%=65521}return i|s<<16|0}},{}],44:[function(e,t,r){"use strict";t.exports={Z_NO_FLUSH:0,Z_PARTIAL_FLUSH:1,Z_SYNC_FLUSH:2,Z_FULL_FLUSH:3,Z_FINISH:4,Z_BLOCK:5,Z_TREES:6,Z_OK:0,Z_STREAM_END:1,Z_NEED_DICT:2,Z_ERRNO:-1,Z_STREAM_ERROR:-2,Z_DATA_ERROR:-3,Z_BUF_ERROR:-5,Z_NO_COMPRESSION:0,Z_BEST_SPEED:1,Z_BEST_COMPRESSION:9,Z_DEFAULT_COMPRESSION:-1,Z_FILTERED:1,Z_HUFFMAN_ONLY:2,Z_RLE:3,Z_FIXED:4,Z_DEFAULT_STRATEGY:0,Z_BINARY:0,Z_TEXT:1,Z_UNKNOWN:2,Z_DEFLATED:8}},{}],45:[function(e,t,r){"use strict";var o=function(){for(var e,t=[],r=0;r<256;r++){e=r;for(var n=0;n<8;n++)e=1&e?3988292384^e>>>1:e>>>1;t[r]=e}return t}();t.exports=function(e,t,r,n){var i=o,s=n+r;e^=-1;for(var a=n;a<s;a++)e=e>>>8^i[255&(e^t[a])];return-1^e}},{}],46:[function(e,t,r){"use strict";var h,c=e("../utils/common"),u=e("./trees"),d=e("./adler32"),p=e("./crc32"),n=e("./messages"),l=0,f=4,m=0,_=-2,g=-1,b=4,i=2,v=8,y=9,s=286,a=30,o=19,w=2*s+1,k=15,x=3,S=258,z=S+x+1,C=42,E=113,A=1,I=2,O=3,B=4;function R(e,t){return e.msg=n[t],t}function T(e){return(e<<1)-(4<e?9:0)}function D(e){for(var t=e.length;0<=--t;)e[t]=0}function F(e){var t=e.state,r=t.pending;r>e.avail_out&&(r=e.avail_out),0!==r&&(c.arraySet(e.output,t.pending_buf,t.pending_out,r,e.next_out),e.next_out+=r,t.pending_out+=r,e.total_out+=r,e.avail_out-=r,t.pending-=r,0===t.pending&&(t.pending_out=0))}function N(e,t){u._tr_flush_block(e,0<=e.block_start?e.block_start:-1,e.strstart-e.block_start,t),e.block_start=e.strstart,F(e.strm)}function U(e,t){e.pending_buf[e.pending++]=t}function P(e,t){e.pending_buf[e.pending++]=t>>>8&255,e.pending_buf[e.pending++]=255&t}function L(e,t){var r,n,i=e.max_chain_length,s=e.strstart,a=e.prev_length,o=e.nice_match,h=e.strstart>e.w_size-z?e.strstart-(e.w_size-z):0,u=e.window,l=e.w_mask,f=e.prev,c=e.strstart+S,d=u[s+a-1],p=u[s+a];e.prev_length>=e.good_match&&(i>>=2),o>e.lookahead&&(o=e.lookahead);do{if(u[(r=t)+a]===p&&u[r+a-1]===d&&u[r]===u[s]&&u[++r]===u[s+1]){s+=2,r++;do{}while(u[++s]===u[++r]&&u[++s]===u[++r]&&u[++s]===u[++r]&&u[++s]===u[++r]&&u[++s]===u[++r]&&u[++s]===u[++r]&&u[++s]===u[++r]&&u[++s]===u[++r]&&s<c);if(n=S-(c-s),s=c-S,a<n){if(e.match_start=t,o<=(a=n))break;d=u[s+a-1],p=u[s+a]}}}while((t=f[t&l])>h&&0!=--i);return a<=e.lookahead?a:e.lookahead}function j(e){var t,r,n,i,s,a,o,h,u,l,f=e.w_size;do{if(i=e.window_size-e.lookahead-e.strstart,e.strstart>=f+(f-z)){for(c.arraySet(e.window,e.window,f,f,0),e.match_start-=f,e.strstart-=f,e.block_start-=f,t=r=e.hash_size;n=e.head[--t],e.head[t]=f<=n?n-f:0,--r;);for(t=r=f;n=e.prev[--t],e.prev[t]=f<=n?n-f:0,--r;);i+=f}if(0===e.strm.avail_in)break;if(a=e.strm,o=e.window,h=e.strstart+e.lookahead,u=i,l=void 0,l=a.avail_in,u<l&&(l=u),r=0===l?0:(a.avail_in-=l,c.arraySet(o,a.input,a.next_in,l,h),1===a.state.wrap?a.adler=d(a.adler,o,l,h):2===a.state.wrap&&(a.adler=p(a.adler,o,l,h)),a.next_in+=l,a.total_in+=l,l),e.lookahead+=r,e.lookahead+e.insert>=x)for(s=e.strstart-e.insert,e.ins_h=e.window[s],e.ins_h=(e.ins_h<<e.hash_shift^e.window[s+1])&e.hash_mask;e.insert&&(e.ins_h=(e.ins_h<<e.hash_shift^e.window[s+x-1])&e.hash_mask,e.prev[s&e.w_mask]=e.head[e.ins_h],e.head[e.ins_h]=s,s++,e.insert--,!(e.lookahead+e.insert<x)););}while(e.lookahead<z&&0!==e.strm.avail_in)}function Z(e,t){for(var r,n;;){if(e.lookahead<z){if(j(e),e.lookahead<z&&t===l)return A;if(0===e.lookahead)break}if(r=0,e.lookahead>=x&&(e.ins_h=(e.ins_h<<e.hash_shift^e.window[e.strstart+x-1])&e.hash_mask,r=e.prev[e.strstart&e.w_mask]=e.head[e.ins_h],e.head[e.ins_h]=e.strstart),0!==r&&e.strstart-r<=e.w_size-z&&(e.match_length=L(e,r)),e.match_length>=x)if(n=u._tr_tally(e,e.strstart-e.match_start,e.match_length-x),e.lookahead-=e.match_length,e.match_length<=e.max_lazy_match&&e.lookahead>=x){for(e.match_length--;e.strstart++,e.ins_h=(e.ins_h<<e.hash_shift^e.window[e.strstart+x-1])&e.hash_mask,r=e.prev[e.strstart&e.w_mask]=e.head[e.ins_h],e.head[e.ins_h]=e.strstart,0!=--e.match_length;);e.strstart++}else e.strstart+=e.match_length,e.match_length=0,e.ins_h=e.window[e.strstart],e.ins_h=(e.ins_h<<e.hash_shift^e.window[e.strstart+1])&e.hash_mask;else n=u._tr_tally(e,0,e.window[e.strstart]),e.lookahead--,e.strstart++;if(n&&(N(e,!1),0===e.strm.avail_out))return A}return e.insert=e.strstart<x-1?e.strstart:x-1,t===f?(N(e,!0),0===e.strm.avail_out?O:B):e.last_lit&&(N(e,!1),0===e.strm.avail_out)?A:I}function W(e,t){for(var r,n,i;;){if(e.lookahead<z){if(j(e),e.lookahead<z&&t===l)return A;if(0===e.lookahead)break}if(r=0,e.lookahead>=x&&(e.ins_h=(e.ins_h<<e.hash_shift^e.window[e.strstart+x-1])&e.hash_mask,r=e.prev[e.strstart&e.w_mask]=e.head[e.ins_h],e.head[e.ins_h]=e.strstart),e.prev_length=e.match_length,e.prev_match=e.match_start,e.match_length=x-1,0!==r&&e.prev_length<e.max_lazy_match&&e.strstart-r<=e.w_size-z&&(e.match_length=L(e,r),e.match_length<=5&&(1===e.strategy||e.match_length===x&&4096<e.strstart-e.match_start)&&(e.match_length=x-1)),e.prev_length>=x&&e.match_length<=e.prev_length){for(i=e.strstart+e.lookahead-x,n=u._tr_tally(e,e.strstart-1-e.prev_match,e.prev_length-x),e.lookahead-=e.prev_length-1,e.prev_length-=2;++e.strstart<=i&&(e.ins_h=(e.ins_h<<e.hash_shift^e.window[e.strstart+x-1])&e.hash_mask,r=e.prev[e.strstart&e.w_mask]=e.head[e.ins_h],e.head[e.ins_h]=e.strstart),0!=--e.prev_length;);if(e.match_available=0,e.match_length=x-1,e.strstart++,n&&(N(e,!1),0===e.strm.avail_out))return A}else if(e.match_available){if((n=u._tr_tally(e,0,e.window[e.strstart-1]))&&N(e,!1),e.strstart++,e.lookahead--,0===e.strm.avail_out)return A}else e.match_available=1,e.strstart++,e.lookahead--}return e.match_available&&(n=u._tr_tally(e,0,e.window[e.strstart-1]),e.match_available=0),e.insert=e.strstart<x-1?e.strstart:x-1,t===f?(N(e,!0),0===e.strm.avail_out?O:B):e.last_lit&&(N(e,!1),0===e.strm.avail_out)?A:I}function M(e,t,r,n,i){this.good_length=e,this.max_lazy=t,this.nice_length=r,this.max_chain=n,this.func=i}function H(){this.strm=null,this.status=0,this.pending_buf=null,this.pending_buf_size=0,this.pending_out=0,this.pending=0,this.wrap=0,this.gzhead=null,this.gzindex=0,this.method=v,this.last_flush=-1,this.w_size=0,this.w_bits=0,this.w_mask=0,this.window=null,this.window_size=0,this.prev=null,this.head=null,this.ins_h=0,this.hash_size=0,this.hash_bits=0,this.hash_mask=0,this.hash_shift=0,this.block_start=0,this.match_length=0,this.prev_match=0,this.match_available=0,this.strstart=0,this.match_start=0,this.lookahead=0,this.prev_length=0,this.max_chain_length=0,this.max_lazy_match=0,this.level=0,this.strategy=0,this.good_match=0,this.nice_match=0,this.dyn_ltree=new c.Buf16(2*w),this.dyn_dtree=new c.Buf16(2*(2*a+1)),this.bl_tree=new c.Buf16(2*(2*o+1)),D(this.dyn_ltree),D(this.dyn_dtree),D(this.bl_tree),this.l_desc=null,this.d_desc=null,this.bl_desc=null,this.bl_count=new c.Buf16(k+1),this.heap=new c.Buf16(2*s+1),D(this.heap),this.heap_len=0,this.heap_max=0,this.depth=new c.Buf16(2*s+1),D(this.depth),this.l_buf=0,this.lit_bufsize=0,this.last_lit=0,this.d_buf=0,this.opt_len=0,this.static_len=0,this.matches=0,this.insert=0,this.bi_buf=0,this.bi_valid=0}function G(e){var t;return e&&e.state?(e.total_in=e.total_out=0,e.data_type=i,(t=e.state).pending=0,t.pending_out=0,t.wrap<0&&(t.wrap=-t.wrap),t.status=t.wrap?C:E,e.adler=2===t.wrap?0:1,t.last_flush=l,u._tr_init(t),m):R(e,_)}function K(e){var t=G(e);return t===m&&function(e){e.window_size=2*e.w_size,D(e.head),e.max_lazy_match=h[e.level].max_lazy,e.good_match=h[e.level].good_length,e.nice_match=h[e.level].nice_length,e.max_chain_length=h[e.level].max_chain,e.strstart=0,e.block_start=0,e.lookahead=0,e.insert=0,e.match_length=e.prev_length=x-1,e.match_available=0,e.ins_h=0}(e.state),t}function Y(e,t,r,n,i,s){if(!e)return _;var a=1;if(t===g&&(t=6),n<0?(a=0,n=-n):15<n&&(a=2,n-=16),i<1||y<i||r!==v||n<8||15<n||t<0||9<t||s<0||b<s)return R(e,_);8===n&&(n=9);var o=new H;return(e.state=o).strm=e,o.wrap=a,o.gzhead=null,o.w_bits=n,o.w_size=1<<o.w_bits,o.w_mask=o.w_size-1,o.hash_bits=i+7,o.hash_size=1<<o.hash_bits,o.hash_mask=o.hash_size-1,o.hash_shift=~~((o.hash_bits+x-1)/x),o.window=new c.Buf8(2*o.w_size),o.head=new c.Buf16(o.hash_size),o.prev=new c.Buf16(o.w_size),o.lit_bufsize=1<<i+6,o.pending_buf_size=4*o.lit_bufsize,o.pending_buf=new c.Buf8(o.pending_buf_size),o.d_buf=1*o.lit_bufsize,o.l_buf=3*o.lit_bufsize,o.level=t,o.strategy=s,o.method=r,K(e)}h=[new M(0,0,0,0,function(e,t){var r=65535;for(r>e.pending_buf_size-5&&(r=e.pending_buf_size-5);;){if(e.lookahead<=1){if(j(e),0===e.lookahead&&t===l)return A;if(0===e.lookahead)break}e.strstart+=e.lookahead,e.lookahead=0;var n=e.block_start+r;if((0===e.strstart||e.strstart>=n)&&(e.lookahead=e.strstart-n,e.strstart=n,N(e,!1),0===e.strm.avail_out))return A;if(e.strstart-e.block_start>=e.w_size-z&&(N(e,!1),0===e.strm.avail_out))return A}return e.insert=0,t===f?(N(e,!0),0===e.strm.avail_out?O:B):(e.strstart>e.block_start&&(N(e,!1),e.strm.avail_out),A)}),new M(4,4,8,4,Z),new M(4,5,16,8,Z),new M(4,6,32,32,Z),new M(4,4,16,16,W),new M(8,16,32,32,W),new M(8,16,128,128,W),new M(8,32,128,256,W),new M(32,128,258,1024,W),new M(32,258,258,4096,W)],r.deflateInit=function(e,t){return Y(e,t,v,15,8,0)},r.deflateInit2=Y,r.deflateReset=K,r.deflateResetKeep=G,r.deflateSetHeader=function(e,t){return e&&e.state?2!==e.state.wrap?_:(e.state.gzhead=t,m):_},r.deflate=function(e,t){var r,n,i,s;if(!e||!e.state||5<t||t<0)return e?R(e,_):_;if(n=e.state,!e.output||!e.input&&0!==e.avail_in||666===n.status&&t!==f)return R(e,0===e.avail_out?-5:_);if(n.strm=e,r=n.last_flush,n.last_flush=t,n.status===C)if(2===n.wrap)e.adler=0,U(n,31),U(n,139),U(n,8),n.gzhead?(U(n,(n.gzhead.text?1:0)+(n.gzhead.hcrc?2:0)+(n.gzhead.extra?4:0)+(n.gzhead.name?8:0)+(n.gzhead.comment?16:0)),U(n,255&n.gzhead.time),U(n,n.gzhead.time>>8&255),U(n,n.gzhead.time>>16&255),U(n,n.gzhead.time>>24&255),U(n,9===n.level?2:2<=n.strategy||n.level<2?4:0),U(n,255&n.gzhead.os),n.gzhead.extra&&n.gzhead.extra.length&&(U(n,255&n.gzhead.extra.length),U(n,n.gzhead.extra.length>>8&255)),n.gzhead.hcrc&&(e.adler=p(e.adler,n.pending_buf,n.pending,0)),n.gzindex=0,n.status=69):(U(n,0),U(n,0),U(n,0),U(n,0),U(n,0),U(n,9===n.level?2:2<=n.strategy||n.level<2?4:0),U(n,3),n.status=E);else{var a=v+(n.w_bits-8<<4)<<8;a|=(2<=n.strategy||n.level<2?0:n.level<6?1:6===n.level?2:3)<<6,0!==n.strstart&&(a|=32),a+=31-a%31,n.status=E,P(n,a),0!==n.strstart&&(P(n,e.adler>>>16),P(n,65535&e.adler)),e.adler=1}if(69===n.status)if(n.gzhead.extra){for(i=n.pending;n.gzindex<(65535&n.gzhead.extra.length)&&(n.pending!==n.pending_buf_size||(n.gzhead.hcrc&&n.pending>i&&(e.adler=p(e.adler,n.pending_buf,n.pending-i,i)),F(e),i=n.pending,n.pending!==n.pending_buf_size));)U(n,255&n.gzhead.extra[n.gzindex]),n.gzindex++;n.gzhead.hcrc&&n.pending>i&&(e.adler=p(e.adler,n.pending_buf,n.pending-i,i)),n.gzindex===n.gzhead.extra.length&&(n.gzindex=0,n.status=73)}else n.status=73;if(73===n.status)if(n.gzhead.name){i=n.pending;do{if(n.pending===n.pending_buf_size&&(n.gzhead.hcrc&&n.pending>i&&(e.adler=p(e.adler,n.pending_buf,n.pending-i,i)),F(e),i=n.pending,n.pending===n.pending_buf_size)){s=1;break}s=n.gzindex<n.gzhead.name.length?255&n.gzhead.name.charCodeAt(n.gzindex++):0,U(n,s)}while(0!==s);n.gzhead.hcrc&&n.pending>i&&(e.adler=p(e.adler,n.pending_buf,n.pending-i,i)),0===s&&(n.gzindex=0,n.status=91)}else n.status=91;if(91===n.status)if(n.gzhead.comment){i=n.pending;do{if(n.pending===n.pending_buf_size&&(n.gzhead.hcrc&&n.pending>i&&(e.adler=p(e.adler,n.pending_buf,n.pending-i,i)),F(e),i=n.pending,n.pending===n.pending_buf_size)){s=1;break}s=n.gzindex<n.gzhead.comment.length?255&n.gzhead.comment.charCodeAt(n.gzindex++):0,U(n,s)}while(0!==s);n.gzhead.hcrc&&n.pending>i&&(e.adler=p(e.adler,n.pending_buf,n.pending-i,i)),0===s&&(n.status=103)}else n.status=103;if(103===n.status&&(n.gzhead.hcrc?(n.pending+2>n.pending_buf_size&&F(e),n.pending+2<=n.pending_buf_size&&(U(n,255&e.adler),U(n,e.adler>>8&255),e.adler=0,n.status=E)):n.status=E),0!==n.pending){if(F(e),0===e.avail_out)return n.last_flush=-1,m}else if(0===e.avail_in&&T(t)<=T(r)&&t!==f)return R(e,-5);if(666===n.status&&0!==e.avail_in)return R(e,-5);if(0!==e.avail_in||0!==n.lookahead||t!==l&&666!==n.status){var o=2===n.strategy?function(e,t){for(var r;;){if(0===e.lookahead&&(j(e),0===e.lookahead)){if(t===l)return A;break}if(e.match_length=0,r=u._tr_tally(e,0,e.window[e.strstart]),e.lookahead--,e.strstart++,r&&(N(e,!1),0===e.strm.avail_out))return A}return e.insert=0,t===f?(N(e,!0),0===e.strm.avail_out?O:B):e.last_lit&&(N(e,!1),0===e.strm.avail_out)?A:I}(n,t):3===n.strategy?function(e,t){for(var r,n,i,s,a=e.window;;){if(e.lookahead<=S){if(j(e),e.lookahead<=S&&t===l)return A;if(0===e.lookahead)break}if(e.match_length=0,e.lookahead>=x&&0<e.strstart&&(n=a[i=e.strstart-1])===a[++i]&&n===a[++i]&&n===a[++i]){s=e.strstart+S;do{}while(n===a[++i]&&n===a[++i]&&n===a[++i]&&n===a[++i]&&n===a[++i]&&n===a[++i]&&n===a[++i]&&n===a[++i]&&i<s);e.match_length=S-(s-i),e.match_length>e.lookahead&&(e.match_length=e.lookahead)}if(e.match_length>=x?(r=u._tr_tally(e,1,e.match_length-x),e.lookahead-=e.match_length,e.strstart+=e.match_length,e.match_length=0):(r=u._tr_tally(e,0,e.window[e.strstart]),e.lookahead--,e.strstart++),r&&(N(e,!1),0===e.strm.avail_out))return A}return e.insert=0,t===f?(N(e,!0),0===e.strm.avail_out?O:B):e.last_lit&&(N(e,!1),0===e.strm.avail_out)?A:I}(n,t):h[n.level].func(n,t);if(o!==O&&o!==B||(n.status=666),o===A||o===O)return 0===e.avail_out&&(n.last_flush=-1),m;if(o===I&&(1===t?u._tr_align(n):5!==t&&(u._tr_stored_block(n,0,0,!1),3===t&&(D(n.head),0===n.lookahead&&(n.strstart=0,n.block_start=0,n.insert=0))),F(e),0===e.avail_out))return n.last_flush=-1,m}return t!==f?m:n.wrap<=0?1:(2===n.wrap?(U(n,255&e.adler),U(n,e.adler>>8&255),U(n,e.adler>>16&255),U(n,e.adler>>24&255),U(n,255&e.total_in),U(n,e.total_in>>8&255),U(n,e.total_in>>16&255),U(n,e.total_in>>24&255)):(P(n,e.adler>>>16),P(n,65535&e.adler)),F(e),0<n.wrap&&(n.wrap=-n.wrap),0!==n.pending?m:1)},r.deflateEnd=function(e){var t;return e&&e.state?(t=e.state.status)!==C&&69!==t&&73!==t&&91!==t&&103!==t&&t!==E&&666!==t?R(e,_):(e.state=null,t===E?R(e,-3):m):_},r.deflateSetDictionary=function(e,t){var r,n,i,s,a,o,h,u,l=t.length;if(!e||!e.state)return _;if(2===(s=(r=e.state).wrap)||1===s&&r.status!==C||r.lookahead)return _;for(1===s&&(e.adler=d(e.adler,t,l,0)),r.wrap=0,l>=r.w_size&&(0===s&&(D(r.head),r.strstart=0,r.block_start=0,r.insert=0),u=new c.Buf8(r.w_size),c.arraySet(u,t,l-r.w_size,r.w_size,0),t=u,l=r.w_size),a=e.avail_in,o=e.next_in,h=e.input,e.avail_in=l,e.next_in=0,e.input=t,j(r);r.lookahead>=x;){for(n=r.strstart,i=r.lookahead-(x-1);r.ins_h=(r.ins_h<<r.hash_shift^r.window[n+x-1])&r.hash_mask,r.prev[n&r.w_mask]=r.head[r.ins_h],r.head[r.ins_h]=n,n++,--i;);r.strstart=n,r.lookahead=x-1,j(r)}return r.strstart+=r.lookahead,r.block_start=r.strstart,r.insert=r.lookahead,r.lookahead=0,r.match_length=r.prev_length=x-1,r.match_available=0,e.next_in=o,e.input=h,e.avail_in=a,r.wrap=s,m},r.deflateInfo="pako deflate (from Nodeca project)"},{"../utils/common":41,"./adler32":43,"./crc32":45,"./messages":51,"./trees":52}],47:[function(e,t,r){"use strict";t.exports=function(){this.text=0,this.time=0,this.xflags=0,this.os=0,this.extra=null,this.extra_len=0,this.name="",this.comment="",this.hcrc=0,this.done=!1}},{}],48:[function(e,t,r){"use strict";t.exports=function(e,t){var r,n,i,s,a,o,h,u,l,f,c,d,p,m,_,g,b,v,y,w,k,x,S,z,C;r=e.state,n=e.next_in,z=e.input,i=n+(e.avail_in-5),s=e.next_out,C=e.output,a=s-(t-e.avail_out),o=s+(e.avail_out-257),h=r.dmax,u=r.wsize,l=r.whave,f=r.wnext,c=r.window,d=r.hold,p=r.bits,m=r.lencode,_=r.distcode,g=(1<<r.lenbits)-1,b=(1<<r.distbits)-1;e:do{p<15&&(d+=z[n++]<<p,p+=8,d+=z[n++]<<p,p+=8),v=m[d&g];t:for(;;){if(d>>>=y=v>>>24,p-=y,0===(y=v>>>16&255))C[s++]=65535&v;else{if(!(16&y)){if(0==(64&y)){v=m[(65535&v)+(d&(1<<y)-1)];continue t}if(32&y){r.mode=12;break e}e.msg="invalid literal/length code",r.mode=30;break e}w=65535&v,(y&=15)&&(p<y&&(d+=z[n++]<<p,p+=8),w+=d&(1<<y)-1,d>>>=y,p-=y),p<15&&(d+=z[n++]<<p,p+=8,d+=z[n++]<<p,p+=8),v=_[d&b];r:for(;;){if(d>>>=y=v>>>24,p-=y,!(16&(y=v>>>16&255))){if(0==(64&y)){v=_[(65535&v)+(d&(1<<y)-1)];continue r}e.msg="invalid distance code",r.mode=30;break e}if(k=65535&v,p<(y&=15)&&(d+=z[n++]<<p,(p+=8)<y&&(d+=z[n++]<<p,p+=8)),h<(k+=d&(1<<y)-1)){e.msg="invalid distance too far back",r.mode=30;break e}if(d>>>=y,p-=y,(y=s-a)<k){if(l<(y=k-y)&&r.sane){e.msg="invalid distance too far back",r.mode=30;break e}if(S=c,(x=0)===f){if(x+=u-y,y<w){for(w-=y;C[s++]=c[x++],--y;);x=s-k,S=C}}else if(f<y){if(x+=u+f-y,(y-=f)<w){for(w-=y;C[s++]=c[x++],--y;);if(x=0,f<w){for(w-=y=f;C[s++]=c[x++],--y;);x=s-k,S=C}}}else if(x+=f-y,y<w){for(w-=y;C[s++]=c[x++],--y;);x=s-k,S=C}for(;2<w;)C[s++]=S[x++],C[s++]=S[x++],C[s++]=S[x++],w-=3;w&&(C[s++]=S[x++],1<w&&(C[s++]=S[x++]))}else{for(x=s-k;C[s++]=C[x++],C[s++]=C[x++],C[s++]=C[x++],2<(w-=3););w&&(C[s++]=C[x++],1<w&&(C[s++]=C[x++]))}break}}break}}while(n<i&&s<o);n-=w=p>>3,d&=(1<<(p-=w<<3))-1,e.next_in=n,e.next_out=s,e.avail_in=n<i?i-n+5:5-(n-i),e.avail_out=s<o?o-s+257:257-(s-o),r.hold=d,r.bits=p}},{}],49:[function(e,t,r){"use strict";var I=e("../utils/common"),O=e("./adler32"),B=e("./crc32"),R=e("./inffast"),T=e("./inftrees"),D=1,F=2,N=0,U=-2,P=1,n=852,i=592;function L(e){return(e>>>24&255)+(e>>>8&65280)+((65280&e)<<8)+((255&e)<<24)}function s(){this.mode=0,this.last=!1,this.wrap=0,this.havedict=!1,this.flags=0,this.dmax=0,this.check=0,this.total=0,this.head=null,this.wbits=0,this.wsize=0,this.whave=0,this.wnext=0,this.window=null,this.hold=0,this.bits=0,this.length=0,this.offset=0,this.extra=0,this.lencode=null,this.distcode=null,this.lenbits=0,this.distbits=0,this.ncode=0,this.nlen=0,this.ndist=0,this.have=0,this.next=null,this.lens=new I.Buf16(320),this.work=new I.Buf16(288),this.lendyn=null,this.distdyn=null,this.sane=0,this.back=0,this.was=0}function a(e){var t;return e&&e.state?(t=e.state,e.total_in=e.total_out=t.total=0,e.msg="",t.wrap&&(e.adler=1&t.wrap),t.mode=P,t.last=0,t.havedict=0,t.dmax=32768,t.head=null,t.hold=0,t.bits=0,t.lencode=t.lendyn=new I.Buf32(n),t.distcode=t.distdyn=new I.Buf32(i),t.sane=1,t.back=-1,N):U}function o(e){var t;return e&&e.state?((t=e.state).wsize=0,t.whave=0,t.wnext=0,a(e)):U}function h(e,t){var r,n;return e&&e.state?(n=e.state,t<0?(r=0,t=-t):(r=1+(t>>4),t<48&&(t&=15)),t&&(t<8||15<t)?U:(null!==n.window&&n.wbits!==t&&(n.window=null),n.wrap=r,n.wbits=t,o(e))):U}function u(e,t){var r,n;return e?(n=new s,(e.state=n).window=null,(r=h(e,t))!==N&&(e.state=null),r):U}var l,f,c=!0;function j(e){if(c){var t;for(l=new I.Buf32(512),f=new I.Buf32(32),t=0;t<144;)e.lens[t++]=8;for(;t<256;)e.lens[t++]=9;for(;t<280;)e.lens[t++]=7;for(;t<288;)e.lens[t++]=8;for(T(D,e.lens,0,288,l,0,e.work,{bits:9}),t=0;t<32;)e.lens[t++]=5;T(F,e.lens,0,32,f,0,e.work,{bits:5}),c=!1}e.lencode=l,e.lenbits=9,e.distcode=f,e.distbits=5}function Z(e,t,r,n){var i,s=e.state;return null===s.window&&(s.wsize=1<<s.wbits,s.wnext=0,s.whave=0,s.window=new I.Buf8(s.wsize)),n>=s.wsize?(I.arraySet(s.window,t,r-s.wsize,s.wsize,0),s.wnext=0,s.whave=s.wsize):(n<(i=s.wsize-s.wnext)&&(i=n),I.arraySet(s.window,t,r-n,i,s.wnext),(n-=i)?(I.arraySet(s.window,t,r-n,n,0),s.wnext=n,s.whave=s.wsize):(s.wnext+=i,s.wnext===s.wsize&&(s.wnext=0),s.whave<s.wsize&&(s.whave+=i))),0}r.inflateReset=o,r.inflateReset2=h,r.inflateResetKeep=a,r.inflateInit=function(e){return u(e,15)},r.inflateInit2=u,r.inflate=function(e,t){var r,n,i,s,a,o,h,u,l,f,c,d,p,m,_,g,b,v,y,w,k,x,S,z,C=0,E=new I.Buf8(4),A=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];if(!e||!e.state||!e.output||!e.input&&0!==e.avail_in)return U;12===(r=e.state).mode&&(r.mode=13),a=e.next_out,i=e.output,h=e.avail_out,s=e.next_in,n=e.input,o=e.avail_in,u=r.hold,l=r.bits,f=o,c=h,x=N;e:for(;;)switch(r.mode){case P:if(0===r.wrap){r.mode=13;break}for(;l<16;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(2&r.wrap&&35615===u){E[r.check=0]=255&u,E[1]=u>>>8&255,r.check=B(r.check,E,2,0),l=u=0,r.mode=2;break}if(r.flags=0,r.head&&(r.head.done=!1),!(1&r.wrap)||(((255&u)<<8)+(u>>8))%31){e.msg="incorrect header check",r.mode=30;break}if(8!=(15&u)){e.msg="unknown compression method",r.mode=30;break}if(l-=4,k=8+(15&(u>>>=4)),0===r.wbits)r.wbits=k;else if(k>r.wbits){e.msg="invalid window size",r.mode=30;break}r.dmax=1<<k,e.adler=r.check=1,r.mode=512&u?10:12,l=u=0;break;case 2:for(;l<16;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(r.flags=u,8!=(255&r.flags)){e.msg="unknown compression method",r.mode=30;break}if(57344&r.flags){e.msg="unknown header flags set",r.mode=30;break}r.head&&(r.head.text=u>>8&1),512&r.flags&&(E[0]=255&u,E[1]=u>>>8&255,r.check=B(r.check,E,2,0)),l=u=0,r.mode=3;case 3:for(;l<32;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}r.head&&(r.head.time=u),512&r.flags&&(E[0]=255&u,E[1]=u>>>8&255,E[2]=u>>>16&255,E[3]=u>>>24&255,r.check=B(r.check,E,4,0)),l=u=0,r.mode=4;case 4:for(;l<16;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}r.head&&(r.head.xflags=255&u,r.head.os=u>>8),512&r.flags&&(E[0]=255&u,E[1]=u>>>8&255,r.check=B(r.check,E,2,0)),l=u=0,r.mode=5;case 5:if(1024&r.flags){for(;l<16;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}r.length=u,r.head&&(r.head.extra_len=u),512&r.flags&&(E[0]=255&u,E[1]=u>>>8&255,r.check=B(r.check,E,2,0)),l=u=0}else r.head&&(r.head.extra=null);r.mode=6;case 6:if(1024&r.flags&&(o<(d=r.length)&&(d=o),d&&(r.head&&(k=r.head.extra_len-r.length,r.head.extra||(r.head.extra=new Array(r.head.extra_len)),I.arraySet(r.head.extra,n,s,d,k)),512&r.flags&&(r.check=B(r.check,n,d,s)),o-=d,s+=d,r.length-=d),r.length))break e;r.length=0,r.mode=7;case 7:if(2048&r.flags){if(0===o)break e;for(d=0;k=n[s+d++],r.head&&k&&r.length<65536&&(r.head.name+=String.fromCharCode(k)),k&&d<o;);if(512&r.flags&&(r.check=B(r.check,n,d,s)),o-=d,s+=d,k)break e}else r.head&&(r.head.name=null);r.length=0,r.mode=8;case 8:if(4096&r.flags){if(0===o)break e;for(d=0;k=n[s+d++],r.head&&k&&r.length<65536&&(r.head.comment+=String.fromCharCode(k)),k&&d<o;);if(512&r.flags&&(r.check=B(r.check,n,d,s)),o-=d,s+=d,k)break e}else r.head&&(r.head.comment=null);r.mode=9;case 9:if(512&r.flags){for(;l<16;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(u!==(65535&r.check)){e.msg="header crc mismatch",r.mode=30;break}l=u=0}r.head&&(r.head.hcrc=r.flags>>9&1,r.head.done=!0),e.adler=r.check=0,r.mode=12;break;case 10:for(;l<32;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}e.adler=r.check=L(u),l=u=0,r.mode=11;case 11:if(0===r.havedict)return e.next_out=a,e.avail_out=h,e.next_in=s,e.avail_in=o,r.hold=u,r.bits=l,2;e.adler=r.check=1,r.mode=12;case 12:if(5===t||6===t)break e;case 13:if(r.last){u>>>=7&l,l-=7&l,r.mode=27;break}for(;l<3;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}switch(r.last=1&u,l-=1,3&(u>>>=1)){case 0:r.mode=14;break;case 1:if(j(r),r.mode=20,6!==t)break;u>>>=2,l-=2;break e;case 2:r.mode=17;break;case 3:e.msg="invalid block type",r.mode=30}u>>>=2,l-=2;break;case 14:for(u>>>=7&l,l-=7&l;l<32;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if((65535&u)!=(u>>>16^65535)){e.msg="invalid stored block lengths",r.mode=30;break}if(r.length=65535&u,l=u=0,r.mode=15,6===t)break e;case 15:r.mode=16;case 16:if(d=r.length){if(o<d&&(d=o),h<d&&(d=h),0===d)break e;I.arraySet(i,n,s,d,a),o-=d,s+=d,h-=d,a+=d,r.length-=d;break}r.mode=12;break;case 17:for(;l<14;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(r.nlen=257+(31&u),u>>>=5,l-=5,r.ndist=1+(31&u),u>>>=5,l-=5,r.ncode=4+(15&u),u>>>=4,l-=4,286<r.nlen||30<r.ndist){e.msg="too many length or distance symbols",r.mode=30;break}r.have=0,r.mode=18;case 18:for(;r.have<r.ncode;){for(;l<3;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}r.lens[A[r.have++]]=7&u,u>>>=3,l-=3}for(;r.have<19;)r.lens[A[r.have++]]=0;if(r.lencode=r.lendyn,r.lenbits=7,S={bits:r.lenbits},x=T(0,r.lens,0,19,r.lencode,0,r.work,S),r.lenbits=S.bits,x){e.msg="invalid code lengths set",r.mode=30;break}r.have=0,r.mode=19;case 19:for(;r.have<r.nlen+r.ndist;){for(;g=(C=r.lencode[u&(1<<r.lenbits)-1])>>>16&255,b=65535&C,!((_=C>>>24)<=l);){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(b<16)u>>>=_,l-=_,r.lens[r.have++]=b;else{if(16===b){for(z=_+2;l<z;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(u>>>=_,l-=_,0===r.have){e.msg="invalid bit length repeat",r.mode=30;break}k=r.lens[r.have-1],d=3+(3&u),u>>>=2,l-=2}else if(17===b){for(z=_+3;l<z;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}l-=_,k=0,d=3+(7&(u>>>=_)),u>>>=3,l-=3}else{for(z=_+7;l<z;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}l-=_,k=0,d=11+(127&(u>>>=_)),u>>>=7,l-=7}if(r.have+d>r.nlen+r.ndist){e.msg="invalid bit length repeat",r.mode=30;break}for(;d--;)r.lens[r.have++]=k}}if(30===r.mode)break;if(0===r.lens[256]){e.msg="invalid code -- missing end-of-block",r.mode=30;break}if(r.lenbits=9,S={bits:r.lenbits},x=T(D,r.lens,0,r.nlen,r.lencode,0,r.work,S),r.lenbits=S.bits,x){e.msg="invalid literal/lengths set",r.mode=30;break}if(r.distbits=6,r.distcode=r.distdyn,S={bits:r.distbits},x=T(F,r.lens,r.nlen,r.ndist,r.distcode,0,r.work,S),r.distbits=S.bits,x){e.msg="invalid distances set",r.mode=30;break}if(r.mode=20,6===t)break e;case 20:r.mode=21;case 21:if(6<=o&&258<=h){e.next_out=a,e.avail_out=h,e.next_in=s,e.avail_in=o,r.hold=u,r.bits=l,R(e,c),a=e.next_out,i=e.output,h=e.avail_out,s=e.next_in,n=e.input,o=e.avail_in,u=r.hold,l=r.bits,12===r.mode&&(r.back=-1);break}for(r.back=0;g=(C=r.lencode[u&(1<<r.lenbits)-1])>>>16&255,b=65535&C,!((_=C>>>24)<=l);){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(g&&0==(240&g)){for(v=_,y=g,w=b;g=(C=r.lencode[w+((u&(1<<v+y)-1)>>v)])>>>16&255,b=65535&C,!(v+(_=C>>>24)<=l);){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}u>>>=v,l-=v,r.back+=v}if(u>>>=_,l-=_,r.back+=_,r.length=b,0===g){r.mode=26;break}if(32&g){r.back=-1,r.mode=12;break}if(64&g){e.msg="invalid literal/length code",r.mode=30;break}r.extra=15&g,r.mode=22;case 22:if(r.extra){for(z=r.extra;l<z;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}r.length+=u&(1<<r.extra)-1,u>>>=r.extra,l-=r.extra,r.back+=r.extra}r.was=r.length,r.mode=23;case 23:for(;g=(C=r.distcode[u&(1<<r.distbits)-1])>>>16&255,b=65535&C,!((_=C>>>24)<=l);){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(0==(240&g)){for(v=_,y=g,w=b;g=(C=r.distcode[w+((u&(1<<v+y)-1)>>v)])>>>16&255,b=65535&C,!(v+(_=C>>>24)<=l);){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}u>>>=v,l-=v,r.back+=v}if(u>>>=_,l-=_,r.back+=_,64&g){e.msg="invalid distance code",r.mode=30;break}r.offset=b,r.extra=15&g,r.mode=24;case 24:if(r.extra){for(z=r.extra;l<z;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}r.offset+=u&(1<<r.extra)-1,u>>>=r.extra,l-=r.extra,r.back+=r.extra}if(r.offset>r.dmax){e.msg="invalid distance too far back",r.mode=30;break}r.mode=25;case 25:if(0===h)break e;if(d=c-h,r.offset>d){if((d=r.offset-d)>r.whave&&r.sane){e.msg="invalid distance too far back",r.mode=30;break}p=d>r.wnext?(d-=r.wnext,r.wsize-d):r.wnext-d,d>r.length&&(d=r.length),m=r.window}else m=i,p=a-r.offset,d=r.length;for(h<d&&(d=h),h-=d,r.length-=d;i[a++]=m[p++],--d;);0===r.length&&(r.mode=21);break;case 26:if(0===h)break e;i[a++]=r.length,h--,r.mode=21;break;case 27:if(r.wrap){for(;l<32;){if(0===o)break e;o--,u|=n[s++]<<l,l+=8}if(c-=h,e.total_out+=c,r.total+=c,c&&(e.adler=r.check=r.flags?B(r.check,i,c,a-c):O(r.check,i,c,a-c)),c=h,(r.flags?u:L(u))!==r.check){e.msg="incorrect data check",r.mode=30;break}l=u=0}r.mode=28;case 28:if(r.wrap&&r.flags){for(;l<32;){if(0===o)break e;o--,u+=n[s++]<<l,l+=8}if(u!==(4294967295&r.total)){e.msg="incorrect length check",r.mode=30;break}l=u=0}r.mode=29;case 29:x=1;break e;case 30:x=-3;break e;case 31:return-4;case 32:default:return U}return e.next_out=a,e.avail_out=h,e.next_in=s,e.avail_in=o,r.hold=u,r.bits=l,(r.wsize||c!==e.avail_out&&r.mode<30&&(r.mode<27||4!==t))&&Z(e,e.output,e.next_out,c-e.avail_out)?(r.mode=31,-4):(f-=e.avail_in,c-=e.avail_out,e.total_in+=f,e.total_out+=c,r.total+=c,r.wrap&&c&&(e.adler=r.check=r.flags?B(r.check,i,c,e.next_out-c):O(r.check,i,c,e.next_out-c)),e.data_type=r.bits+(r.last?64:0)+(12===r.mode?128:0)+(20===r.mode||15===r.mode?256:0),(0==f&&0===c||4===t)&&x===N&&(x=-5),x)},r.inflateEnd=function(e){if(!e||!e.state)return U;var t=e.state;return t.window&&(t.window=null),e.state=null,N},r.inflateGetHeader=function(e,t){var r;return e&&e.state?0==(2&(r=e.state).wrap)?U:((r.head=t).done=!1,N):U},r.inflateSetDictionary=function(e,t){var r,n=t.length;return e&&e.state?0!==(r=e.state).wrap&&11!==r.mode?U:11===r.mode&&O(1,t,n,0)!==r.check?-3:Z(e,t,n,n)?(r.mode=31,-4):(r.havedict=1,N):U},r.inflateInfo="pako inflate (from Nodeca project)"},{"../utils/common":41,"./adler32":43,"./crc32":45,"./inffast":48,"./inftrees":50}],50:[function(e,t,r){"use strict";var D=e("../utils/common"),F=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],N=[16,16,16,16,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,16,72,78],U=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577,0,0],P=[16,16,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,64,64];t.exports=function(e,t,r,n,i,s,a,o){var h,u,l,f,c,d,p,m,_,g=o.bits,b=0,v=0,y=0,w=0,k=0,x=0,S=0,z=0,C=0,E=0,A=null,I=0,O=new D.Buf16(16),B=new D.Buf16(16),R=null,T=0;for(b=0;b<=15;b++)O[b]=0;for(v=0;v<n;v++)O[t[r+v]]++;for(k=g,w=15;1<=w&&0===O[w];w--);if(w<k&&(k=w),0===w)return i[s++]=20971520,i[s++]=20971520,o.bits=1,0;for(y=1;y<w&&0===O[y];y++);for(k<y&&(k=y),b=z=1;b<=15;b++)if(z<<=1,(z-=O[b])<0)return-1;if(0<z&&(0===e||1!==w))return-1;for(B[1]=0,b=1;b<15;b++)B[b+1]=B[b]+O[b];for(v=0;v<n;v++)0!==t[r+v]&&(a[B[t[r+v]]++]=v);if(d=0===e?(A=R=a,19):1===e?(A=F,I-=257,R=N,T-=257,256):(A=U,R=P,-1),b=y,c=s,S=v=E=0,l=-1,f=(C=1<<(x=k))-1,1===e&&852<C||2===e&&592<C)return 1;for(;;){for(p=b-S,_=a[v]<d?(m=0,a[v]):a[v]>d?(m=R[T+a[v]],A[I+a[v]]):(m=96,0),h=1<<b-S,y=u=1<<x;i[c+(E>>S)+(u-=h)]=p<<24|m<<16|_|0,0!==u;);for(h=1<<b-1;E&h;)h>>=1;if(0!==h?(E&=h-1,E+=h):E=0,v++,0==--O[b]){if(b===w)break;b=t[r+a[v]]}if(k<b&&(E&f)!==l){for(0===S&&(S=k),c+=y,z=1<<(x=b-S);x+S<w&&!((z-=O[x+S])<=0);)x++,z<<=1;if(C+=1<<x,1===e&&852<C||2===e&&592<C)return 1;i[l=E&f]=k<<24|x<<16|c-s|0}}return 0!==E&&(i[c+E]=b-S<<24|64<<16|0),o.bits=k,0}},{"../utils/common":41}],51:[function(e,t,r){"use strict";t.exports={2:"need dictionary",1:"stream end",0:"","-1":"file error","-2":"stream error","-3":"data error","-4":"insufficient memory","-5":"buffer error","-6":"incompatible version"}},{}],52:[function(e,t,r){"use strict";var i=e("../utils/common"),o=0,h=1;function n(e){for(var t=e.length;0<=--t;)e[t]=0}var s=0,a=29,u=256,l=u+1+a,f=30,c=19,_=2*l+1,g=15,d=16,p=7,m=256,b=16,v=17,y=18,w=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],k=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],x=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],S=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],z=new Array(2*(l+2));n(z);var C=new Array(2*f);n(C);var E=new Array(512);n(E);var A=new Array(256);n(A);var I=new Array(a);n(I);var O,B,R,T=new Array(f);function D(e,t,r,n,i){this.static_tree=e,this.extra_bits=t,this.extra_base=r,this.elems=n,this.max_length=i,this.has_stree=e&&e.length}function F(e,t){this.dyn_tree=e,this.max_code=0,this.stat_desc=t}function N(e){return e<256?E[e]:E[256+(e>>>7)]}function U(e,t){e.pending_buf[e.pending++]=255&t,e.pending_buf[e.pending++]=t>>>8&255}function P(e,t,r){e.bi_valid>d-r?(e.bi_buf|=t<<e.bi_valid&65535,U(e,e.bi_buf),e.bi_buf=t>>d-e.bi_valid,e.bi_valid+=r-d):(e.bi_buf|=t<<e.bi_valid&65535,e.bi_valid+=r)}function L(e,t,r){P(e,r[2*t],r[2*t+1])}function j(e,t){for(var r=0;r|=1&e,e>>>=1,r<<=1,0<--t;);return r>>>1}function Z(e,t,r){var n,i,s=new Array(g+1),a=0;for(n=1;n<=g;n++)s[n]=a=a+r[n-1]<<1;for(i=0;i<=t;i++){var o=e[2*i+1];0!==o&&(e[2*i]=j(s[o]++,o))}}function W(e){var t;for(t=0;t<l;t++)e.dyn_ltree[2*t]=0;for(t=0;t<f;t++)e.dyn_dtree[2*t]=0;for(t=0;t<c;t++)e.bl_tree[2*t]=0;e.dyn_ltree[2*m]=1,e.opt_len=e.static_len=0,e.last_lit=e.matches=0}function M(e){8<e.bi_valid?U(e,e.bi_buf):0<e.bi_valid&&(e.pending_buf[e.pending++]=e.bi_buf),e.bi_buf=0,e.bi_valid=0}function H(e,t,r,n){var i=2*t,s=2*r;return e[i]<e[s]||e[i]===e[s]&&n[t]<=n[r]}function G(e,t,r){for(var n=e.heap[r],i=r<<1;i<=e.heap_len&&(i<e.heap_len&&H(t,e.heap[i+1],e.heap[i],e.depth)&&i++,!H(t,n,e.heap[i],e.depth));)e.heap[r]=e.heap[i],r=i,i<<=1;e.heap[r]=n}function K(e,t,r){var n,i,s,a,o=0;if(0!==e.last_lit)for(;n=e.pending_buf[e.d_buf+2*o]<<8|e.pending_buf[e.d_buf+2*o+1],i=e.pending_buf[e.l_buf+o],o++,0===n?L(e,i,t):(L(e,(s=A[i])+u+1,t),0!==(a=w[s])&&P(e,i-=I[s],a),L(e,s=N(--n),r),0!==(a=k[s])&&P(e,n-=T[s],a)),o<e.last_lit;);L(e,m,t)}function Y(e,t){var r,n,i,s=t.dyn_tree,a=t.stat_desc.static_tree,o=t.stat_desc.has_stree,h=t.stat_desc.elems,u=-1;for(e.heap_len=0,e.heap_max=_,r=0;r<h;r++)0!==s[2*r]?(e.heap[++e.heap_len]=u=r,e.depth[r]=0):s[2*r+1]=0;for(;e.heap_len<2;)s[2*(i=e.heap[++e.heap_len]=u<2?++u:0)]=1,e.depth[i]=0,e.opt_len--,o&&(e.static_len-=a[2*i+1]);for(t.max_code=u,r=e.heap_len>>1;1<=r;r--)G(e,s,r);for(i=h;r=e.heap[1],e.heap[1]=e.heap[e.heap_len--],G(e,s,1),n=e.heap[1],e.heap[--e.heap_max]=r,e.heap[--e.heap_max]=n,s[2*i]=s[2*r]+s[2*n],e.depth[i]=(e.depth[r]>=e.depth[n]?e.depth[r]:e.depth[n])+1,s[2*r+1]=s[2*n+1]=i,e.heap[1]=i++,G(e,s,1),2<=e.heap_len;);e.heap[--e.heap_max]=e.heap[1],function(e,t){var r,n,i,s,a,o,h=t.dyn_tree,u=t.max_code,l=t.stat_desc.static_tree,f=t.stat_desc.has_stree,c=t.stat_desc.extra_bits,d=t.stat_desc.extra_base,p=t.stat_desc.max_length,m=0;for(s=0;s<=g;s++)e.bl_count[s]=0;for(h[2*e.heap[e.heap_max]+1]=0,r=e.heap_max+1;r<_;r++)p<(s=h[2*h[2*(n=e.heap[r])+1]+1]+1)&&(s=p,m++),h[2*n+1]=s,u<n||(e.bl_count[s]++,a=0,d<=n&&(a=c[n-d]),o=h[2*n],e.opt_len+=o*(s+a),f&&(e.static_len+=o*(l[2*n+1]+a)));if(0!==m){do{for(s=p-1;0===e.bl_count[s];)s--;e.bl_count[s]--,e.bl_count[s+1]+=2,e.bl_count[p]--,m-=2}while(0<m);for(s=p;0!==s;s--)for(n=e.bl_count[s];0!==n;)u<(i=e.heap[--r])||(h[2*i+1]!==s&&(e.opt_len+=(s-h[2*i+1])*h[2*i],h[2*i+1]=s),n--)}}(e,t),Z(s,u,e.bl_count)}function X(e,t,r){var n,i,s=-1,a=t[1],o=0,h=7,u=4;for(0===a&&(h=138,u=3),t[2*(r+1)+1]=65535,n=0;n<=r;n++)i=a,a=t[2*(n+1)+1],++o<h&&i===a||(o<u?e.bl_tree[2*i]+=o:0!==i?(i!==s&&e.bl_tree[2*i]++,e.bl_tree[2*b]++):o<=10?e.bl_tree[2*v]++:e.bl_tree[2*y]++,s=i,u=(o=0)===a?(h=138,3):i===a?(h=6,3):(h=7,4))}function V(e,t,r){var n,i,s=-1,a=t[1],o=0,h=7,u=4;for(0===a&&(h=138,u=3),n=0;n<=r;n++)if(i=a,a=t[2*(n+1)+1],!(++o<h&&i===a)){if(o<u)for(;L(e,i,e.bl_tree),0!=--o;);else 0!==i?(i!==s&&(L(e,i,e.bl_tree),o--),L(e,b,e.bl_tree),P(e,o-3,2)):o<=10?(L(e,v,e.bl_tree),P(e,o-3,3)):(L(e,y,e.bl_tree),P(e,o-11,7));s=i,u=(o=0)===a?(h=138,3):i===a?(h=6,3):(h=7,4)}}n(T);var q=!1;function J(e,t,r,n){P(e,(s<<1)+(n?1:0),3),function(e,t,r,n){M(e),n&&(U(e,r),U(e,~r)),i.arraySet(e.pending_buf,e.window,t,r,e.pending),e.pending+=r}(e,t,r,!0)}r._tr_init=function(e){q||(function(){var e,t,r,n,i,s=new Array(g+1);for(n=r=0;n<a-1;n++)for(I[n]=r,e=0;e<1<<w[n];e++)A[r++]=n;for(A[r-1]=n,n=i=0;n<16;n++)for(T[n]=i,e=0;e<1<<k[n];e++)E[i++]=n;for(i>>=7;n<f;n++)for(T[n]=i<<7,e=0;e<1<<k[n]-7;e++)E[256+i++]=n;for(t=0;t<=g;t++)s[t]=0;for(e=0;e<=143;)z[2*e+1]=8,e++,s[8]++;for(;e<=255;)z[2*e+1]=9,e++,s[9]++;for(;e<=279;)z[2*e+1]=7,e++,s[7]++;for(;e<=287;)z[2*e+1]=8,e++,s[8]++;for(Z(z,l+1,s),e=0;e<f;e++)C[2*e+1]=5,C[2*e]=j(e,5);O=new D(z,w,u+1,l,g),B=new D(C,k,0,f,g),R=new D(new Array(0),x,0,c,p)}(),q=!0),e.l_desc=new F(e.dyn_ltree,O),e.d_desc=new F(e.dyn_dtree,B),e.bl_desc=new F(e.bl_tree,R),e.bi_buf=0,e.bi_valid=0,W(e)},r._tr_stored_block=J,r._tr_flush_block=function(e,t,r,n){var i,s,a=0;0<e.level?(2===e.strm.data_type&&(e.strm.data_type=function(e){var t,r=4093624447;for(t=0;t<=31;t++,r>>>=1)if(1&r&&0!==e.dyn_ltree[2*t])return o;if(0!==e.dyn_ltree[18]||0!==e.dyn_ltree[20]||0!==e.dyn_ltree[26])return h;for(t=32;t<u;t++)if(0!==e.dyn_ltree[2*t])return h;return o}(e)),Y(e,e.l_desc),Y(e,e.d_desc),a=function(e){var t;for(X(e,e.dyn_ltree,e.l_desc.max_code),X(e,e.dyn_dtree,e.d_desc.max_code),Y(e,e.bl_desc),t=c-1;3<=t&&0===e.bl_tree[2*S[t]+1];t--);return e.opt_len+=3*(t+1)+5+5+4,t}(e),i=e.opt_len+3+7>>>3,(s=e.static_len+3+7>>>3)<=i&&(i=s)):i=s=r+5,r+4<=i&&-1!==t?J(e,t,r,n):4===e.strategy||s===i?(P(e,2+(n?1:0),3),K(e,z,C)):(P(e,4+(n?1:0),3),function(e,t,r,n){var i;for(P(e,t-257,5),P(e,r-1,5),P(e,n-4,4),i=0;i<n;i++)P(e,e.bl_tree[2*S[i]+1],3);V(e,e.dyn_ltree,t-1),V(e,e.dyn_dtree,r-1)}(e,e.l_desc.max_code+1,e.d_desc.max_code+1,a+1),K(e,e.dyn_ltree,e.dyn_dtree)),W(e),n&&M(e)},r._tr_tally=function(e,t,r){return e.pending_buf[e.d_buf+2*e.last_lit]=t>>>8&255,e.pending_buf[e.d_buf+2*e.last_lit+1]=255&t,e.pending_buf[e.l_buf+e.last_lit]=255&r,e.last_lit++,0===t?e.dyn_ltree[2*r]++:(e.matches++,t--,e.dyn_ltree[2*(A[r]+u+1)]++,e.dyn_dtree[2*N(t)]++),e.last_lit===e.lit_bufsize-1},r._tr_align=function(e){P(e,2,3),L(e,m,z),function(e){16===e.bi_valid?(U(e,e.bi_buf),e.bi_buf=0,e.bi_valid=0):8<=e.bi_valid&&(e.pending_buf[e.pending++]=255&e.bi_buf,e.bi_buf>>=8,e.bi_valid-=8)}(e)}},{"../utils/common":41}],53:[function(e,t,r){"use strict";t.exports=function(){this.input=null,this.next_in=0,this.avail_in=0,this.total_in=0,this.output=null,this.next_out=0,this.avail_out=0,this.total_out=0,this.msg="",this.state=null,this.data_type=2,this.adler=0}},{}],54:[function(e,t,r){(function(e){!function(r,n){"use strict";if(!r.setImmediate){var i,s,t,a,o=1,h={},u=!1,l=r.document,e=Object.getPrototypeOf&&Object.getPrototypeOf(r);e=e&&e.setTimeout?e:r,i="[object process]"==={}.toString.call(r.process)?function(e){process.nextTick(function(){c(e)})}:function(){if(r.postMessage&&!r.importScripts){var e=!0,t=r.onmessage;return r.onmessage=function(){e=!1},r.postMessage("","*"),r.onmessage=t,e}}()?(a="setImmediate$"+Math.random()+"$",r.addEventListener?r.addEventListener("message",d,!1):r.attachEvent("onmessage",d),function(e){r.postMessage(a+e,"*")}):r.MessageChannel?((t=new MessageChannel).port1.onmessage=function(e){c(e.data)},function(e){t.port2.postMessage(e)}):l&&"onreadystatechange"in l.createElement("script")?(s=l.documentElement,function(e){var t=l.createElement("script");t.onreadystatechange=function(){c(e),t.onreadystatechange=null,s.removeChild(t),t=null},s.appendChild(t)}):function(e){setTimeout(c,0,e)},e.setImmediate=function(e){"function"!=typeof e&&(e=new Function(""+e));for(var t=new Array(arguments.length-1),r=0;r<t.length;r++)t[r]=arguments[r+1];var n={callback:e,args:t};return h[o]=n,i(o),o++},e.clearImmediate=f}function f(e){delete h[e]}function c(e){if(u)setTimeout(c,0,e);else{var t=h[e];if(t){u=!0;try{!function(e){var t=e.callback,r=e.args;switch(r.length){case 0:t();break;case 1:t(r[0]);break;case 2:t(r[0],r[1]);break;case 3:t(r[0],r[1],r[2]);break;default:t.apply(n,r)}}(t)}finally{f(e),u=!1}}}}function d(e){e.source===r&&"string"==typeof e.data&&0===e.data.indexOf(a)&&c(+e.data.slice(a.length))}}("undefined"==typeof self?void 0===e?this:e:self)}).call(this,"undefined"!=typeof global?global:"undefined"!=typeof self?self:"undefined"!=typeof window?window:{})},{}]},{},[10])(10)});
+
+/* SHAHID ERP — Offline SQLite Engine
+ * Amendment 7: self-contained SQLite reader/writer for the ERP backup schema.
+ * Supports real SQLite 3 files containing the erp_state table and produces
+ * standards-compliant SQLite 3 files without WASM/network dependencies.
+ */
+(function(){
+  'use strict';
+
+  const MAGIC = 'SQLite format 3\u0000';
+  const DEFAULT_PAGE_SIZE = 4096;
+
+  function readVarint(bytes, offset){
+    let value = 0;
+    for(let i=0;i<9;i++){
+      const c = bytes[offset+i];
+      if(i===8) return {value:(value*256)+c, next:offset+9};
+      value = (value*128) + (c & 0x7f);
+      if(c < 0x80) return {value, next:offset+i+1};
+    }
+    throw new Error('Invalid SQLite varint.');
+  }
+
+  function writeVarint(value){
+    let n = Number(value);
+    if(!Number.isFinite(n) || n < 0) throw new Error('Invalid SQLite varint value.');
+    n = Math.floor(n);
+    if(n <= 0x7f) return Uint8Array.from([n]);
+    const out=[];
+    while(n > 0x7f){ out.push(n & 0x7f); n=Math.floor(n/128); }
+    out.push(n);
+    out.reverse();
+    for(let i=0;i<out.length-1;i++) out[i]|=0x80;
+    return Uint8Array.from(out);
+  }
+
+  function concatArrays(...arrays){
+    const total=arrays.reduce((n,a)=>n+(a?.length||0),0);
+    const out=new Uint8Array(total); let p=0;
+    arrays.forEach(a=>{if(a&&a.length){out.set(a,p);p+=a.length;}});
+    return out;
+  }
+
+  function utf8(value){ return new TextEncoder().encode(String(value ?? '')); }
+  function utf8String(bytes){ return new TextDecoder('utf-8',{fatal:false}).decode(bytes); }
+
+  function serialTypeForText(bytes){ return 13 + (bytes.length * 2); }
+
+  function encodeRecord(values){
+    const payloads=[];
+    const serials=[];
+    for(const value of values){
+      if(value === null || value === undefined){ serials.push(0); payloads.push(new Uint8Array()); continue; }
+      if(typeof value === 'number' && Number.isInteger(value)){
+        if(value===0){serials.push(8);payloads.push(new Uint8Array());continue;}
+        if(value===1){serials.push(9);payloads.push(new Uint8Array());continue;}
+        if(value>=-128 && value<=127){serials.push(1);payloads.push(Uint8Array.from([value&255]));continue;}
+        if(value>=-32768 && value<=32767){serials.push(2);const b=new Uint8Array(2);new DataView(b.buffer).setInt16(0,value,false);payloads.push(b);continue;}
+        if(value>=-2147483648 && value<=2147483647){serials.push(4);const b=new Uint8Array(4);new DataView(b.buffer).setInt32(0,value,false);payloads.push(b);continue;}
+      }
+      const b=utf8(value); serials.push(serialTypeForText(b)); payloads.push(b);
+    }
+    const serialBytes=concatArrays(...serials.map(writeVarint));
+    const headerLen=writeVarint(serialBytes.length + 1);
+    // Header length can itself be more than one byte; recompute until stable.
+    let header=concatArrays(headerLen,serialBytes);
+    while(header.length !== Number(readVarint(header,0).value)){
+      const h=writeVarint(header.length);
+      header=concatArrays(h,serialBytes);
+    }
+    return concatArrays(header,...payloads);
+  }
+
+  function decodeSerial(bytes, offset, serial){
+    const text = (serial>=13 && (serial&1)===1);
+    if(serial===0) return {value:null,next:offset};
+    if(serial===8) return {value:0,next:offset};
+    if(serial===9) return {value:1,next:offset};
+    if(text){
+      const len=(serial-13)/2;
+      return {value:utf8String(bytes.slice(offset,offset+len)),next:offset+len};
+    }
+    const dv=new DataView(bytes.buffer,bytes.byteOffset+offset);
+    if(serial===1) return {value:dv.getInt8(0),next:offset+1};
+    if(serial===2) return {value:dv.getInt16(0,false),next:offset+2};
+    if(serial===3){
+      const b=bytes.slice(offset,offset+3); let v=(b[0]<<16)|(b[1]<<8)|b[2]; if(v&0x800000)v-=0x1000000; return {value:v,next:offset+3};
+    }
+    if(serial===4) return {value:dv.getInt32(0,false),next:offset+4};
+    if(serial===5){ let v=0; for(let i=0;i<6;i++)v=v*256+bytes[offset+i]; if(v>=2**47)v-=2**48; return {value:v,next:offset+6}; }
+    if(serial===6){ let v=0; for(let i=0;i<8;i++)v=v*256+bytes[offset+i]; return {value:v,next:offset+8}; }
+    if(serial===7) return {value:dv.getFloat64(0,false),next:offset+8};
+    if(serial>=12 && (serial&1)===0){ const len=serial/2-6; return {value:bytes.slice(offset,offset+len),next:offset+len}; }
+    throw new Error('Unsupported SQLite serial type: '+serial);
+  }
+
+  function decodeRecord(payload){
+    const h=readVarint(payload,0); const headerEnd=h.next + (h.value-Number(h.next));
+    // h.value is total header size measured from record start.
+    const end=Number(h.value);
+    let p=h.next; const serials=[];
+    while(p<end){const r=readVarint(payload,p);serials.push(r.value);p=r.next;}
+    let dataOffset=end; const values=[];
+    for(const serial of serials){const r=decodeSerial(payload,dataOffset,serial);values.push(r.value);dataOffset=r.next;}
+    return values;
+  }
+
+  function pageHeader(bytes,pageNo,pageSize){
+    const base=(pageNo-1)*pageSize + (pageNo===1?100:0);
+    const type=bytes[base];
+    if(type===0x0d || type===0x05){
+      return {
+        base,type,
+        firstFree:(bytes[base+1]<<8)|bytes[base+2],
+        cellCount:(bytes[base+3]<<8)|bytes[base+4],
+        cellContent:((bytes[base+5]<<8)|bytes[base+6]) || pageSize,
+        fragmented:bytes[base+7],
+        headerSize:(type===0x05?12:8)
+      };
+    }
+    throw new Error('Unsupported SQLite b-tree page type 0x'+type.toString(16));
+  }
+
+  function cellPointers(bytes,info,pageSize){
+    const out=[]; const start=info.base+info.headerSize;
+    for(let i=0;i<info.cellCount;i++) out.push((bytes[start+i*2]<<8)|bytes[start+i*2+1]);
+    return out;
+  }
+
+  function payloadLimits(pageSize,reserved){
+    const usable=pageSize-reserved;
+    return {
+      usable,
+      minLocal:Math.floor(((usable-12)*32)/255)-23,
+      maxLocal:usable-35
+    };
+  }
+
+  function readTableLeafCell(bytes,absCell,pageSize,reserved){
+    const p=readVarint(bytes,absCell); const payloadSize=p.value; const r=readVarint(bytes,p.next); const rowid=r.value; let pos=r.next;
+    const lim=payloadLimits(pageSize,reserved);
+    let local=payloadSize<=lim.maxLocal ? payloadSize : lim.minLocal + ((payloadSize-lim.minLocal) % (lim.usable-4));
+    if(local>lim.maxLocal) local=lim.minLocal;
+    const chunks=[bytes.slice(pos,pos+local)]; pos+=local;
+    let got=local;
+    if(got<payloadSize){
+      let nextPage=((bytes[pos]<<24)>>>0)|(bytes[pos+1]<<16)|(bytes[pos+2]<<8)|bytes[pos+3];
+      const chunkSize=pageSize-reserved-4;
+      while(nextPage){
+        const pageBase=(nextPage-1)*pageSize;
+        chunks.push(bytes.slice(pageBase+4,pageBase+4+Math.min(chunkSize,payloadSize-got)));
+        got+=Math.min(chunkSize,payloadSize-got);
+        if(got>=payloadSize) break;
+        nextPage=((bytes[pageBase]<<24)>>>0)|(bytes[pageBase+1]<<16)|(bytes[pageBase+2]<<8)|bytes[pageBase+3];
+      }
+      if(got<payloadSize) throw new Error('SQLite overflow chain is incomplete.');
+    }
+    return {rowid,payload:concatArrays(...chunks).slice(0,payloadSize)};
+  }
+
+  function readTableRows(bytes,rootPage,pageSize,reserved,visited){
+    visited=visited||new Set();
+    if(visited.has(rootPage)) throw new Error('SQLite b-tree cycle detected.');
+    visited.add(rootPage);
+    const info=pageHeader(bytes,rootPage,pageSize); const rows=[];
+    if(info.type===0x0d){
+      for(const rel of cellPointers(bytes,info,pageSize)) rows.push(readTableLeafCell(bytes,(rootPage-1)*pageSize+rel,pageSize,reserved));
+      return rows;
+    }
+    // Interior table page: left child is the first 4 bytes of each cell; right-most child is in header.
+    const start=info.base+info.headerSize;
+    for(let i=0;i<info.cellCount;i++){
+      const rel=(bytes[start+i*2]<<8)|bytes[start+i*2+1];
+      const abs=(rootPage-1)*pageSize+rel;
+      const child=((bytes[abs]<<24)>>>0)|(bytes[abs+1]<<16)|(bytes[abs+2]<<8)|bytes[abs+3];
+      rows.push(...readTableRows(bytes,child,pageSize,reserved,visited));
+    }
+    const right=((bytes[info.base+8]<<24)>>>0)|(bytes[info.base+9]<<16)|(bytes[info.base+10]<<8)|bytes[info.base+11];
+    if(right) rows.push(...readTableRows(bytes,right,pageSize,reserved,visited));
+    return rows;
+  }
+
+  function parseDatabase(input){
+    const bytes=input instanceof Uint8Array?input:new Uint8Array(input);
+    if(bytes.length<100) throw new Error('SQLite file is too small.');
+    if(utf8String(bytes.slice(0,16))!==MAGIC) throw new Error('Selected file is not a valid SQLite 3 database.');
+    let pageSize=(bytes[16]<<8)|bytes[17]; if(pageSize===1) pageSize=65536;
+    const reserved=bytes[20];
+    if(!pageSize || (pageSize & (pageSize-1))!==0 || bytes.length<pageSize) throw new Error('Invalid SQLite page size.');
+    const masterRows=readTableRows(bytes,1,pageSize,reserved);
+    let stateRoot=null;
+    for(const row of masterRows){
+      const vals=decodeRecord(row.payload);
+      if(vals[0]==='table' && vals[1]==='erp_state') stateRoot=Number(vals[3]);
+    }
+    if(!stateRoot) throw new Error('SQLite file does not contain the SHAHID ERP erp_state table.');
+    const stateRows=readTableRows(bytes,stateRoot,pageSize,reserved);
+    const importedState={};
+    for(const row of stateRows){
+      const vals=decodeRecord(row.payload);
+      const key=vals[0]; const json=vals[1];
+      if(typeof key!=='string' || typeof json!=='string') continue;
+      try{importedState[key]=JSON.parse(json);}catch(e){/* skip invalid row */}
+    }
+    if(!Object.keys(importedState).length) throw new Error('SQLite backup contains no valid ERP state.');
+    if(Object.prototype.hasOwnProperty.call(importedState,'__ALL__') && importedState.__ALL__ && typeof importedState.__ALL__==='object'){
+      return {state:importedState.__ALL__,pageSize,format:'SHAHID-ERP-OFFLINE-SQLITE-V1'};
+    }
+    return {state:importedState,pageSize,format:'SQLITE-ERP-STATE'};
+  }
+
+  function makeHeader(totalPages,pageSize){
+    const b=new Uint8Array(pageSize); const enc=new TextEncoder(); b.set(enc.encode(MAGIC),0);
+    b[16]=(pageSize>>>8)&255;b[17]=pageSize&255;b[18]=1;b[19]=1;b[20]=0;b[21]=64;b[22]=32;b[23]=32;
+    const dv=new DataView(b.buffer); dv.setUint32(24,1,false);dv.setUint32(28,totalPages,false);dv.setUint32(32,0,false);dv.setUint32(36,0,false);dv.setUint32(40,1,false);dv.setUint32(44,4,false);dv.setUint32(48,0,false);dv.setUint32(52,0,false);dv.setUint32(56,1,false);dv.setUint32(60,0,false);dv.setUint32(64,0,false);dv.setUint32(68,0,false);dv.setUint32(72,0,false);dv.setUint32(76,0,false);dv.setUint32(80,0,false);dv.setUint32(84,0,false);dv.setUint32(88,0,false);dv.setUint32(92,1,false);dv.setUint32(96,3045002,false);
+    return b;
+  }
+
+  function makeLeafPage(pageSize,rowCell){
+    const b=new Uint8Array(pageSize); b[0]=0x0d; b[1]=0;b[2]=0; b[3]=0;b[4]=1; const ptr=pageSize-rowCell.length; b[5]=(ptr>>>8)&255;b[6]=ptr&255;b[7]=0; b.set(rowCell,ptr); b[8]= (ptr>>>8)&255;b[9]=ptr&255; return b;
+  }
+
+  function makeTableLeafCell(payload,rowid){return concatArrays(writeVarint(payload.length),writeVarint(rowid),payload);}
+
+  function buildDatabase(state){
+    const pageSize=DEFAULT_PAGE_SIZE; const schema='CREATE TABLE erp_state (key TEXT, value_json TEXT NOT NULL)';
+    const masterPayload=encodeRecord(['table','erp_state','erp_state',2,schema]);
+    const masterCell=makeTableLeafCell(masterPayload,1);
+    if(masterCell.length>pageSize-100-8) throw new Error('SQLite master schema is unexpectedly large.');
+    const stateJson=JSON.stringify(state);
+    const statePayload=encodeRecord(['__ALL__',stateJson]);
+    const stateCellHeader=concatArrays(writeVarint(statePayload.length),writeVarint(1));
+    const usable=pageSize; const minLocal=Math.floor(((usable-12)*32)/255)-23; const maxLocal=usable-35;
+    let local=statePayload.length<=maxLocal?statePayload.length:minLocal+((statePayload.length-minLocal)%(usable-4)); if(local>maxLocal)local=minLocal;
+    const overflowBytes=Math.max(0,statePayload.length-local); const overflowPageCount=Math.ceil(overflowBytes/(pageSize-4));
+    const totalPages=2+overflowPageCount;
+    const page1=makeHeader(totalPages,pageSize);
+    const p1=page1; const ptr1=pageSize-masterCell.length; const base1=100; p1[base1]=0x0d;p1[base1+1]=0;p1[base1+2]=0;p1[base1+3]=0;p1[base1+4]=1;p1[base1+5]=(ptr1>>>8)&255;p1[base1+6]=ptr1&255;p1[base1+7]=0;p1[base1+8]=(ptr1>>>8)&255;p1[base1+9]=ptr1&255;p1.set(masterCell,ptr1);
+    const stateLocal=statePayload.slice(0,local); let stateCell=concatArrays(stateCellHeader,stateLocal);
+    if(overflowPageCount){
+      const firstOverflowPage=3; const ovPtr=new Uint8Array(4); new DataView(ovPtr.buffer).setUint32(0,firstOverflowPage,false); stateCell=concatArrays(stateCell,ovPtr);
+    }
+    const page2=makeLeafPage(pageSize,stateCell);
+    const pages=[page1,page2]; let consumed=local;
+    for(let i=0;i<overflowPageCount;i++){
+      const pageNo=3+i; const next=pageNo<2+overflowPageCount?pageNo+1:0; const pg=new Uint8Array(pageSize); const dv=new DataView(pg.buffer);dv.setUint32(0,next,false);const take=Math.min(pageSize-4,statePayload.length-consumed);pg.set(statePayload.slice(consumed,consumed+take),4);consumed+=take;pages.push(pg);
+    }
+    return concatArrays(...pages);
+  }
+
+  class OfflineSQLiteDatabase{
+    constructor(data){this._data=data?new Uint8Array(data):null;this._closed=false;this._new=!data;this._state=data?parseDatabase(this._data).state:{};}
+    export(){if(this._closed)throw new Error('SQLite database is closed.');return buildDatabase(this._state);}
+    close(){this._closed=true;}
+    prepare(sql){
+      const text=String(sql||'').trim().toLowerCase();
+      if(text.startsWith('select name from sqlite_master')) return new OfflineStatement([["erp_state"]]);
+      if(text.startsWith('select key, value_json from erp_state')) return new OfflineStatement(Object.entries(this._state).map(([key,value])=>({key,value_json:JSON.stringify(value)})));
+      throw new Error('Offline SQLite engine supports only the ERP backup queries.');
+    }
+  }
+  class OfflineStatement{
+    constructor(rows){this.rows=rows;this.i=-1;}
+    step(){this.i++;return this.i<this.rows.length;}
+    getAsObject(){const r=this.rows[this.i];return Array.isArray(r)?{name:r[0]}:r;}
+    free(){}
+    run(){}
+  }
+
+  window.SHAHIDOfflineSQLite={version:'1.0.0',parse:parseDatabase,build:buildDatabase,Database:OfflineSQLiteDatabase};
+})();
+
+
+!function(t){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define([],t);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).pako=t()}}(function(){return function r(s,o,l){function h(e,t){if(!o[e]){if(!s[e]){var a="function"==typeof require&&require;if(!t&&a)return a(e,!0);if(d)return d(e,!0);var i=new Error("Cannot find module '"+e+"'");throw i.code="MODULE_NOT_FOUND",i}var n=o[e]={exports:{}};s[e][0].call(n.exports,function(t){return h(s[e][1][t]||t)},n,n.exports,r,s,o,l)}return o[e].exports}for(var d="function"==typeof require&&require,t=0;t<l.length;t++)h(l[t]);return h}({1:[function(t,e,a){"use strict";var s=t("./zlib/deflate"),o=t("./utils/common"),l=t("./utils/strings"),n=t("./zlib/messages"),r=t("./zlib/zstream"),h=Object.prototype.toString,d=0,f=-1,_=0,u=8;function c(t){if(!(this instanceof c))return new c(t);this.options=o.assign({level:f,method:u,chunkSize:16384,windowBits:15,memLevel:8,strategy:_,to:""},t||{});var e=this.options;e.raw&&0<e.windowBits?e.windowBits=-e.windowBits:e.gzip&&0<e.windowBits&&e.windowBits<16&&(e.windowBits+=16),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new r,this.strm.avail_out=0;var a=s.deflateInit2(this.strm,e.level,e.method,e.windowBits,e.memLevel,e.strategy);if(a!==d)throw new Error(n[a]);if(e.header&&s.deflateSetHeader(this.strm,e.header),e.dictionary){var i;if(i="string"==typeof e.dictionary?l.string2buf(e.dictionary):"[object ArrayBuffer]"===h.call(e.dictionary)?new Uint8Array(e.dictionary):e.dictionary,(a=s.deflateSetDictionary(this.strm,i))!==d)throw new Error(n[a]);this._dict_set=!0}}function i(t,e){var a=new c(e);if(a.push(t,!0),a.err)throw a.msg||n[a.err];return a.result}c.prototype.push=function(t,e){var a,i,n=this.strm,r=this.options.chunkSize;if(this.ended)return!1;i=e===~~e?e:!0===e?4:0,"string"==typeof t?n.input=l.string2buf(t):"[object ArrayBuffer]"===h.call(t)?n.input=new Uint8Array(t):n.input=t,n.next_in=0,n.avail_in=n.input.length;do{if(0===n.avail_out&&(n.output=new o.Buf8(r),n.next_out=0,n.avail_out=r),1!==(a=s.deflate(n,i))&&a!==d)return this.onEnd(a),!(this.ended=!0);0!==n.avail_out&&(0!==n.avail_in||4!==i&&2!==i)||("string"===this.options.to?this.onData(l.buf2binstring(o.shrinkBuf(n.output,n.next_out))):this.onData(o.shrinkBuf(n.output,n.next_out)))}while((0<n.avail_in||0===n.avail_out)&&1!==a);return 4===i?(a=s.deflateEnd(this.strm),this.onEnd(a),this.ended=!0,a===d):2!==i||(this.onEnd(d),!(n.avail_out=0))},c.prototype.onData=function(t){this.chunks.push(t)},c.prototype.onEnd=function(t){t===d&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=o.flattenChunks(this.chunks)),this.chunks=[],this.err=t,this.msg=this.strm.msg},a.Deflate=c,a.deflate=i,a.deflateRaw=function(t,e){return(e=e||{}).raw=!0,i(t,e)},a.gzip=function(t,e){return(e=e||{}).gzip=!0,i(t,e)}},{"./utils/common":3,"./utils/strings":4,"./zlib/deflate":8,"./zlib/messages":13,"./zlib/zstream":15}],2:[function(t,e,a){"use strict";var f=t("./zlib/inflate"),_=t("./utils/common"),u=t("./utils/strings"),c=t("./zlib/constants"),i=t("./zlib/messages"),n=t("./zlib/zstream"),r=t("./zlib/gzheader"),b=Object.prototype.toString;function s(t){if(!(this instanceof s))return new s(t);this.options=_.assign({chunkSize:16384,windowBits:0,to:""},t||{});var e=this.options;e.raw&&0<=e.windowBits&&e.windowBits<16&&(e.windowBits=-e.windowBits,0===e.windowBits&&(e.windowBits=-15)),!(0<=e.windowBits&&e.windowBits<16)||t&&t.windowBits||(e.windowBits+=32),15<e.windowBits&&e.windowBits<48&&0==(15&e.windowBits)&&(e.windowBits|=15),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new n,this.strm.avail_out=0;var a=f.inflateInit2(this.strm,e.windowBits);if(a!==c.Z_OK)throw new Error(i[a]);if(this.header=new r,f.inflateGetHeader(this.strm,this.header),e.dictionary&&("string"==typeof e.dictionary?e.dictionary=u.string2buf(e.dictionary):"[object ArrayBuffer]"===b.call(e.dictionary)&&(e.dictionary=new Uint8Array(e.dictionary)),e.raw&&(a=f.inflateSetDictionary(this.strm,e.dictionary))!==c.Z_OK))throw new Error(i[a])}function o(t,e){var a=new s(e);if(a.push(t,!0),a.err)throw a.msg||i[a.err];return a.result}s.prototype.push=function(t,e){var a,i,n,r,s,o=this.strm,l=this.options.chunkSize,h=this.options.dictionary,d=!1;if(this.ended)return!1;i=e===~~e?e:!0===e?c.Z_FINISH:c.Z_NO_FLUSH,"string"==typeof t?o.input=u.binstring2buf(t):"[object ArrayBuffer]"===b.call(t)?o.input=new Uint8Array(t):o.input=t,o.next_in=0,o.avail_in=o.input.length;do{if(0===o.avail_out&&(o.output=new _.Buf8(l),o.next_out=0,o.avail_out=l),(a=f.inflate(o,c.Z_NO_FLUSH))===c.Z_NEED_DICT&&h&&(a=f.inflateSetDictionary(this.strm,h)),a===c.Z_BUF_ERROR&&!0===d&&(a=c.Z_OK,d=!1),a!==c.Z_STREAM_END&&a!==c.Z_OK)return this.onEnd(a),!(this.ended=!0);o.next_out&&(0!==o.avail_out&&a!==c.Z_STREAM_END&&(0!==o.avail_in||i!==c.Z_FINISH&&i!==c.Z_SYNC_FLUSH)||("string"===this.options.to?(n=u.utf8border(o.output,o.next_out),r=o.next_out-n,s=u.buf2string(o.output,n),o.next_out=r,o.avail_out=l-r,r&&_.arraySet(o.output,o.output,n,r,0),this.onData(s)):this.onData(_.shrinkBuf(o.output,o.next_out)))),0===o.avail_in&&0===o.avail_out&&(d=!0)}while((0<o.avail_in||0===o.avail_out)&&a!==c.Z_STREAM_END);return a===c.Z_STREAM_END&&(i=c.Z_FINISH),i===c.Z_FINISH?(a=f.inflateEnd(this.strm),this.onEnd(a),this.ended=!0,a===c.Z_OK):i!==c.Z_SYNC_FLUSH||(this.onEnd(c.Z_OK),!(o.avail_out=0))},s.prototype.onData=function(t){this.chunks.push(t)},s.prototype.onEnd=function(t){t===c.Z_OK&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=_.flattenChunks(this.chunks)),this.chunks=[],this.err=t,this.msg=this.strm.msg},a.Inflate=s,a.inflate=o,a.inflateRaw=function(t,e){return(e=e||{}).raw=!0,o(t,e)},a.ungzip=o},{"./utils/common":3,"./utils/strings":4,"./zlib/constants":6,"./zlib/gzheader":9,"./zlib/inflate":11,"./zlib/messages":13,"./zlib/zstream":15}],3:[function(t,e,a){"use strict";var i="undefined"!=typeof Uint8Array&&"undefined"!=typeof Uint16Array&&"undefined"!=typeof Int32Array;a.assign=function(t){for(var e,a,i=Array.prototype.slice.call(arguments,1);i.length;){var n=i.shift();if(n){if("object"!=typeof n)throw new TypeError(n+"must be non-object");for(var r in n)e=n,a=r,Object.prototype.hasOwnProperty.call(e,a)&&(t[r]=n[r])}}return t},a.shrinkBuf=function(t,e){return t.length===e?t:t.subarray?t.subarray(0,e):(t.length=e,t)};var n={arraySet:function(t,e,a,i,n){if(e.subarray&&t.subarray)t.set(e.subarray(a,a+i),n);else for(var r=0;r<i;r++)t[n+r]=e[a+r]},flattenChunks:function(t){var e,a,i,n,r,s;for(e=i=0,a=t.length;e<a;e++)i+=t[e].length;for(s=new Uint8Array(i),e=n=0,a=t.length;e<a;e++)r=t[e],s.set(r,n),n+=r.length;return s}},r={arraySet:function(t,e,a,i,n){for(var r=0;r<i;r++)t[n+r]=e[a+r]},flattenChunks:function(t){return[].concat.apply([],t)}};a.setTyped=function(t){t?(a.Buf8=Uint8Array,a.Buf16=Uint16Array,a.Buf32=Int32Array,a.assign(a,n)):(a.Buf8=Array,a.Buf16=Array,a.Buf32=Array,a.assign(a,r))},a.setTyped(i)},{}],4:[function(t,e,a){"use strict";var l=t("./common"),n=!0,r=!0;try{String.fromCharCode.apply(null,[0])}catch(t){n=!1}try{String.fromCharCode.apply(null,new Uint8Array(1))}catch(t){r=!1}for(var h=new l.Buf8(256),i=0;i<256;i++)h[i]=252<=i?6:248<=i?5:240<=i?4:224<=i?3:192<=i?2:1;function d(t,e){if(e<65534&&(t.subarray&&r||!t.subarray&&n))return String.fromCharCode.apply(null,l.shrinkBuf(t,e));for(var a="",i=0;i<e;i++)a+=String.fromCharCode(t[i]);return a}h[254]=h[254]=1,a.string2buf=function(t){var e,a,i,n,r,s=t.length,o=0;for(n=0;n<s;n++)55296==(64512&(a=t.charCodeAt(n)))&&n+1<s&&56320==(64512&(i=t.charCodeAt(n+1)))&&(a=65536+(a-55296<<10)+(i-56320),n++),o+=a<128?1:a<2048?2:a<65536?3:4;for(e=new l.Buf8(o),n=r=0;r<o;n++)55296==(64512&(a=t.charCodeAt(n)))&&n+1<s&&56320==(64512&(i=t.charCodeAt(n+1)))&&(a=65536+(a-55296<<10)+(i-56320),n++),a<128?e[r++]=a:(a<2048?e[r++]=192|a>>>6:(a<65536?e[r++]=224|a>>>12:(e[r++]=240|a>>>18,e[r++]=128|a>>>12&63),e[r++]=128|a>>>6&63),e[r++]=128|63&a);return e},a.buf2binstring=function(t){return d(t,t.length)},a.binstring2buf=function(t){for(var e=new l.Buf8(t.length),a=0,i=e.length;a<i;a++)e[a]=t.charCodeAt(a);return e},a.buf2string=function(t,e){var a,i,n,r,s=e||t.length,o=new Array(2*s);for(a=i=0;a<s;)if((n=t[a++])<128)o[i++]=n;else if(4<(r=h[n]))o[i++]=65533,a+=r-1;else{for(n&=2===r?31:3===r?15:7;1<r&&a<s;)n=n<<6|63&t[a++],r--;1<r?o[i++]=65533:n<65536?o[i++]=n:(n-=65536,o[i++]=55296|n>>10&1023,o[i++]=56320|1023&n)}return d(o,i)},a.utf8border=function(t,e){var a;for((e=e||t.length)>t.length&&(e=t.length),a=e-1;0<=a&&128==(192&t[a]);)a--;return a<0?e:0===a?e:a+h[t[a]]>e?a:e}},{"./common":3}],5:[function(t,e,a){"use strict";e.exports=function(t,e,a,i){for(var n=65535&t|0,r=t>>>16&65535|0,s=0;0!==a;){for(a-=s=2e3<a?2e3:a;r=r+(n=n+e[i++]|0)|0,--s;);n%=65521,r%=65521}return n|r<<16|0}},{}],6:[function(t,e,a){"use strict";e.exports={Z_NO_FLUSH:0,Z_PARTIAL_FLUSH:1,Z_SYNC_FLUSH:2,Z_FULL_FLUSH:3,Z_FINISH:4,Z_BLOCK:5,Z_TREES:6,Z_OK:0,Z_STREAM_END:1,Z_NEED_DICT:2,Z_ERRNO:-1,Z_STREAM_ERROR:-2,Z_DATA_ERROR:-3,Z_BUF_ERROR:-5,Z_NO_COMPRESSION:0,Z_BEST_SPEED:1,Z_BEST_COMPRESSION:9,Z_DEFAULT_COMPRESSION:-1,Z_FILTERED:1,Z_HUFFMAN_ONLY:2,Z_RLE:3,Z_FIXED:4,Z_DEFAULT_STRATEGY:0,Z_BINARY:0,Z_TEXT:1,Z_UNKNOWN:2,Z_DEFLATED:8}},{}],7:[function(t,e,a){"use strict";var o=function(){for(var t,e=[],a=0;a<256;a++){t=a;for(var i=0;i<8;i++)t=1&t?3988292384^t>>>1:t>>>1;e[a]=t}return e}();e.exports=function(t,e,a,i){var n=o,r=i+a;t^=-1;for(var s=i;s<r;s++)t=t>>>8^n[255&(t^e[s])];return-1^t}},{}],8:[function(t,e,a){"use strict";var l,_=t("../utils/common"),h=t("./trees"),u=t("./adler32"),c=t("./crc32"),i=t("./messages"),d=0,f=4,b=0,g=-2,m=-1,w=4,n=2,p=8,v=9,r=286,s=30,o=19,k=2*r+1,y=15,x=3,z=258,B=z+x+1,S=42,E=113,A=1,Z=2,R=3,C=4;function N(t,e){return t.msg=i[e],e}function O(t){return(t<<1)-(4<t?9:0)}function D(t){for(var e=t.length;0<=--e;)t[e]=0}function I(t){var e=t.state,a=e.pending;a>t.avail_out&&(a=t.avail_out),0!==a&&(_.arraySet(t.output,e.pending_buf,e.pending_out,a,t.next_out),t.next_out+=a,e.pending_out+=a,t.total_out+=a,t.avail_out-=a,e.pending-=a,0===e.pending&&(e.pending_out=0))}function U(t,e){h._tr_flush_block(t,0<=t.block_start?t.block_start:-1,t.strstart-t.block_start,e),t.block_start=t.strstart,I(t.strm)}function T(t,e){t.pending_buf[t.pending++]=e}function F(t,e){t.pending_buf[t.pending++]=e>>>8&255,t.pending_buf[t.pending++]=255&e}function L(t,e){var a,i,n=t.max_chain_length,r=t.strstart,s=t.prev_length,o=t.nice_match,l=t.strstart>t.w_size-B?t.strstart-(t.w_size-B):0,h=t.window,d=t.w_mask,f=t.prev,_=t.strstart+z,u=h[r+s-1],c=h[r+s];t.prev_length>=t.good_match&&(n>>=2),o>t.lookahead&&(o=t.lookahead);do{if(h[(a=e)+s]===c&&h[a+s-1]===u&&h[a]===h[r]&&h[++a]===h[r+1]){r+=2,a++;do{}while(h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&r<_);if(i=z-(_-r),r=_-z,s<i){if(t.match_start=e,o<=(s=i))break;u=h[r+s-1],c=h[r+s]}}}while((e=f[e&d])>l&&0!=--n);return s<=t.lookahead?s:t.lookahead}function H(t){var e,a,i,n,r,s,o,l,h,d,f=t.w_size;do{if(n=t.window_size-t.lookahead-t.strstart,t.strstart>=f+(f-B)){for(_.arraySet(t.window,t.window,f,f,0),t.match_start-=f,t.strstart-=f,t.block_start-=f,e=a=t.hash_size;i=t.head[--e],t.head[e]=f<=i?i-f:0,--a;);for(e=a=f;i=t.prev[--e],t.prev[e]=f<=i?i-f:0,--a;);n+=f}if(0===t.strm.avail_in)break;if(s=t.strm,o=t.window,l=t.strstart+t.lookahead,h=n,d=void 0,d=s.avail_in,h<d&&(d=h),a=0===d?0:(s.avail_in-=d,_.arraySet(o,s.input,s.next_in,d,l),1===s.state.wrap?s.adler=u(s.adler,o,d,l):2===s.state.wrap&&(s.adler=c(s.adler,o,d,l)),s.next_in+=d,s.total_in+=d,d),t.lookahead+=a,t.lookahead+t.insert>=x)for(r=t.strstart-t.insert,t.ins_h=t.window[r],t.ins_h=(t.ins_h<<t.hash_shift^t.window[r+1])&t.hash_mask;t.insert&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[r+x-1])&t.hash_mask,t.prev[r&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=r,r++,t.insert--,!(t.lookahead+t.insert<x)););}while(t.lookahead<B&&0!==t.strm.avail_in)}function j(t,e){for(var a,i;;){if(t.lookahead<B){if(H(t),t.lookahead<B&&e===d)return A;if(0===t.lookahead)break}if(a=0,t.lookahead>=x&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart),0!==a&&t.strstart-a<=t.w_size-B&&(t.match_length=L(t,a)),t.match_length>=x)if(i=h._tr_tally(t,t.strstart-t.match_start,t.match_length-x),t.lookahead-=t.match_length,t.match_length<=t.max_lazy_match&&t.lookahead>=x){for(t.match_length--;t.strstart++,t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart,0!=--t.match_length;);t.strstart++}else t.strstart+=t.match_length,t.match_length=0,t.ins_h=t.window[t.strstart],t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+1])&t.hash_mask;else i=h._tr_tally(t,0,t.window[t.strstart]),t.lookahead--,t.strstart++;if(i&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=t.strstart<x-1?t.strstart:x-1,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}function K(t,e){for(var a,i,n;;){if(t.lookahead<B){if(H(t),t.lookahead<B&&e===d)return A;if(0===t.lookahead)break}if(a=0,t.lookahead>=x&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart),t.prev_length=t.match_length,t.prev_match=t.match_start,t.match_length=x-1,0!==a&&t.prev_length<t.max_lazy_match&&t.strstart-a<=t.w_size-B&&(t.match_length=L(t,a),t.match_length<=5&&(1===t.strategy||t.match_length===x&&4096<t.strstart-t.match_start)&&(t.match_length=x-1)),t.prev_length>=x&&t.match_length<=t.prev_length){for(n=t.strstart+t.lookahead-x,i=h._tr_tally(t,t.strstart-1-t.prev_match,t.prev_length-x),t.lookahead-=t.prev_length-1,t.prev_length-=2;++t.strstart<=n&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart),0!=--t.prev_length;);if(t.match_available=0,t.match_length=x-1,t.strstart++,i&&(U(t,!1),0===t.strm.avail_out))return A}else if(t.match_available){if((i=h._tr_tally(t,0,t.window[t.strstart-1]))&&U(t,!1),t.strstart++,t.lookahead--,0===t.strm.avail_out)return A}else t.match_available=1,t.strstart++,t.lookahead--}return t.match_available&&(i=h._tr_tally(t,0,t.window[t.strstart-1]),t.match_available=0),t.insert=t.strstart<x-1?t.strstart:x-1,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}function M(t,e,a,i,n){this.good_length=t,this.max_lazy=e,this.nice_length=a,this.max_chain=i,this.func=n}function P(){this.strm=null,this.status=0,this.pending_buf=null,this.pending_buf_size=0,this.pending_out=0,this.pending=0,this.wrap=0,this.gzhead=null,this.gzindex=0,this.method=p,this.last_flush=-1,this.w_size=0,this.w_bits=0,this.w_mask=0,this.window=null,this.window_size=0,this.prev=null,this.head=null,this.ins_h=0,this.hash_size=0,this.hash_bits=0,this.hash_mask=0,this.hash_shift=0,this.block_start=0,this.match_length=0,this.prev_match=0,this.match_available=0,this.strstart=0,this.match_start=0,this.lookahead=0,this.prev_length=0,this.max_chain_length=0,this.max_lazy_match=0,this.level=0,this.strategy=0,this.good_match=0,this.nice_match=0,this.dyn_ltree=new _.Buf16(2*k),this.dyn_dtree=new _.Buf16(2*(2*s+1)),this.bl_tree=new _.Buf16(2*(2*o+1)),D(this.dyn_ltree),D(this.dyn_dtree),D(this.bl_tree),this.l_desc=null,this.d_desc=null,this.bl_desc=null,this.bl_count=new _.Buf16(y+1),this.heap=new _.Buf16(2*r+1),D(this.heap),this.heap_len=0,this.heap_max=0,this.depth=new _.Buf16(2*r+1),D(this.depth),this.l_buf=0,this.lit_bufsize=0,this.last_lit=0,this.d_buf=0,this.opt_len=0,this.static_len=0,this.matches=0,this.insert=0,this.bi_buf=0,this.bi_valid=0}function Y(t){var e;return t&&t.state?(t.total_in=t.total_out=0,t.data_type=n,(e=t.state).pending=0,e.pending_out=0,e.wrap<0&&(e.wrap=-e.wrap),e.status=e.wrap?S:E,t.adler=2===e.wrap?0:1,e.last_flush=d,h._tr_init(e),b):N(t,g)}function q(t){var e,a=Y(t);return a===b&&((e=t.state).window_size=2*e.w_size,D(e.head),e.max_lazy_match=l[e.level].max_lazy,e.good_match=l[e.level].good_length,e.nice_match=l[e.level].nice_length,e.max_chain_length=l[e.level].max_chain,e.strstart=0,e.block_start=0,e.lookahead=0,e.insert=0,e.match_length=e.prev_length=x-1,e.match_available=0,e.ins_h=0),a}function G(t,e,a,i,n,r){if(!t)return g;var s=1;if(e===m&&(e=6),i<0?(s=0,i=-i):15<i&&(s=2,i-=16),n<1||v<n||a!==p||i<8||15<i||e<0||9<e||r<0||w<r)return N(t,g);8===i&&(i=9);var o=new P;return(t.state=o).strm=t,o.wrap=s,o.gzhead=null,o.w_bits=i,o.w_size=1<<o.w_bits,o.w_mask=o.w_size-1,o.hash_bits=n+7,o.hash_size=1<<o.hash_bits,o.hash_mask=o.hash_size-1,o.hash_shift=~~((o.hash_bits+x-1)/x),o.window=new _.Buf8(2*o.w_size),o.head=new _.Buf16(o.hash_size),o.prev=new _.Buf16(o.w_size),o.lit_bufsize=1<<n+6,o.pending_buf_size=4*o.lit_bufsize,o.pending_buf=new _.Buf8(o.pending_buf_size),o.d_buf=1*o.lit_bufsize,o.l_buf=3*o.lit_bufsize,o.level=e,o.strategy=r,o.method=a,q(t)}l=[new M(0,0,0,0,function(t,e){var a=65535;for(a>t.pending_buf_size-5&&(a=t.pending_buf_size-5);;){if(t.lookahead<=1){if(H(t),0===t.lookahead&&e===d)return A;if(0===t.lookahead)break}t.strstart+=t.lookahead,t.lookahead=0;var i=t.block_start+a;if((0===t.strstart||t.strstart>=i)&&(t.lookahead=t.strstart-i,t.strstart=i,U(t,!1),0===t.strm.avail_out))return A;if(t.strstart-t.block_start>=t.w_size-B&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=0,e===f?(U(t,!0),0===t.strm.avail_out?R:C):(t.strstart>t.block_start&&(U(t,!1),t.strm.avail_out),A)}),new M(4,4,8,4,j),new M(4,5,16,8,j),new M(4,6,32,32,j),new M(4,4,16,16,K),new M(8,16,32,32,K),new M(8,16,128,128,K),new M(8,32,128,256,K),new M(32,128,258,1024,K),new M(32,258,258,4096,K)],a.deflateInit=function(t,e){return G(t,e,p,15,8,0)},a.deflateInit2=G,a.deflateReset=q,a.deflateResetKeep=Y,a.deflateSetHeader=function(t,e){return t&&t.state?2!==t.state.wrap?g:(t.state.gzhead=e,b):g},a.deflate=function(t,e){var a,i,n,r;if(!t||!t.state||5<e||e<0)return t?N(t,g):g;if(i=t.state,!t.output||!t.input&&0!==t.avail_in||666===i.status&&e!==f)return N(t,0===t.avail_out?-5:g);if(i.strm=t,a=i.last_flush,i.last_flush=e,i.status===S)if(2===i.wrap)t.adler=0,T(i,31),T(i,139),T(i,8),i.gzhead?(T(i,(i.gzhead.text?1:0)+(i.gzhead.hcrc?2:0)+(i.gzhead.extra?4:0)+(i.gzhead.name?8:0)+(i.gzhead.comment?16:0)),T(i,255&i.gzhead.time),T(i,i.gzhead.time>>8&255),T(i,i.gzhead.time>>16&255),T(i,i.gzhead.time>>24&255),T(i,9===i.level?2:2<=i.strategy||i.level<2?4:0),T(i,255&i.gzhead.os),i.gzhead.extra&&i.gzhead.extra.length&&(T(i,255&i.gzhead.extra.length),T(i,i.gzhead.extra.length>>8&255)),i.gzhead.hcrc&&(t.adler=c(t.adler,i.pending_buf,i.pending,0)),i.gzindex=0,i.status=69):(T(i,0),T(i,0),T(i,0),T(i,0),T(i,0),T(i,9===i.level?2:2<=i.strategy||i.level<2?4:0),T(i,3),i.status=E);else{var s=p+(i.w_bits-8<<4)<<8;s|=(2<=i.strategy||i.level<2?0:i.level<6?1:6===i.level?2:3)<<6,0!==i.strstart&&(s|=32),s+=31-s%31,i.status=E,F(i,s),0!==i.strstart&&(F(i,t.adler>>>16),F(i,65535&t.adler)),t.adler=1}if(69===i.status)if(i.gzhead.extra){for(n=i.pending;i.gzindex<(65535&i.gzhead.extra.length)&&(i.pending!==i.pending_buf_size||(i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),I(t),n=i.pending,i.pending!==i.pending_buf_size));)T(i,255&i.gzhead.extra[i.gzindex]),i.gzindex++;i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),i.gzindex===i.gzhead.extra.length&&(i.gzindex=0,i.status=73)}else i.status=73;if(73===i.status)if(i.gzhead.name){n=i.pending;do{if(i.pending===i.pending_buf_size&&(i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),I(t),n=i.pending,i.pending===i.pending_buf_size)){r=1;break}T(i,r=i.gzindex<i.gzhead.name.length?255&i.gzhead.name.charCodeAt(i.gzindex++):0)}while(0!==r);i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),0===r&&(i.gzindex=0,i.status=91)}else i.status=91;if(91===i.status)if(i.gzhead.comment){n=i.pending;do{if(i.pending===i.pending_buf_size&&(i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),I(t),n=i.pending,i.pending===i.pending_buf_size)){r=1;break}T(i,r=i.gzindex<i.gzhead.comment.length?255&i.gzhead.comment.charCodeAt(i.gzindex++):0)}while(0!==r);i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),0===r&&(i.status=103)}else i.status=103;if(103===i.status&&(i.gzhead.hcrc?(i.pending+2>i.pending_buf_size&&I(t),i.pending+2<=i.pending_buf_size&&(T(i,255&t.adler),T(i,t.adler>>8&255),t.adler=0,i.status=E)):i.status=E),0!==i.pending){if(I(t),0===t.avail_out)return i.last_flush=-1,b}else if(0===t.avail_in&&O(e)<=O(a)&&e!==f)return N(t,-5);if(666===i.status&&0!==t.avail_in)return N(t,-5);if(0!==t.avail_in||0!==i.lookahead||e!==d&&666!==i.status){var o=2===i.strategy?function(t,e){for(var a;;){if(0===t.lookahead&&(H(t),0===t.lookahead)){if(e===d)return A;break}if(t.match_length=0,a=h._tr_tally(t,0,t.window[t.strstart]),t.lookahead--,t.strstart++,a&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=0,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}(i,e):3===i.strategy?function(t,e){for(var a,i,n,r,s=t.window;;){if(t.lookahead<=z){if(H(t),t.lookahead<=z&&e===d)return A;if(0===t.lookahead)break}if(t.match_length=0,t.lookahead>=x&&0<t.strstart&&(i=s[n=t.strstart-1])===s[++n]&&i===s[++n]&&i===s[++n]){r=t.strstart+z;do{}while(i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&n<r);t.match_length=z-(r-n),t.match_length>t.lookahead&&(t.match_length=t.lookahead)}if(t.match_length>=x?(a=h._tr_tally(t,1,t.match_length-x),t.lookahead-=t.match_length,t.strstart+=t.match_length,t.match_length=0):(a=h._tr_tally(t,0,t.window[t.strstart]),t.lookahead--,t.strstart++),a&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=0,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}(i,e):l[i.level].func(i,e);if(o!==R&&o!==C||(i.status=666),o===A||o===R)return 0===t.avail_out&&(i.last_flush=-1),b;if(o===Z&&(1===e?h._tr_align(i):5!==e&&(h._tr_stored_block(i,0,0,!1),3===e&&(D(i.head),0===i.lookahead&&(i.strstart=0,i.block_start=0,i.insert=0))),I(t),0===t.avail_out))return i.last_flush=-1,b}return e!==f?b:i.wrap<=0?1:(2===i.wrap?(T(i,255&t.adler),T(i,t.adler>>8&255),T(i,t.adler>>16&255),T(i,t.adler>>24&255),T(i,255&t.total_in),T(i,t.total_in>>8&255),T(i,t.total_in>>16&255),T(i,t.total_in>>24&255)):(F(i,t.adler>>>16),F(i,65535&t.adler)),I(t),0<i.wrap&&(i.wrap=-i.wrap),0!==i.pending?b:1)},a.deflateEnd=function(t){var e;return t&&t.state?(e=t.state.status)!==S&&69!==e&&73!==e&&91!==e&&103!==e&&e!==E&&666!==e?N(t,g):(t.state=null,e===E?N(t,-3):b):g},a.deflateSetDictionary=function(t,e){var a,i,n,r,s,o,l,h,d=e.length;if(!t||!t.state)return g;if(2===(r=(a=t.state).wrap)||1===r&&a.status!==S||a.lookahead)return g;for(1===r&&(t.adler=u(t.adler,e,d,0)),a.wrap=0,d>=a.w_size&&(0===r&&(D(a.head),a.strstart=0,a.block_start=0,a.insert=0),h=new _.Buf8(a.w_size),_.arraySet(h,e,d-a.w_size,a.w_size,0),e=h,d=a.w_size),s=t.avail_in,o=t.next_in,l=t.input,t.avail_in=d,t.next_in=0,t.input=e,H(a);a.lookahead>=x;){for(i=a.strstart,n=a.lookahead-(x-1);a.ins_h=(a.ins_h<<a.hash_shift^a.window[i+x-1])&a.hash_mask,a.prev[i&a.w_mask]=a.head[a.ins_h],a.head[a.ins_h]=i,i++,--n;);a.strstart=i,a.lookahead=x-1,H(a)}return a.strstart+=a.lookahead,a.block_start=a.strstart,a.insert=a.lookahead,a.lookahead=0,a.match_length=a.prev_length=x-1,a.match_available=0,t.next_in=o,t.input=l,t.avail_in=s,a.wrap=r,b},a.deflateInfo="pako deflate (from Nodeca project)"},{"../utils/common":3,"./adler32":5,"./crc32":7,"./messages":13,"./trees":14}],9:[function(t,e,a){"use strict";e.exports=function(){this.text=0,this.time=0,this.xflags=0,this.os=0,this.extra=null,this.extra_len=0,this.name="",this.comment="",this.hcrc=0,this.done=!1}},{}],10:[function(t,e,a){"use strict";e.exports=function(t,e){var a,i,n,r,s,o,l,h,d,f,_,u,c,b,g,m,w,p,v,k,y,x,z,B,S;a=t.state,i=t.next_in,B=t.input,n=i+(t.avail_in-5),r=t.next_out,S=t.output,s=r-(e-t.avail_out),o=r+(t.avail_out-257),l=a.dmax,h=a.wsize,d=a.whave,f=a.wnext,_=a.window,u=a.hold,c=a.bits,b=a.lencode,g=a.distcode,m=(1<<a.lenbits)-1,w=(1<<a.distbits)-1;t:do{c<15&&(u+=B[i++]<<c,c+=8,u+=B[i++]<<c,c+=8),p=b[u&m];e:for(;;){if(u>>>=v=p>>>24,c-=v,0===(v=p>>>16&255))S[r++]=65535&p;else{if(!(16&v)){if(0==(64&v)){p=b[(65535&p)+(u&(1<<v)-1)];continue e}if(32&v){a.mode=12;break t}t.msg="invalid literal/length code",a.mode=30;break t}k=65535&p,(v&=15)&&(c<v&&(u+=B[i++]<<c,c+=8),k+=u&(1<<v)-1,u>>>=v,c-=v),c<15&&(u+=B[i++]<<c,c+=8,u+=B[i++]<<c,c+=8),p=g[u&w];a:for(;;){if(u>>>=v=p>>>24,c-=v,!(16&(v=p>>>16&255))){if(0==(64&v)){p=g[(65535&p)+(u&(1<<v)-1)];continue a}t.msg="invalid distance code",a.mode=30;break t}if(y=65535&p,c<(v&=15)&&(u+=B[i++]<<c,(c+=8)<v&&(u+=B[i++]<<c,c+=8)),l<(y+=u&(1<<v)-1)){t.msg="invalid distance too far back",a.mode=30;break t}if(u>>>=v,c-=v,(v=r-s)<y){if(d<(v=y-v)&&a.sane){t.msg="invalid distance too far back",a.mode=30;break t}if(z=_,(x=0)===f){if(x+=h-v,v<k){for(k-=v;S[r++]=_[x++],--v;);x=r-y,z=S}}else if(f<v){if(x+=h+f-v,(v-=f)<k){for(k-=v;S[r++]=_[x++],--v;);if(x=0,f<k){for(k-=v=f;S[r++]=_[x++],--v;);x=r-y,z=S}}}else if(x+=f-v,v<k){for(k-=v;S[r++]=_[x++],--v;);x=r-y,z=S}for(;2<k;)S[r++]=z[x++],S[r++]=z[x++],S[r++]=z[x++],k-=3;k&&(S[r++]=z[x++],1<k&&(S[r++]=z[x++]))}else{for(x=r-y;S[r++]=S[x++],S[r++]=S[x++],S[r++]=S[x++],2<(k-=3););k&&(S[r++]=S[x++],1<k&&(S[r++]=S[x++]))}break}}break}}while(i<n&&r<o);i-=k=c>>3,u&=(1<<(c-=k<<3))-1,t.next_in=i,t.next_out=r,t.avail_in=i<n?n-i+5:5-(i-n),t.avail_out=r<o?o-r+257:257-(r-o),a.hold=u,a.bits=c}},{}],11:[function(t,e,a){"use strict";var Z=t("../utils/common"),R=t("./adler32"),C=t("./crc32"),N=t("./inffast"),O=t("./inftrees"),D=1,I=2,U=0,T=-2,F=1,i=852,n=592;function L(t){return(t>>>24&255)+(t>>>8&65280)+((65280&t)<<8)+((255&t)<<24)}function r(){this.mode=0,this.last=!1,this.wrap=0,this.havedict=!1,this.flags=0,this.dmax=0,this.check=0,this.total=0,this.head=null,this.wbits=0,this.wsize=0,this.whave=0,this.wnext=0,this.window=null,this.hold=0,this.bits=0,this.length=0,this.offset=0,this.extra=0,this.lencode=null,this.distcode=null,this.lenbits=0,this.distbits=0,this.ncode=0,this.nlen=0,this.ndist=0,this.have=0,this.next=null,this.lens=new Z.Buf16(320),this.work=new Z.Buf16(288),this.lendyn=null,this.distdyn=null,this.sane=0,this.back=0,this.was=0}function s(t){var e;return t&&t.state?(e=t.state,t.total_in=t.total_out=e.total=0,t.msg="",e.wrap&&(t.adler=1&e.wrap),e.mode=F,e.last=0,e.havedict=0,e.dmax=32768,e.head=null,e.hold=0,e.bits=0,e.lencode=e.lendyn=new Z.Buf32(i),e.distcode=e.distdyn=new Z.Buf32(n),e.sane=1,e.back=-1,U):T}function o(t){var e;return t&&t.state?((e=t.state).wsize=0,e.whave=0,e.wnext=0,s(t)):T}function l(t,e){var a,i;return t&&t.state?(i=t.state,e<0?(a=0,e=-e):(a=1+(e>>4),e<48&&(e&=15)),e&&(e<8||15<e)?T:(null!==i.window&&i.wbits!==e&&(i.window=null),i.wrap=a,i.wbits=e,o(t))):T}function h(t,e){var a,i;return t?(i=new r,(t.state=i).window=null,(a=l(t,e))!==U&&(t.state=null),a):T}var d,f,_=!0;function H(t){if(_){var e;for(d=new Z.Buf32(512),f=new Z.Buf32(32),e=0;e<144;)t.lens[e++]=8;for(;e<256;)t.lens[e++]=9;for(;e<280;)t.lens[e++]=7;for(;e<288;)t.lens[e++]=8;for(O(D,t.lens,0,288,d,0,t.work,{bits:9}),e=0;e<32;)t.lens[e++]=5;O(I,t.lens,0,32,f,0,t.work,{bits:5}),_=!1}t.lencode=d,t.lenbits=9,t.distcode=f,t.distbits=5}function j(t,e,a,i){var n,r=t.state;return null===r.window&&(r.wsize=1<<r.wbits,r.wnext=0,r.whave=0,r.window=new Z.Buf8(r.wsize)),i>=r.wsize?(Z.arraySet(r.window,e,a-r.wsize,r.wsize,0),r.wnext=0,r.whave=r.wsize):(i<(n=r.wsize-r.wnext)&&(n=i),Z.arraySet(r.window,e,a-i,n,r.wnext),(i-=n)?(Z.arraySet(r.window,e,a-i,i,0),r.wnext=i,r.whave=r.wsize):(r.wnext+=n,r.wnext===r.wsize&&(r.wnext=0),r.whave<r.wsize&&(r.whave+=n))),0}a.inflateReset=o,a.inflateReset2=l,a.inflateResetKeep=s,a.inflateInit=function(t){return h(t,15)},a.inflateInit2=h,a.inflate=function(t,e){var a,i,n,r,s,o,l,h,d,f,_,u,c,b,g,m,w,p,v,k,y,x,z,B,S=0,E=new Z.Buf8(4),A=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];if(!t||!t.state||!t.output||!t.input&&0!==t.avail_in)return T;12===(a=t.state).mode&&(a.mode=13),s=t.next_out,n=t.output,l=t.avail_out,r=t.next_in,i=t.input,o=t.avail_in,h=a.hold,d=a.bits,f=o,_=l,x=U;t:for(;;)switch(a.mode){case F:if(0===a.wrap){a.mode=13;break}for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(2&a.wrap&&35615===h){E[a.check=0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0),d=h=0,a.mode=2;break}if(a.flags=0,a.head&&(a.head.done=!1),!(1&a.wrap)||(((255&h)<<8)+(h>>8))%31){t.msg="incorrect header check",a.mode=30;break}if(8!=(15&h)){t.msg="unknown compression method",a.mode=30;break}if(d-=4,y=8+(15&(h>>>=4)),0===a.wbits)a.wbits=y;else if(y>a.wbits){t.msg="invalid window size",a.mode=30;break}a.dmax=1<<y,t.adler=a.check=1,a.mode=512&h?10:12,d=h=0;break;case 2:for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(a.flags=h,8!=(255&a.flags)){t.msg="unknown compression method",a.mode=30;break}if(57344&a.flags){t.msg="unknown header flags set",a.mode=30;break}a.head&&(a.head.text=h>>8&1),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0)),d=h=0,a.mode=3;case 3:for(;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.head&&(a.head.time=h),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,E[2]=h>>>16&255,E[3]=h>>>24&255,a.check=C(a.check,E,4,0)),d=h=0,a.mode=4;case 4:for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.head&&(a.head.xflags=255&h,a.head.os=h>>8),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0)),d=h=0,a.mode=5;case 5:if(1024&a.flags){for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.length=h,a.head&&(a.head.extra_len=h),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0)),d=h=0}else a.head&&(a.head.extra=null);a.mode=6;case 6:if(1024&a.flags&&(o<(u=a.length)&&(u=o),u&&(a.head&&(y=a.head.extra_len-a.length,a.head.extra||(a.head.extra=new Array(a.head.extra_len)),Z.arraySet(a.head.extra,i,r,u,y)),512&a.flags&&(a.check=C(a.check,i,u,r)),o-=u,r+=u,a.length-=u),a.length))break t;a.length=0,a.mode=7;case 7:if(2048&a.flags){if(0===o)break t;for(u=0;y=i[r+u++],a.head&&y&&a.length<65536&&(a.head.name+=String.fromCharCode(y)),y&&u<o;);if(512&a.flags&&(a.check=C(a.check,i,u,r)),o-=u,r+=u,y)break t}else a.head&&(a.head.name=null);a.length=0,a.mode=8;case 8:if(4096&a.flags){if(0===o)break t;for(u=0;y=i[r+u++],a.head&&y&&a.length<65536&&(a.head.comment+=String.fromCharCode(y)),y&&u<o;);if(512&a.flags&&(a.check=C(a.check,i,u,r)),o-=u,r+=u,y)break t}else a.head&&(a.head.comment=null);a.mode=9;case 9:if(512&a.flags){for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(h!==(65535&a.check)){t.msg="header crc mismatch",a.mode=30;break}d=h=0}a.head&&(a.head.hcrc=a.flags>>9&1,a.head.done=!0),t.adler=a.check=0,a.mode=12;break;case 10:for(;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}t.adler=a.check=L(h),d=h=0,a.mode=11;case 11:if(0===a.havedict)return t.next_out=s,t.avail_out=l,t.next_in=r,t.avail_in=o,a.hold=h,a.bits=d,2;t.adler=a.check=1,a.mode=12;case 12:if(5===e||6===e)break t;case 13:if(a.last){h>>>=7&d,d-=7&d,a.mode=27;break}for(;d<3;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}switch(a.last=1&h,d-=1,3&(h>>>=1)){case 0:a.mode=14;break;case 1:if(H(a),a.mode=20,6!==e)break;h>>>=2,d-=2;break t;case 2:a.mode=17;break;case 3:t.msg="invalid block type",a.mode=30}h>>>=2,d-=2;break;case 14:for(h>>>=7&d,d-=7&d;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if((65535&h)!=(h>>>16^65535)){t.msg="invalid stored block lengths",a.mode=30;break}if(a.length=65535&h,d=h=0,a.mode=15,6===e)break t;case 15:a.mode=16;case 16:if(u=a.length){if(o<u&&(u=o),l<u&&(u=l),0===u)break t;Z.arraySet(n,i,r,u,s),o-=u,r+=u,l-=u,s+=u,a.length-=u;break}a.mode=12;break;case 17:for(;d<14;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(a.nlen=257+(31&h),h>>>=5,d-=5,a.ndist=1+(31&h),h>>>=5,d-=5,a.ncode=4+(15&h),h>>>=4,d-=4,286<a.nlen||30<a.ndist){t.msg="too many length or distance symbols",a.mode=30;break}a.have=0,a.mode=18;case 18:for(;a.have<a.ncode;){for(;d<3;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.lens[A[a.have++]]=7&h,h>>>=3,d-=3}for(;a.have<19;)a.lens[A[a.have++]]=0;if(a.lencode=a.lendyn,a.lenbits=7,z={bits:a.lenbits},x=O(0,a.lens,0,19,a.lencode,0,a.work,z),a.lenbits=z.bits,x){t.msg="invalid code lengths set",a.mode=30;break}a.have=0,a.mode=19;case 19:for(;a.have<a.nlen+a.ndist;){for(;m=(S=a.lencode[h&(1<<a.lenbits)-1])>>>16&255,w=65535&S,!((g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(w<16)h>>>=g,d-=g,a.lens[a.have++]=w;else{if(16===w){for(B=g+2;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(h>>>=g,d-=g,0===a.have){t.msg="invalid bit length repeat",a.mode=30;break}y=a.lens[a.have-1],u=3+(3&h),h>>>=2,d-=2}else if(17===w){for(B=g+3;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}d-=g,y=0,u=3+(7&(h>>>=g)),h>>>=3,d-=3}else{for(B=g+7;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}d-=g,y=0,u=11+(127&(h>>>=g)),h>>>=7,d-=7}if(a.have+u>a.nlen+a.ndist){t.msg="invalid bit length repeat",a.mode=30;break}for(;u--;)a.lens[a.have++]=y}}if(30===a.mode)break;if(0===a.lens[256]){t.msg="invalid code -- missing end-of-block",a.mode=30;break}if(a.lenbits=9,z={bits:a.lenbits},x=O(D,a.lens,0,a.nlen,a.lencode,0,a.work,z),a.lenbits=z.bits,x){t.msg="invalid literal/lengths set",a.mode=30;break}if(a.distbits=6,a.distcode=a.distdyn,z={bits:a.distbits},x=O(I,a.lens,a.nlen,a.ndist,a.distcode,0,a.work,z),a.distbits=z.bits,x){t.msg="invalid distances set",a.mode=30;break}if(a.mode=20,6===e)break t;case 20:a.mode=21;case 21:if(6<=o&&258<=l){t.next_out=s,t.avail_out=l,t.next_in=r,t.avail_in=o,a.hold=h,a.bits=d,N(t,_),s=t.next_out,n=t.output,l=t.avail_out,r=t.next_in,i=t.input,o=t.avail_in,h=a.hold,d=a.bits,12===a.mode&&(a.back=-1);break}for(a.back=0;m=(S=a.lencode[h&(1<<a.lenbits)-1])>>>16&255,w=65535&S,!((g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(m&&0==(240&m)){for(p=g,v=m,k=w;m=(S=a.lencode[k+((h&(1<<p+v)-1)>>p)])>>>16&255,w=65535&S,!(p+(g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}h>>>=p,d-=p,a.back+=p}if(h>>>=g,d-=g,a.back+=g,a.length=w,0===m){a.mode=26;break}if(32&m){a.back=-1,a.mode=12;break}if(64&m){t.msg="invalid literal/length code",a.mode=30;break}a.extra=15&m,a.mode=22;case 22:if(a.extra){for(B=a.extra;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.length+=h&(1<<a.extra)-1,h>>>=a.extra,d-=a.extra,a.back+=a.extra}a.was=a.length,a.mode=23;case 23:for(;m=(S=a.distcode[h&(1<<a.distbits)-1])>>>16&255,w=65535&S,!((g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(0==(240&m)){for(p=g,v=m,k=w;m=(S=a.distcode[k+((h&(1<<p+v)-1)>>p)])>>>16&255,w=65535&S,!(p+(g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}h>>>=p,d-=p,a.back+=p}if(h>>>=g,d-=g,a.back+=g,64&m){t.msg="invalid distance code",a.mode=30;break}a.offset=w,a.extra=15&m,a.mode=24;case 24:if(a.extra){for(B=a.extra;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.offset+=h&(1<<a.extra)-1,h>>>=a.extra,d-=a.extra,a.back+=a.extra}if(a.offset>a.dmax){t.msg="invalid distance too far back",a.mode=30;break}a.mode=25;case 25:if(0===l)break t;if(u=_-l,a.offset>u){if((u=a.offset-u)>a.whave&&a.sane){t.msg="invalid distance too far back",a.mode=30;break}u>a.wnext?(u-=a.wnext,c=a.wsize-u):c=a.wnext-u,u>a.length&&(u=a.length),b=a.window}else b=n,c=s-a.offset,u=a.length;for(l<u&&(u=l),l-=u,a.length-=u;n[s++]=b[c++],--u;);0===a.length&&(a.mode=21);break;case 26:if(0===l)break t;n[s++]=a.length,l--,a.mode=21;break;case 27:if(a.wrap){for(;d<32;){if(0===o)break t;o--,h|=i[r++]<<d,d+=8}if(_-=l,t.total_out+=_,a.total+=_,_&&(t.adler=a.check=a.flags?C(a.check,n,_,s-_):R(a.check,n,_,s-_)),_=l,(a.flags?h:L(h))!==a.check){t.msg="incorrect data check",a.mode=30;break}d=h=0}a.mode=28;case 28:if(a.wrap&&a.flags){for(;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(h!==(4294967295&a.total)){t.msg="incorrect length check",a.mode=30;break}d=h=0}a.mode=29;case 29:x=1;break t;case 30:x=-3;break t;case 31:return-4;case 32:default:return T}return t.next_out=s,t.avail_out=l,t.next_in=r,t.avail_in=o,a.hold=h,a.bits=d,(a.wsize||_!==t.avail_out&&a.mode<30&&(a.mode<27||4!==e))&&j(t,t.output,t.next_out,_-t.avail_out)?(a.mode=31,-4):(f-=t.avail_in,_-=t.avail_out,t.total_in+=f,t.total_out+=_,a.total+=_,a.wrap&&_&&(t.adler=a.check=a.flags?C(a.check,n,_,t.next_out-_):R(a.check,n,_,t.next_out-_)),t.data_type=a.bits+(a.last?64:0)+(12===a.mode?128:0)+(20===a.mode||15===a.mode?256:0),(0===f&&0===_||4===e)&&x===U&&(x=-5),x)},a.inflateEnd=function(t){if(!t||!t.state)return T;var e=t.state;return e.window&&(e.window=null),t.state=null,U},a.inflateGetHeader=function(t,e){var a;return t&&t.state?0==(2&(a=t.state).wrap)?T:((a.head=e).done=!1,U):T},a.inflateSetDictionary=function(t,e){var a,i=e.length;return t&&t.state?0!==(a=t.state).wrap&&11!==a.mode?T:11===a.mode&&R(1,e,i,0)!==a.check?-3:j(t,e,i,i)?(a.mode=31,-4):(a.havedict=1,U):T},a.inflateInfo="pako inflate (from Nodeca project)"},{"../utils/common":3,"./adler32":5,"./crc32":7,"./inffast":10,"./inftrees":12}],12:[function(t,e,a){"use strict";var D=t("../utils/common"),I=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],U=[16,16,16,16,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,16,72,78],T=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577,0,0],F=[16,16,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,64,64];e.exports=function(t,e,a,i,n,r,s,o){var l,h,d,f,_,u,c,b,g,m=o.bits,w=0,p=0,v=0,k=0,y=0,x=0,z=0,B=0,S=0,E=0,A=null,Z=0,R=new D.Buf16(16),C=new D.Buf16(16),N=null,O=0;for(w=0;w<=15;w++)R[w]=0;for(p=0;p<i;p++)R[e[a+p]]++;for(y=m,k=15;1<=k&&0===R[k];k--);if(k<y&&(y=k),0===k)return n[r++]=20971520,n[r++]=20971520,o.bits=1,0;for(v=1;v<k&&0===R[v];v++);for(y<v&&(y=v),w=B=1;w<=15;w++)if(B<<=1,(B-=R[w])<0)return-1;if(0<B&&(0===t||1!==k))return-1;for(C[1]=0,w=1;w<15;w++)C[w+1]=C[w]+R[w];for(p=0;p<i;p++)0!==e[a+p]&&(s[C[e[a+p]]++]=p);if(0===t?(A=N=s,u=19):1===t?(A=I,Z-=257,N=U,O-=257,u=256):(A=T,N=F,u=-1),w=v,_=r,z=p=E=0,d=-1,f=(S=1<<(x=y))-1,1===t&&852<S||2===t&&592<S)return 1;for(;;){for(c=w-z,s[p]<u?(b=0,g=s[p]):s[p]>u?(b=N[O+s[p]],g=A[Z+s[p]]):(b=96,g=0),l=1<<w-z,v=h=1<<x;n[_+(E>>z)+(h-=l)]=c<<24|b<<16|g|0,0!==h;);for(l=1<<w-1;E&l;)l>>=1;if(0!==l?(E&=l-1,E+=l):E=0,p++,0==--R[w]){if(w===k)break;w=e[a+s[p]]}if(y<w&&(E&f)!==d){for(0===z&&(z=y),_+=v,B=1<<(x=w-z);x+z<k&&!((B-=R[x+z])<=0);)x++,B<<=1;if(S+=1<<x,1===t&&852<S||2===t&&592<S)return 1;n[d=E&f]=y<<24|x<<16|_-r|0}}return 0!==E&&(n[_+E]=w-z<<24|64<<16|0),o.bits=y,0}},{"../utils/common":3}],13:[function(t,e,a){"use strict";e.exports={2:"need dictionary",1:"stream end",0:"","-1":"file error","-2":"stream error","-3":"data error","-4":"insufficient memory","-5":"buffer error","-6":"incompatible version"}},{}],14:[function(t,e,a){"use strict";var l=t("../utils/common"),o=0,h=1;function i(t){for(var e=t.length;0<=--e;)t[e]=0}var d=0,s=29,f=256,_=f+1+s,u=30,c=19,g=2*_+1,m=15,n=16,b=7,w=256,p=16,v=17,k=18,y=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],x=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],z=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],B=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],S=new Array(2*(_+2));i(S);var E=new Array(2*u);i(E);var A=new Array(512);i(A);var Z=new Array(256);i(Z);var R=new Array(s);i(R);var C,N,O,D=new Array(u);function I(t,e,a,i,n){this.static_tree=t,this.extra_bits=e,this.extra_base=a,this.elems=i,this.max_length=n,this.has_stree=t&&t.length}function r(t,e){this.dyn_tree=t,this.max_code=0,this.stat_desc=e}function U(t){return t<256?A[t]:A[256+(t>>>7)]}function T(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}function F(t,e,a){t.bi_valid>n-a?(t.bi_buf|=e<<t.bi_valid&65535,T(t,t.bi_buf),t.bi_buf=e>>n-t.bi_valid,t.bi_valid+=a-n):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}function L(t,e,a){F(t,a[2*e],a[2*e+1])}function H(t,e){for(var a=0;a|=1&t,t>>>=1,a<<=1,0<--e;);return a>>>1}function j(t,e,a){var i,n,r=new Array(m+1),s=0;for(i=1;i<=m;i++)r[i]=s=s+a[i-1]<<1;for(n=0;n<=e;n++){var o=t[2*n+1];0!==o&&(t[2*n]=H(r[o]++,o))}}function K(t){var e;for(e=0;e<_;e++)t.dyn_ltree[2*e]=0;for(e=0;e<u;e++)t.dyn_dtree[2*e]=0;for(e=0;e<c;e++)t.bl_tree[2*e]=0;t.dyn_ltree[2*w]=1,t.opt_len=t.static_len=0,t.last_lit=t.matches=0}function M(t){8<t.bi_valid?T(t,t.bi_buf):0<t.bi_valid&&(t.pending_buf[t.pending++]=t.bi_buf),t.bi_buf=0,t.bi_valid=0}function P(t,e,a,i){var n=2*e,r=2*a;return t[n]<t[r]||t[n]===t[r]&&i[e]<=i[a]}function Y(t,e,a){for(var i=t.heap[a],n=a<<1;n<=t.heap_len&&(n<t.heap_len&&P(e,t.heap[n+1],t.heap[n],t.depth)&&n++,!P(e,i,t.heap[n],t.depth));)t.heap[a]=t.heap[n],a=n,n<<=1;t.heap[a]=i}function q(t,e,a){var i,n,r,s,o=0;if(0!==t.last_lit)for(;i=t.pending_buf[t.d_buf+2*o]<<8|t.pending_buf[t.d_buf+2*o+1],n=t.pending_buf[t.l_buf+o],o++,0===i?L(t,n,e):(L(t,(r=Z[n])+f+1,e),0!==(s=y[r])&&F(t,n-=R[r],s),L(t,r=U(--i),a),0!==(s=x[r])&&F(t,i-=D[r],s)),o<t.last_lit;);L(t,w,e)}function G(t,e){var a,i,n,r=e.dyn_tree,s=e.stat_desc.static_tree,o=e.stat_desc.has_stree,l=e.stat_desc.elems,h=-1;for(t.heap_len=0,t.heap_max=g,a=0;a<l;a++)0!==r[2*a]?(t.heap[++t.heap_len]=h=a,t.depth[a]=0):r[2*a+1]=0;for(;t.heap_len<2;)r[2*(n=t.heap[++t.heap_len]=h<2?++h:0)]=1,t.depth[n]=0,t.opt_len--,o&&(t.static_len-=s[2*n+1]);for(e.max_code=h,a=t.heap_len>>1;1<=a;a--)Y(t,r,a);for(n=l;a=t.heap[1],t.heap[1]=t.heap[t.heap_len--],Y(t,r,1),i=t.heap[1],t.heap[--t.heap_max]=a,t.heap[--t.heap_max]=i,r[2*n]=r[2*a]+r[2*i],t.depth[n]=(t.depth[a]>=t.depth[i]?t.depth[a]:t.depth[i])+1,r[2*a+1]=r[2*i+1]=n,t.heap[1]=n++,Y(t,r,1),2<=t.heap_len;);t.heap[--t.heap_max]=t.heap[1],function(t,e){var a,i,n,r,s,o,l=e.dyn_tree,h=e.max_code,d=e.stat_desc.static_tree,f=e.stat_desc.has_stree,_=e.stat_desc.extra_bits,u=e.stat_desc.extra_base,c=e.stat_desc.max_length,b=0;for(r=0;r<=m;r++)t.bl_count[r]=0;for(l[2*t.heap[t.heap_max]+1]=0,a=t.heap_max+1;a<g;a++)c<(r=l[2*l[2*(i=t.heap[a])+1]+1]+1)&&(r=c,b++),l[2*i+1]=r,h<i||(t.bl_count[r]++,s=0,u<=i&&(s=_[i-u]),o=l[2*i],t.opt_len+=o*(r+s),f&&(t.static_len+=o*(d[2*i+1]+s)));if(0!==b){do{for(r=c-1;0===t.bl_count[r];)r--;t.bl_count[r]--,t.bl_count[r+1]+=2,t.bl_count[c]--,b-=2}while(0<b);for(r=c;0!==r;r--)for(i=t.bl_count[r];0!==i;)h<(n=t.heap[--a])||(l[2*n+1]!==r&&(t.opt_len+=(r-l[2*n+1])*l[2*n],l[2*n+1]=r),i--)}}(t,e),j(r,h,t.bl_count)}function X(t,e,a){var i,n,r=-1,s=e[1],o=0,l=7,h=4;for(0===s&&(l=138,h=3),e[2*(a+1)+1]=65535,i=0;i<=a;i++)n=s,s=e[2*(i+1)+1],++o<l&&n===s||(o<h?t.bl_tree[2*n]+=o:0!==n?(n!==r&&t.bl_tree[2*n]++,t.bl_tree[2*p]++):o<=10?t.bl_tree[2*v]++:t.bl_tree[2*k]++,r=n,(o=0)===s?(l=138,h=3):n===s?(l=6,h=3):(l=7,h=4))}function W(t,e,a){var i,n,r=-1,s=e[1],o=0,l=7,h=4;for(0===s&&(l=138,h=3),i=0;i<=a;i++)if(n=s,s=e[2*(i+1)+1],!(++o<l&&n===s)){if(o<h)for(;L(t,n,t.bl_tree),0!=--o;);else 0!==n?(n!==r&&(L(t,n,t.bl_tree),o--),L(t,p,t.bl_tree),F(t,o-3,2)):o<=10?(L(t,v,t.bl_tree),F(t,o-3,3)):(L(t,k,t.bl_tree),F(t,o-11,7));r=n,(o=0)===s?(l=138,h=3):n===s?(l=6,h=3):(l=7,h=4)}}i(D);var J=!1;function Q(t,e,a,i){var n,r,s,o;F(t,(d<<1)+(i?1:0),3),r=e,s=a,o=!0,M(n=t),o&&(T(n,s),T(n,~s)),l.arraySet(n.pending_buf,n.window,r,s,n.pending),n.pending+=s}a._tr_init=function(t){J||(function(){var t,e,a,i,n,r=new Array(m+1);for(i=a=0;i<s-1;i++)for(R[i]=a,t=0;t<1<<y[i];t++)Z[a++]=i;for(Z[a-1]=i,i=n=0;i<16;i++)for(D[i]=n,t=0;t<1<<x[i];t++)A[n++]=i;for(n>>=7;i<u;i++)for(D[i]=n<<7,t=0;t<1<<x[i]-7;t++)A[256+n++]=i;for(e=0;e<=m;e++)r[e]=0;for(t=0;t<=143;)S[2*t+1]=8,t++,r[8]++;for(;t<=255;)S[2*t+1]=9,t++,r[9]++;for(;t<=279;)S[2*t+1]=7,t++,r[7]++;for(;t<=287;)S[2*t+1]=8,t++,r[8]++;for(j(S,_+1,r),t=0;t<u;t++)E[2*t+1]=5,E[2*t]=H(t,5);C=new I(S,y,f+1,_,m),N=new I(E,x,0,u,m),O=new I(new Array(0),z,0,c,b)}(),J=!0),t.l_desc=new r(t.dyn_ltree,C),t.d_desc=new r(t.dyn_dtree,N),t.bl_desc=new r(t.bl_tree,O),t.bi_buf=0,t.bi_valid=0,K(t)},a._tr_stored_block=Q,a._tr_flush_block=function(t,e,a,i){var n,r,s=0;0<t.level?(2===t.strm.data_type&&(t.strm.data_type=function(t){var e,a=4093624447;for(e=0;e<=31;e++,a>>>=1)if(1&a&&0!==t.dyn_ltree[2*e])return o;if(0!==t.dyn_ltree[18]||0!==t.dyn_ltree[20]||0!==t.dyn_ltree[26])return h;for(e=32;e<f;e++)if(0!==t.dyn_ltree[2*e])return h;return o}(t)),G(t,t.l_desc),G(t,t.d_desc),s=function(t){var e;for(X(t,t.dyn_ltree,t.l_desc.max_code),X(t,t.dyn_dtree,t.d_desc.max_code),G(t,t.bl_desc),e=c-1;3<=e&&0===t.bl_tree[2*B[e]+1];e--);return t.opt_len+=3*(e+1)+5+5+4,e}(t),n=t.opt_len+3+7>>>3,(r=t.static_len+3+7>>>3)<=n&&(n=r)):n=r=a+5,a+4<=n&&-1!==e?Q(t,e,a,i):4===t.strategy||r===n?(F(t,2+(i?1:0),3),q(t,S,E)):(F(t,4+(i?1:0),3),function(t,e,a,i){var n;for(F(t,e-257,5),F(t,a-1,5),F(t,i-4,4),n=0;n<i;n++)F(t,t.bl_tree[2*B[n]+1],3);W(t,t.dyn_ltree,e-1),W(t,t.dyn_dtree,a-1)}(t,t.l_desc.max_code+1,t.d_desc.max_code+1,s+1),q(t,t.dyn_ltree,t.dyn_dtree)),K(t),i&&M(t)},a._tr_tally=function(t,e,a){return t.pending_buf[t.d_buf+2*t.last_lit]=e>>>8&255,t.pending_buf[t.d_buf+2*t.last_lit+1]=255&e,t.pending_buf[t.l_buf+t.last_lit]=255&a,t.last_lit++,0===e?t.dyn_ltree[2*a]++:(t.matches++,e--,t.dyn_ltree[2*(Z[a]+f+1)]++,t.dyn_dtree[2*U(e)]++),t.last_lit===t.lit_bufsize-1},a._tr_align=function(t){var e;F(t,2,3),L(t,w,S),16===(e=t).bi_valid?(T(e,e.bi_buf),e.bi_buf=0,e.bi_valid=0):8<=e.bi_valid&&(e.pending_buf[e.pending++]=255&e.bi_buf,e.bi_buf>>=8,e.bi_valid-=8)}},{"../utils/common":3}],15:[function(t,e,a){"use strict";e.exports=function(){this.input=null,this.next_in=0,this.avail_in=0,this.total_in=0,this.output=null,this.next_out=0,this.avail_out=0,this.total_out=0,this.msg="",this.state=null,this.data_type=2,this.adler=0}},{}],"/":[function(t,e,a){"use strict";var i={};(0,t("./lib/utils/common").assign)(i,t("./lib/deflate"),t("./lib/inflate"),t("./lib/zlib/constants")),e.exports=i},{"./lib/deflate":1,"./lib/inflate":2,"./lib/utils/common":3,"./lib/zlib/constants":6}]},{},[])("/")});
+
+
+
+!function(t){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define([],t);else{("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).pako=t()}}(function(){return function r(s,o,l){function h(e,t){if(!o[e]){if(!s[e]){var a="function"==typeof require&&require;if(!t&&a)return a(e,!0);if(d)return d(e,!0);var i=new Error("Cannot find module '"+e+"'");throw i.code="MODULE_NOT_FOUND",i}var n=o[e]={exports:{}};s[e][0].call(n.exports,function(t){return h(s[e][1][t]||t)},n,n.exports,r,s,o,l)}return o[e].exports}for(var d="function"==typeof require&&require,t=0;t<l.length;t++)h(l[t]);return h}({1:[function(t,e,a){"use strict";var s=t("./zlib/deflate"),o=t("./utils/common"),l=t("./utils/strings"),n=t("./zlib/messages"),r=t("./zlib/zstream"),h=Object.prototype.toString,d=0,f=-1,_=0,u=8;function c(t){if(!(this instanceof c))return new c(t);this.options=o.assign({level:f,method:u,chunkSize:16384,windowBits:15,memLevel:8,strategy:_,to:""},t||{});var e=this.options;e.raw&&0<e.windowBits?e.windowBits=-e.windowBits:e.gzip&&0<e.windowBits&&e.windowBits<16&&(e.windowBits+=16),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new r,this.strm.avail_out=0;var a=s.deflateInit2(this.strm,e.level,e.method,e.windowBits,e.memLevel,e.strategy);if(a!==d)throw new Error(n[a]);if(e.header&&s.deflateSetHeader(this.strm,e.header),e.dictionary){var i;if(i="string"==typeof e.dictionary?l.string2buf(e.dictionary):"[object ArrayBuffer]"===h.call(e.dictionary)?new Uint8Array(e.dictionary):e.dictionary,(a=s.deflateSetDictionary(this.strm,i))!==d)throw new Error(n[a]);this._dict_set=!0}}function i(t,e){var a=new c(e);if(a.push(t,!0),a.err)throw a.msg||n[a.err];return a.result}c.prototype.push=function(t,e){var a,i,n=this.strm,r=this.options.chunkSize;if(this.ended)return!1;i=e===~~e?e:!0===e?4:0,"string"==typeof t?n.input=l.string2buf(t):"[object ArrayBuffer]"===h.call(t)?n.input=new Uint8Array(t):n.input=t,n.next_in=0,n.avail_in=n.input.length;do{if(0===n.avail_out&&(n.output=new o.Buf8(r),n.next_out=0,n.avail_out=r),1!==(a=s.deflate(n,i))&&a!==d)return this.onEnd(a),!(this.ended=!0);0!==n.avail_out&&(0!==n.avail_in||4!==i&&2!==i)||("string"===this.options.to?this.onData(l.buf2binstring(o.shrinkBuf(n.output,n.next_out))):this.onData(o.shrinkBuf(n.output,n.next_out)))}while((0<n.avail_in||0===n.avail_out)&&1!==a);return 4===i?(a=s.deflateEnd(this.strm),this.onEnd(a),this.ended=!0,a===d):2!==i||(this.onEnd(d),!(n.avail_out=0))},c.prototype.onData=function(t){this.chunks.push(t)},c.prototype.onEnd=function(t){t===d&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=o.flattenChunks(this.chunks)),this.chunks=[],this.err=t,this.msg=this.strm.msg},a.Deflate=c,a.deflate=i,a.deflateRaw=function(t,e){return(e=e||{}).raw=!0,i(t,e)},a.gzip=function(t,e){return(e=e||{}).gzip=!0,i(t,e)}},{"./utils/common":3,"./utils/strings":4,"./zlib/deflate":8,"./zlib/messages":13,"./zlib/zstream":15}],2:[function(t,e,a){"use strict";var f=t("./zlib/inflate"),_=t("./utils/common"),u=t("./utils/strings"),c=t("./zlib/constants"),i=t("./zlib/messages"),n=t("./zlib/zstream"),r=t("./zlib/gzheader"),b=Object.prototype.toString;function s(t){if(!(this instanceof s))return new s(t);this.options=_.assign({chunkSize:16384,windowBits:0,to:""},t||{});var e=this.options;e.raw&&0<=e.windowBits&&e.windowBits<16&&(e.windowBits=-e.windowBits,0===e.windowBits&&(e.windowBits=-15)),!(0<=e.windowBits&&e.windowBits<16)||t&&t.windowBits||(e.windowBits+=32),15<e.windowBits&&e.windowBits<48&&0==(15&e.windowBits)&&(e.windowBits|=15),this.err=0,this.msg="",this.ended=!1,this.chunks=[],this.strm=new n,this.strm.avail_out=0;var a=f.inflateInit2(this.strm,e.windowBits);if(a!==c.Z_OK)throw new Error(i[a]);if(this.header=new r,f.inflateGetHeader(this.strm,this.header),e.dictionary&&("string"==typeof e.dictionary?e.dictionary=u.string2buf(e.dictionary):"[object ArrayBuffer]"===b.call(e.dictionary)&&(e.dictionary=new Uint8Array(e.dictionary)),e.raw&&(a=f.inflateSetDictionary(this.strm,e.dictionary))!==c.Z_OK))throw new Error(i[a])}function o(t,e){var a=new s(e);if(a.push(t,!0),a.err)throw a.msg||i[a.err];return a.result}s.prototype.push=function(t,e){var a,i,n,r,s,o=this.strm,l=this.options.chunkSize,h=this.options.dictionary,d=!1;if(this.ended)return!1;i=e===~~e?e:!0===e?c.Z_FINISH:c.Z_NO_FLUSH,"string"==typeof t?o.input=u.binstring2buf(t):"[object ArrayBuffer]"===b.call(t)?o.input=new Uint8Array(t):o.input=t,o.next_in=0,o.avail_in=o.input.length;do{if(0===o.avail_out&&(o.output=new _.Buf8(l),o.next_out=0,o.avail_out=l),(a=f.inflate(o,c.Z_NO_FLUSH))===c.Z_NEED_DICT&&h&&(a=f.inflateSetDictionary(this.strm,h)),a===c.Z_BUF_ERROR&&!0===d&&(a=c.Z_OK,d=!1),a!==c.Z_STREAM_END&&a!==c.Z_OK)return this.onEnd(a),!(this.ended=!0);o.next_out&&(0!==o.avail_out&&a!==c.Z_STREAM_END&&(0!==o.avail_in||i!==c.Z_FINISH&&i!==c.Z_SYNC_FLUSH)||("string"===this.options.to?(n=u.utf8border(o.output,o.next_out),r=o.next_out-n,s=u.buf2string(o.output,n),o.next_out=r,o.avail_out=l-r,r&&_.arraySet(o.output,o.output,n,r,0),this.onData(s)):this.onData(_.shrinkBuf(o.output,o.next_out)))),0===o.avail_in&&0===o.avail_out&&(d=!0)}while((0<o.avail_in||0===o.avail_out)&&a!==c.Z_STREAM_END);return a===c.Z_STREAM_END&&(i=c.Z_FINISH),i===c.Z_FINISH?(a=f.inflateEnd(this.strm),this.onEnd(a),this.ended=!0,a===c.Z_OK):i!==c.Z_SYNC_FLUSH||(this.onEnd(c.Z_OK),!(o.avail_out=0))},s.prototype.onData=function(t){this.chunks.push(t)},s.prototype.onEnd=function(t){t===c.Z_OK&&("string"===this.options.to?this.result=this.chunks.join(""):this.result=_.flattenChunks(this.chunks)),this.chunks=[],this.err=t,this.msg=this.strm.msg},a.Inflate=s,a.inflate=o,a.inflateRaw=function(t,e){return(e=e||{}).raw=!0,o(t,e)},a.ungzip=o},{"./utils/common":3,"./utils/strings":4,"./zlib/constants":6,"./zlib/gzheader":9,"./zlib/inflate":11,"./zlib/messages":13,"./zlib/zstream":15}],3:[function(t,e,a){"use strict";var i="undefined"!=typeof Uint8Array&&"undefined"!=typeof Uint16Array&&"undefined"!=typeof Int32Array;a.assign=function(t){for(var e,a,i=Array.prototype.slice.call(arguments,1);i.length;){var n=i.shift();if(n){if("object"!=typeof n)throw new TypeError(n+"must be non-object");for(var r in n)e=n,a=r,Object.prototype.hasOwnProperty.call(e,a)&&(t[r]=n[r])}}return t},a.shrinkBuf=function(t,e){return t.length===e?t:t.subarray?t.subarray(0,e):(t.length=e,t)};var n={arraySet:function(t,e,a,i,n){if(e.subarray&&t.subarray)t.set(e.subarray(a,a+i),n);else for(var r=0;r<i;r++)t[n+r]=e[a+r]},flattenChunks:function(t){var e,a,i,n,r,s;for(e=i=0,a=t.length;e<a;e++)i+=t[e].length;for(s=new Uint8Array(i),e=n=0,a=t.length;e<a;e++)r=t[e],s.set(r,n),n+=r.length;return s}},r={arraySet:function(t,e,a,i,n){for(var r=0;r<i;r++)t[n+r]=e[a+r]},flattenChunks:function(t){return[].concat.apply([],t)}};a.setTyped=function(t){t?(a.Buf8=Uint8Array,a.Buf16=Uint16Array,a.Buf32=Int32Array,a.assign(a,n)):(a.Buf8=Array,a.Buf16=Array,a.Buf32=Array,a.assign(a,r))},a.setTyped(i)},{}],4:[function(t,e,a){"use strict";var l=t("./common"),n=!0,r=!0;try{String.fromCharCode.apply(null,[0])}catch(t){n=!1}try{String.fromCharCode.apply(null,new Uint8Array(1))}catch(t){r=!1}for(var h=new l.Buf8(256),i=0;i<256;i++)h[i]=252<=i?6:248<=i?5:240<=i?4:224<=i?3:192<=i?2:1;function d(t,e){if(e<65534&&(t.subarray&&r||!t.subarray&&n))return String.fromCharCode.apply(null,l.shrinkBuf(t,e));for(var a="",i=0;i<e;i++)a+=String.fromCharCode(t[i]);return a}h[254]=h[254]=1,a.string2buf=function(t){var e,a,i,n,r,s=t.length,o=0;for(n=0;n<s;n++)55296==(64512&(a=t.charCodeAt(n)))&&n+1<s&&56320==(64512&(i=t.charCodeAt(n+1)))&&(a=65536+(a-55296<<10)+(i-56320),n++),o+=a<128?1:a<2048?2:a<65536?3:4;for(e=new l.Buf8(o),n=r=0;r<o;n++)55296==(64512&(a=t.charCodeAt(n)))&&n+1<s&&56320==(64512&(i=t.charCodeAt(n+1)))&&(a=65536+(a-55296<<10)+(i-56320),n++),a<128?e[r++]=a:(a<2048?e[r++]=192|a>>>6:(a<65536?e[r++]=224|a>>>12:(e[r++]=240|a>>>18,e[r++]=128|a>>>12&63),e[r++]=128|a>>>6&63),e[r++]=128|63&a);return e},a.buf2binstring=function(t){return d(t,t.length)},a.binstring2buf=function(t){for(var e=new l.Buf8(t.length),a=0,i=e.length;a<i;a++)e[a]=t.charCodeAt(a);return e},a.buf2string=function(t,e){var a,i,n,r,s=e||t.length,o=new Array(2*s);for(a=i=0;a<s;)if((n=t[a++])<128)o[i++]=n;else if(4<(r=h[n]))o[i++]=65533,a+=r-1;else{for(n&=2===r?31:3===r?15:7;1<r&&a<s;)n=n<<6|63&t[a++],r--;1<r?o[i++]=65533:n<65536?o[i++]=n:(n-=65536,o[i++]=55296|n>>10&1023,o[i++]=56320|1023&n)}return d(o,i)},a.utf8border=function(t,e){var a;for((e=e||t.length)>t.length&&(e=t.length),a=e-1;0<=a&&128==(192&t[a]);)a--;return a<0?e:0===a?e:a+h[t[a]]>e?a:e}},{"./common":3}],5:[function(t,e,a){"use strict";e.exports=function(t,e,a,i){for(var n=65535&t|0,r=t>>>16&65535|0,s=0;0!==a;){for(a-=s=2e3<a?2e3:a;r=r+(n=n+e[i++]|0)|0,--s;);n%=65521,r%=65521}return n|r<<16|0}},{}],6:[function(t,e,a){"use strict";e.exports={Z_NO_FLUSH:0,Z_PARTIAL_FLUSH:1,Z_SYNC_FLUSH:2,Z_FULL_FLUSH:3,Z_FINISH:4,Z_BLOCK:5,Z_TREES:6,Z_OK:0,Z_STREAM_END:1,Z_NEED_DICT:2,Z_ERRNO:-1,Z_STREAM_ERROR:-2,Z_DATA_ERROR:-3,Z_BUF_ERROR:-5,Z_NO_COMPRESSION:0,Z_BEST_SPEED:1,Z_BEST_COMPRESSION:9,Z_DEFAULT_COMPRESSION:-1,Z_FILTERED:1,Z_HUFFMAN_ONLY:2,Z_RLE:3,Z_FIXED:4,Z_DEFAULT_STRATEGY:0,Z_BINARY:0,Z_TEXT:1,Z_UNKNOWN:2,Z_DEFLATED:8}},{}],7:[function(t,e,a){"use strict";var o=function(){for(var t,e=[],a=0;a<256;a++){t=a;for(var i=0;i<8;i++)t=1&t?3988292384^t>>>1:t>>>1;e[a]=t}return e}();e.exports=function(t,e,a,i){var n=o,r=i+a;t^=-1;for(var s=i;s<r;s++)t=t>>>8^n[255&(t^e[s])];return-1^t}},{}],8:[function(t,e,a){"use strict";var l,_=t("../utils/common"),h=t("./trees"),u=t("./adler32"),c=t("./crc32"),i=t("./messages"),d=0,f=4,b=0,g=-2,m=-1,w=4,n=2,p=8,v=9,r=286,s=30,o=19,k=2*r+1,y=15,x=3,z=258,B=z+x+1,S=42,E=113,A=1,Z=2,R=3,C=4;function N(t,e){return t.msg=i[e],e}function O(t){return(t<<1)-(4<t?9:0)}function D(t){for(var e=t.length;0<=--e;)t[e]=0}function I(t){var e=t.state,a=e.pending;a>t.avail_out&&(a=t.avail_out),0!==a&&(_.arraySet(t.output,e.pending_buf,e.pending_out,a,t.next_out),t.next_out+=a,e.pending_out+=a,t.total_out+=a,t.avail_out-=a,e.pending-=a,0===e.pending&&(e.pending_out=0))}function U(t,e){h._tr_flush_block(t,0<=t.block_start?t.block_start:-1,t.strstart-t.block_start,e),t.block_start=t.strstart,I(t.strm)}function T(t,e){t.pending_buf[t.pending++]=e}function F(t,e){t.pending_buf[t.pending++]=e>>>8&255,t.pending_buf[t.pending++]=255&e}function L(t,e){var a,i,n=t.max_chain_length,r=t.strstart,s=t.prev_length,o=t.nice_match,l=t.strstart>t.w_size-B?t.strstart-(t.w_size-B):0,h=t.window,d=t.w_mask,f=t.prev,_=t.strstart+z,u=h[r+s-1],c=h[r+s];t.prev_length>=t.good_match&&(n>>=2),o>t.lookahead&&(o=t.lookahead);do{if(h[(a=e)+s]===c&&h[a+s-1]===u&&h[a]===h[r]&&h[++a]===h[r+1]){r+=2,a++;do{}while(h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&h[++r]===h[++a]&&r<_);if(i=z-(_-r),r=_-z,s<i){if(t.match_start=e,o<=(s=i))break;u=h[r+s-1],c=h[r+s]}}}while((e=f[e&d])>l&&0!=--n);return s<=t.lookahead?s:t.lookahead}function H(t){var e,a,i,n,r,s,o,l,h,d,f=t.w_size;do{if(n=t.window_size-t.lookahead-t.strstart,t.strstart>=f+(f-B)){for(_.arraySet(t.window,t.window,f,f,0),t.match_start-=f,t.strstart-=f,t.block_start-=f,e=a=t.hash_size;i=t.head[--e],t.head[e]=f<=i?i-f:0,--a;);for(e=a=f;i=t.prev[--e],t.prev[e]=f<=i?i-f:0,--a;);n+=f}if(0===t.strm.avail_in)break;if(s=t.strm,o=t.window,l=t.strstart+t.lookahead,h=n,d=void 0,d=s.avail_in,h<d&&(d=h),a=0===d?0:(s.avail_in-=d,_.arraySet(o,s.input,s.next_in,d,l),1===s.state.wrap?s.adler=u(s.adler,o,d,l):2===s.state.wrap&&(s.adler=c(s.adler,o,d,l)),s.next_in+=d,s.total_in+=d,d),t.lookahead+=a,t.lookahead+t.insert>=x)for(r=t.strstart-t.insert,t.ins_h=t.window[r],t.ins_h=(t.ins_h<<t.hash_shift^t.window[r+1])&t.hash_mask;t.insert&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[r+x-1])&t.hash_mask,t.prev[r&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=r,r++,t.insert--,!(t.lookahead+t.insert<x)););}while(t.lookahead<B&&0!==t.strm.avail_in)}function j(t,e){for(var a,i;;){if(t.lookahead<B){if(H(t),t.lookahead<B&&e===d)return A;if(0===t.lookahead)break}if(a=0,t.lookahead>=x&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart),0!==a&&t.strstart-a<=t.w_size-B&&(t.match_length=L(t,a)),t.match_length>=x)if(i=h._tr_tally(t,t.strstart-t.match_start,t.match_length-x),t.lookahead-=t.match_length,t.match_length<=t.max_lazy_match&&t.lookahead>=x){for(t.match_length--;t.strstart++,t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart,0!=--t.match_length;);t.strstart++}else t.strstart+=t.match_length,t.match_length=0,t.ins_h=t.window[t.strstart],t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+1])&t.hash_mask;else i=h._tr_tally(t,0,t.window[t.strstart]),t.lookahead--,t.strstart++;if(i&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=t.strstart<x-1?t.strstart:x-1,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}function K(t,e){for(var a,i,n;;){if(t.lookahead<B){if(H(t),t.lookahead<B&&e===d)return A;if(0===t.lookahead)break}if(a=0,t.lookahead>=x&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart),t.prev_length=t.match_length,t.prev_match=t.match_start,t.match_length=x-1,0!==a&&t.prev_length<t.max_lazy_match&&t.strstart-a<=t.w_size-B&&(t.match_length=L(t,a),t.match_length<=5&&(1===t.strategy||t.match_length===x&&4096<t.strstart-t.match_start)&&(t.match_length=x-1)),t.prev_length>=x&&t.match_length<=t.prev_length){for(n=t.strstart+t.lookahead-x,i=h._tr_tally(t,t.strstart-1-t.prev_match,t.prev_length-x),t.lookahead-=t.prev_length-1,t.prev_length-=2;++t.strstart<=n&&(t.ins_h=(t.ins_h<<t.hash_shift^t.window[t.strstart+x-1])&t.hash_mask,a=t.prev[t.strstart&t.w_mask]=t.head[t.ins_h],t.head[t.ins_h]=t.strstart),0!=--t.prev_length;);if(t.match_available=0,t.match_length=x-1,t.strstart++,i&&(U(t,!1),0===t.strm.avail_out))return A}else if(t.match_available){if((i=h._tr_tally(t,0,t.window[t.strstart-1]))&&U(t,!1),t.strstart++,t.lookahead--,0===t.strm.avail_out)return A}else t.match_available=1,t.strstart++,t.lookahead--}return t.match_available&&(i=h._tr_tally(t,0,t.window[t.strstart-1]),t.match_available=0),t.insert=t.strstart<x-1?t.strstart:x-1,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}function M(t,e,a,i,n){this.good_length=t,this.max_lazy=e,this.nice_length=a,this.max_chain=i,this.func=n}function P(){this.strm=null,this.status=0,this.pending_buf=null,this.pending_buf_size=0,this.pending_out=0,this.pending=0,this.wrap=0,this.gzhead=null,this.gzindex=0,this.method=p,this.last_flush=-1,this.w_size=0,this.w_bits=0,this.w_mask=0,this.window=null,this.window_size=0,this.prev=null,this.head=null,this.ins_h=0,this.hash_size=0,this.hash_bits=0,this.hash_mask=0,this.hash_shift=0,this.block_start=0,this.match_length=0,this.prev_match=0,this.match_available=0,this.strstart=0,this.match_start=0,this.lookahead=0,this.prev_length=0,this.max_chain_length=0,this.max_lazy_match=0,this.level=0,this.strategy=0,this.good_match=0,this.nice_match=0,this.dyn_ltree=new _.Buf16(2*k),this.dyn_dtree=new _.Buf16(2*(2*s+1)),this.bl_tree=new _.Buf16(2*(2*o+1)),D(this.dyn_ltree),D(this.dyn_dtree),D(this.bl_tree),this.l_desc=null,this.d_desc=null,this.bl_desc=null,this.bl_count=new _.Buf16(y+1),this.heap=new _.Buf16(2*r+1),D(this.heap),this.heap_len=0,this.heap_max=0,this.depth=new _.Buf16(2*r+1),D(this.depth),this.l_buf=0,this.lit_bufsize=0,this.last_lit=0,this.d_buf=0,this.opt_len=0,this.static_len=0,this.matches=0,this.insert=0,this.bi_buf=0,this.bi_valid=0}function Y(t){var e;return t&&t.state?(t.total_in=t.total_out=0,t.data_type=n,(e=t.state).pending=0,e.pending_out=0,e.wrap<0&&(e.wrap=-e.wrap),e.status=e.wrap?S:E,t.adler=2===e.wrap?0:1,e.last_flush=d,h._tr_init(e),b):N(t,g)}function q(t){var e,a=Y(t);return a===b&&((e=t.state).window_size=2*e.w_size,D(e.head),e.max_lazy_match=l[e.level].max_lazy,e.good_match=l[e.level].good_length,e.nice_match=l[e.level].nice_length,e.max_chain_length=l[e.level].max_chain,e.strstart=0,e.block_start=0,e.lookahead=0,e.insert=0,e.match_length=e.prev_length=x-1,e.match_available=0,e.ins_h=0),a}function G(t,e,a,i,n,r){if(!t)return g;var s=1;if(e===m&&(e=6),i<0?(s=0,i=-i):15<i&&(s=2,i-=16),n<1||v<n||a!==p||i<8||15<i||e<0||9<e||r<0||w<r)return N(t,g);8===i&&(i=9);var o=new P;return(t.state=o).strm=t,o.wrap=s,o.gzhead=null,o.w_bits=i,o.w_size=1<<o.w_bits,o.w_mask=o.w_size-1,o.hash_bits=n+7,o.hash_size=1<<o.hash_bits,o.hash_mask=o.hash_size-1,o.hash_shift=~~((o.hash_bits+x-1)/x),o.window=new _.Buf8(2*o.w_size),o.head=new _.Buf16(o.hash_size),o.prev=new _.Buf16(o.w_size),o.lit_bufsize=1<<n+6,o.pending_buf_size=4*o.lit_bufsize,o.pending_buf=new _.Buf8(o.pending_buf_size),o.d_buf=1*o.lit_bufsize,o.l_buf=3*o.lit_bufsize,o.level=e,o.strategy=r,o.method=a,q(t)}l=[new M(0,0,0,0,function(t,e){var a=65535;for(a>t.pending_buf_size-5&&(a=t.pending_buf_size-5);;){if(t.lookahead<=1){if(H(t),0===t.lookahead&&e===d)return A;if(0===t.lookahead)break}t.strstart+=t.lookahead,t.lookahead=0;var i=t.block_start+a;if((0===t.strstart||t.strstart>=i)&&(t.lookahead=t.strstart-i,t.strstart=i,U(t,!1),0===t.strm.avail_out))return A;if(t.strstart-t.block_start>=t.w_size-B&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=0,e===f?(U(t,!0),0===t.strm.avail_out?R:C):(t.strstart>t.block_start&&(U(t,!1),t.strm.avail_out),A)}),new M(4,4,8,4,j),new M(4,5,16,8,j),new M(4,6,32,32,j),new M(4,4,16,16,K),new M(8,16,32,32,K),new M(8,16,128,128,K),new M(8,32,128,256,K),new M(32,128,258,1024,K),new M(32,258,258,4096,K)],a.deflateInit=function(t,e){return G(t,e,p,15,8,0)},a.deflateInit2=G,a.deflateReset=q,a.deflateResetKeep=Y,a.deflateSetHeader=function(t,e){return t&&t.state?2!==t.state.wrap?g:(t.state.gzhead=e,b):g},a.deflate=function(t,e){var a,i,n,r;if(!t||!t.state||5<e||e<0)return t?N(t,g):g;if(i=t.state,!t.output||!t.input&&0!==t.avail_in||666===i.status&&e!==f)return N(t,0===t.avail_out?-5:g);if(i.strm=t,a=i.last_flush,i.last_flush=e,i.status===S)if(2===i.wrap)t.adler=0,T(i,31),T(i,139),T(i,8),i.gzhead?(T(i,(i.gzhead.text?1:0)+(i.gzhead.hcrc?2:0)+(i.gzhead.extra?4:0)+(i.gzhead.name?8:0)+(i.gzhead.comment?16:0)),T(i,255&i.gzhead.time),T(i,i.gzhead.time>>8&255),T(i,i.gzhead.time>>16&255),T(i,i.gzhead.time>>24&255),T(i,9===i.level?2:2<=i.strategy||i.level<2?4:0),T(i,255&i.gzhead.os),i.gzhead.extra&&i.gzhead.extra.length&&(T(i,255&i.gzhead.extra.length),T(i,i.gzhead.extra.length>>8&255)),i.gzhead.hcrc&&(t.adler=c(t.adler,i.pending_buf,i.pending,0)),i.gzindex=0,i.status=69):(T(i,0),T(i,0),T(i,0),T(i,0),T(i,0),T(i,9===i.level?2:2<=i.strategy||i.level<2?4:0),T(i,3),i.status=E);else{var s=p+(i.w_bits-8<<4)<<8;s|=(2<=i.strategy||i.level<2?0:i.level<6?1:6===i.level?2:3)<<6,0!==i.strstart&&(s|=32),s+=31-s%31,i.status=E,F(i,s),0!==i.strstart&&(F(i,t.adler>>>16),F(i,65535&t.adler)),t.adler=1}if(69===i.status)if(i.gzhead.extra){for(n=i.pending;i.gzindex<(65535&i.gzhead.extra.length)&&(i.pending!==i.pending_buf_size||(i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),I(t),n=i.pending,i.pending!==i.pending_buf_size));)T(i,255&i.gzhead.extra[i.gzindex]),i.gzindex++;i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),i.gzindex===i.gzhead.extra.length&&(i.gzindex=0,i.status=73)}else i.status=73;if(73===i.status)if(i.gzhead.name){n=i.pending;do{if(i.pending===i.pending_buf_size&&(i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),I(t),n=i.pending,i.pending===i.pending_buf_size)){r=1;break}T(i,r=i.gzindex<i.gzhead.name.length?255&i.gzhead.name.charCodeAt(i.gzindex++):0)}while(0!==r);i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),0===r&&(i.gzindex=0,i.status=91)}else i.status=91;if(91===i.status)if(i.gzhead.comment){n=i.pending;do{if(i.pending===i.pending_buf_size&&(i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),I(t),n=i.pending,i.pending===i.pending_buf_size)){r=1;break}T(i,r=i.gzindex<i.gzhead.comment.length?255&i.gzhead.comment.charCodeAt(i.gzindex++):0)}while(0!==r);i.gzhead.hcrc&&i.pending>n&&(t.adler=c(t.adler,i.pending_buf,i.pending-n,n)),0===r&&(i.status=103)}else i.status=103;if(103===i.status&&(i.gzhead.hcrc?(i.pending+2>i.pending_buf_size&&I(t),i.pending+2<=i.pending_buf_size&&(T(i,255&t.adler),T(i,t.adler>>8&255),t.adler=0,i.status=E)):i.status=E),0!==i.pending){if(I(t),0===t.avail_out)return i.last_flush=-1,b}else if(0===t.avail_in&&O(e)<=O(a)&&e!==f)return N(t,-5);if(666===i.status&&0!==t.avail_in)return N(t,-5);if(0!==t.avail_in||0!==i.lookahead||e!==d&&666!==i.status){var o=2===i.strategy?function(t,e){for(var a;;){if(0===t.lookahead&&(H(t),0===t.lookahead)){if(e===d)return A;break}if(t.match_length=0,a=h._tr_tally(t,0,t.window[t.strstart]),t.lookahead--,t.strstart++,a&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=0,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}(i,e):3===i.strategy?function(t,e){for(var a,i,n,r,s=t.window;;){if(t.lookahead<=z){if(H(t),t.lookahead<=z&&e===d)return A;if(0===t.lookahead)break}if(t.match_length=0,t.lookahead>=x&&0<t.strstart&&(i=s[n=t.strstart-1])===s[++n]&&i===s[++n]&&i===s[++n]){r=t.strstart+z;do{}while(i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&i===s[++n]&&n<r);t.match_length=z-(r-n),t.match_length>t.lookahead&&(t.match_length=t.lookahead)}if(t.match_length>=x?(a=h._tr_tally(t,1,t.match_length-x),t.lookahead-=t.match_length,t.strstart+=t.match_length,t.match_length=0):(a=h._tr_tally(t,0,t.window[t.strstart]),t.lookahead--,t.strstart++),a&&(U(t,!1),0===t.strm.avail_out))return A}return t.insert=0,e===f?(U(t,!0),0===t.strm.avail_out?R:C):t.last_lit&&(U(t,!1),0===t.strm.avail_out)?A:Z}(i,e):l[i.level].func(i,e);if(o!==R&&o!==C||(i.status=666),o===A||o===R)return 0===t.avail_out&&(i.last_flush=-1),b;if(o===Z&&(1===e?h._tr_align(i):5!==e&&(h._tr_stored_block(i,0,0,!1),3===e&&(D(i.head),0===i.lookahead&&(i.strstart=0,i.block_start=0,i.insert=0))),I(t),0===t.avail_out))return i.last_flush=-1,b}return e!==f?b:i.wrap<=0?1:(2===i.wrap?(T(i,255&t.adler),T(i,t.adler>>8&255),T(i,t.adler>>16&255),T(i,t.adler>>24&255),T(i,255&t.total_in),T(i,t.total_in>>8&255),T(i,t.total_in>>16&255),T(i,t.total_in>>24&255)):(F(i,t.adler>>>16),F(i,65535&t.adler)),I(t),0<i.wrap&&(i.wrap=-i.wrap),0!==i.pending?b:1)},a.deflateEnd=function(t){var e;return t&&t.state?(e=t.state.status)!==S&&69!==e&&73!==e&&91!==e&&103!==e&&e!==E&&666!==e?N(t,g):(t.state=null,e===E?N(t,-3):b):g},a.deflateSetDictionary=function(t,e){var a,i,n,r,s,o,l,h,d=e.length;if(!t||!t.state)return g;if(2===(r=(a=t.state).wrap)||1===r&&a.status!==S||a.lookahead)return g;for(1===r&&(t.adler=u(t.adler,e,d,0)),a.wrap=0,d>=a.w_size&&(0===r&&(D(a.head),a.strstart=0,a.block_start=0,a.insert=0),h=new _.Buf8(a.w_size),_.arraySet(h,e,d-a.w_size,a.w_size,0),e=h,d=a.w_size),s=t.avail_in,o=t.next_in,l=t.input,t.avail_in=d,t.next_in=0,t.input=e,H(a);a.lookahead>=x;){for(i=a.strstart,n=a.lookahead-(x-1);a.ins_h=(a.ins_h<<a.hash_shift^a.window[i+x-1])&a.hash_mask,a.prev[i&a.w_mask]=a.head[a.ins_h],a.head[a.ins_h]=i,i++,--n;);a.strstart=i,a.lookahead=x-1,H(a)}return a.strstart+=a.lookahead,a.block_start=a.strstart,a.insert=a.lookahead,a.lookahead=0,a.match_length=a.prev_length=x-1,a.match_available=0,t.next_in=o,t.input=l,t.avail_in=s,a.wrap=r,b},a.deflateInfo="pako deflate (from Nodeca project)"},{"../utils/common":3,"./adler32":5,"./crc32":7,"./messages":13,"./trees":14}],9:[function(t,e,a){"use strict";e.exports=function(){this.text=0,this.time=0,this.xflags=0,this.os=0,this.extra=null,this.extra_len=0,this.name="",this.comment="",this.hcrc=0,this.done=!1}},{}],10:[function(t,e,a){"use strict";e.exports=function(t,e){var a,i,n,r,s,o,l,h,d,f,_,u,c,b,g,m,w,p,v,k,y,x,z,B,S;a=t.state,i=t.next_in,B=t.input,n=i+(t.avail_in-5),r=t.next_out,S=t.output,s=r-(e-t.avail_out),o=r+(t.avail_out-257),l=a.dmax,h=a.wsize,d=a.whave,f=a.wnext,_=a.window,u=a.hold,c=a.bits,b=a.lencode,g=a.distcode,m=(1<<a.lenbits)-1,w=(1<<a.distbits)-1;t:do{c<15&&(u+=B[i++]<<c,c+=8,u+=B[i++]<<c,c+=8),p=b[u&m];e:for(;;){if(u>>>=v=p>>>24,c-=v,0===(v=p>>>16&255))S[r++]=65535&p;else{if(!(16&v)){if(0==(64&v)){p=b[(65535&p)+(u&(1<<v)-1)];continue e}if(32&v){a.mode=12;break t}t.msg="invalid literal/length code",a.mode=30;break t}k=65535&p,(v&=15)&&(c<v&&(u+=B[i++]<<c,c+=8),k+=u&(1<<v)-1,u>>>=v,c-=v),c<15&&(u+=B[i++]<<c,c+=8,u+=B[i++]<<c,c+=8),p=g[u&w];a:for(;;){if(u>>>=v=p>>>24,c-=v,!(16&(v=p>>>16&255))){if(0==(64&v)){p=g[(65535&p)+(u&(1<<v)-1)];continue a}t.msg="invalid distance code",a.mode=30;break t}if(y=65535&p,c<(v&=15)&&(u+=B[i++]<<c,(c+=8)<v&&(u+=B[i++]<<c,c+=8)),l<(y+=u&(1<<v)-1)){t.msg="invalid distance too far back",a.mode=30;break t}if(u>>>=v,c-=v,(v=r-s)<y){if(d<(v=y-v)&&a.sane){t.msg="invalid distance too far back",a.mode=30;break t}if(z=_,(x=0)===f){if(x+=h-v,v<k){for(k-=v;S[r++]=_[x++],--v;);x=r-y,z=S}}else if(f<v){if(x+=h+f-v,(v-=f)<k){for(k-=v;S[r++]=_[x++],--v;);if(x=0,f<k){for(k-=v=f;S[r++]=_[x++],--v;);x=r-y,z=S}}}else if(x+=f-v,v<k){for(k-=v;S[r++]=_[x++],--v;);x=r-y,z=S}for(;2<k;)S[r++]=z[x++],S[r++]=z[x++],S[r++]=z[x++],k-=3;k&&(S[r++]=z[x++],1<k&&(S[r++]=z[x++]))}else{for(x=r-y;S[r++]=S[x++],S[r++]=S[x++],S[r++]=S[x++],2<(k-=3););k&&(S[r++]=S[x++],1<k&&(S[r++]=S[x++]))}break}}break}}while(i<n&&r<o);i-=k=c>>3,u&=(1<<(c-=k<<3))-1,t.next_in=i,t.next_out=r,t.avail_in=i<n?n-i+5:5-(i-n),t.avail_out=r<o?o-r+257:257-(r-o),a.hold=u,a.bits=c}},{}],11:[function(t,e,a){"use strict";var Z=t("../utils/common"),R=t("./adler32"),C=t("./crc32"),N=t("./inffast"),O=t("./inftrees"),D=1,I=2,U=0,T=-2,F=1,i=852,n=592;function L(t){return(t>>>24&255)+(t>>>8&65280)+((65280&t)<<8)+((255&t)<<24)}function r(){this.mode=0,this.last=!1,this.wrap=0,this.havedict=!1,this.flags=0,this.dmax=0,this.check=0,this.total=0,this.head=null,this.wbits=0,this.wsize=0,this.whave=0,this.wnext=0,this.window=null,this.hold=0,this.bits=0,this.length=0,this.offset=0,this.extra=0,this.lencode=null,this.distcode=null,this.lenbits=0,this.distbits=0,this.ncode=0,this.nlen=0,this.ndist=0,this.have=0,this.next=null,this.lens=new Z.Buf16(320),this.work=new Z.Buf16(288),this.lendyn=null,this.distdyn=null,this.sane=0,this.back=0,this.was=0}function s(t){var e;return t&&t.state?(e=t.state,t.total_in=t.total_out=e.total=0,t.msg="",e.wrap&&(t.adler=1&e.wrap),e.mode=F,e.last=0,e.havedict=0,e.dmax=32768,e.head=null,e.hold=0,e.bits=0,e.lencode=e.lendyn=new Z.Buf32(i),e.distcode=e.distdyn=new Z.Buf32(n),e.sane=1,e.back=-1,U):T}function o(t){var e;return t&&t.state?((e=t.state).wsize=0,e.whave=0,e.wnext=0,s(t)):T}function l(t,e){var a,i;return t&&t.state?(i=t.state,e<0?(a=0,e=-e):(a=1+(e>>4),e<48&&(e&=15)),e&&(e<8||15<e)?T:(null!==i.window&&i.wbits!==e&&(i.window=null),i.wrap=a,i.wbits=e,o(t))):T}function h(t,e){var a,i;return t?(i=new r,(t.state=i).window=null,(a=l(t,e))!==U&&(t.state=null),a):T}var d,f,_=!0;function H(t){if(_){var e;for(d=new Z.Buf32(512),f=new Z.Buf32(32),e=0;e<144;)t.lens[e++]=8;for(;e<256;)t.lens[e++]=9;for(;e<280;)t.lens[e++]=7;for(;e<288;)t.lens[e++]=8;for(O(D,t.lens,0,288,d,0,t.work,{bits:9}),e=0;e<32;)t.lens[e++]=5;O(I,t.lens,0,32,f,0,t.work,{bits:5}),_=!1}t.lencode=d,t.lenbits=9,t.distcode=f,t.distbits=5}function j(t,e,a,i){var n,r=t.state;return null===r.window&&(r.wsize=1<<r.wbits,r.wnext=0,r.whave=0,r.window=new Z.Buf8(r.wsize)),i>=r.wsize?(Z.arraySet(r.window,e,a-r.wsize,r.wsize,0),r.wnext=0,r.whave=r.wsize):(i<(n=r.wsize-r.wnext)&&(n=i),Z.arraySet(r.window,e,a-i,n,r.wnext),(i-=n)?(Z.arraySet(r.window,e,a-i,i,0),r.wnext=i,r.whave=r.wsize):(r.wnext+=n,r.wnext===r.wsize&&(r.wnext=0),r.whave<r.wsize&&(r.whave+=n))),0}a.inflateReset=o,a.inflateReset2=l,a.inflateResetKeep=s,a.inflateInit=function(t){return h(t,15)},a.inflateInit2=h,a.inflate=function(t,e){var a,i,n,r,s,o,l,h,d,f,_,u,c,b,g,m,w,p,v,k,y,x,z,B,S=0,E=new Z.Buf8(4),A=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];if(!t||!t.state||!t.output||!t.input&&0!==t.avail_in)return T;12===(a=t.state).mode&&(a.mode=13),s=t.next_out,n=t.output,l=t.avail_out,r=t.next_in,i=t.input,o=t.avail_in,h=a.hold,d=a.bits,f=o,_=l,x=U;t:for(;;)switch(a.mode){case F:if(0===a.wrap){a.mode=13;break}for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(2&a.wrap&&35615===h){E[a.check=0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0),d=h=0,a.mode=2;break}if(a.flags=0,a.head&&(a.head.done=!1),!(1&a.wrap)||(((255&h)<<8)+(h>>8))%31){t.msg="incorrect header check",a.mode=30;break}if(8!=(15&h)){t.msg="unknown compression method",a.mode=30;break}if(d-=4,y=8+(15&(h>>>=4)),0===a.wbits)a.wbits=y;else if(y>a.wbits){t.msg="invalid window size",a.mode=30;break}a.dmax=1<<y,t.adler=a.check=1,a.mode=512&h?10:12,d=h=0;break;case 2:for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(a.flags=h,8!=(255&a.flags)){t.msg="unknown compression method",a.mode=30;break}if(57344&a.flags){t.msg="unknown header flags set",a.mode=30;break}a.head&&(a.head.text=h>>8&1),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0)),d=h=0,a.mode=3;case 3:for(;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.head&&(a.head.time=h),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,E[2]=h>>>16&255,E[3]=h>>>24&255,a.check=C(a.check,E,4,0)),d=h=0,a.mode=4;case 4:for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.head&&(a.head.xflags=255&h,a.head.os=h>>8),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0)),d=h=0,a.mode=5;case 5:if(1024&a.flags){for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.length=h,a.head&&(a.head.extra_len=h),512&a.flags&&(E[0]=255&h,E[1]=h>>>8&255,a.check=C(a.check,E,2,0)),d=h=0}else a.head&&(a.head.extra=null);a.mode=6;case 6:if(1024&a.flags&&(o<(u=a.length)&&(u=o),u&&(a.head&&(y=a.head.extra_len-a.length,a.head.extra||(a.head.extra=new Array(a.head.extra_len)),Z.arraySet(a.head.extra,i,r,u,y)),512&a.flags&&(a.check=C(a.check,i,u,r)),o-=u,r+=u,a.length-=u),a.length))break t;a.length=0,a.mode=7;case 7:if(2048&a.flags){if(0===o)break t;for(u=0;y=i[r+u++],a.head&&y&&a.length<65536&&(a.head.name+=String.fromCharCode(y)),y&&u<o;);if(512&a.flags&&(a.check=C(a.check,i,u,r)),o-=u,r+=u,y)break t}else a.head&&(a.head.name=null);a.length=0,a.mode=8;case 8:if(4096&a.flags){if(0===o)break t;for(u=0;y=i[r+u++],a.head&&y&&a.length<65536&&(a.head.comment+=String.fromCharCode(y)),y&&u<o;);if(512&a.flags&&(a.check=C(a.check,i,u,r)),o-=u,r+=u,y)break t}else a.head&&(a.head.comment=null);a.mode=9;case 9:if(512&a.flags){for(;d<16;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(h!==(65535&a.check)){t.msg="header crc mismatch",a.mode=30;break}d=h=0}a.head&&(a.head.hcrc=a.flags>>9&1,a.head.done=!0),t.adler=a.check=0,a.mode=12;break;case 10:for(;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}t.adler=a.check=L(h),d=h=0,a.mode=11;case 11:if(0===a.havedict)return t.next_out=s,t.avail_out=l,t.next_in=r,t.avail_in=o,a.hold=h,a.bits=d,2;t.adler=a.check=1,a.mode=12;case 12:if(5===e||6===e)break t;case 13:if(a.last){h>>>=7&d,d-=7&d,a.mode=27;break}for(;d<3;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}switch(a.last=1&h,d-=1,3&(h>>>=1)){case 0:a.mode=14;break;case 1:if(H(a),a.mode=20,6!==e)break;h>>>=2,d-=2;break t;case 2:a.mode=17;break;case 3:t.msg="invalid block type",a.mode=30}h>>>=2,d-=2;break;case 14:for(h>>>=7&d,d-=7&d;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if((65535&h)!=(h>>>16^65535)){t.msg="invalid stored block lengths",a.mode=30;break}if(a.length=65535&h,d=h=0,a.mode=15,6===e)break t;case 15:a.mode=16;case 16:if(u=a.length){if(o<u&&(u=o),l<u&&(u=l),0===u)break t;Z.arraySet(n,i,r,u,s),o-=u,r+=u,l-=u,s+=u,a.length-=u;break}a.mode=12;break;case 17:for(;d<14;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(a.nlen=257+(31&h),h>>>=5,d-=5,a.ndist=1+(31&h),h>>>=5,d-=5,a.ncode=4+(15&h),h>>>=4,d-=4,286<a.nlen||30<a.ndist){t.msg="too many length or distance symbols",a.mode=30;break}a.have=0,a.mode=18;case 18:for(;a.have<a.ncode;){for(;d<3;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.lens[A[a.have++]]=7&h,h>>>=3,d-=3}for(;a.have<19;)a.lens[A[a.have++]]=0;if(a.lencode=a.lendyn,a.lenbits=7,z={bits:a.lenbits},x=O(0,a.lens,0,19,a.lencode,0,a.work,z),a.lenbits=z.bits,x){t.msg="invalid code lengths set",a.mode=30;break}a.have=0,a.mode=19;case 19:for(;a.have<a.nlen+a.ndist;){for(;m=(S=a.lencode[h&(1<<a.lenbits)-1])>>>16&255,w=65535&S,!((g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(w<16)h>>>=g,d-=g,a.lens[a.have++]=w;else{if(16===w){for(B=g+2;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(h>>>=g,d-=g,0===a.have){t.msg="invalid bit length repeat",a.mode=30;break}y=a.lens[a.have-1],u=3+(3&h),h>>>=2,d-=2}else if(17===w){for(B=g+3;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}d-=g,y=0,u=3+(7&(h>>>=g)),h>>>=3,d-=3}else{for(B=g+7;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}d-=g,y=0,u=11+(127&(h>>>=g)),h>>>=7,d-=7}if(a.have+u>a.nlen+a.ndist){t.msg="invalid bit length repeat",a.mode=30;break}for(;u--;)a.lens[a.have++]=y}}if(30===a.mode)break;if(0===a.lens[256]){t.msg="invalid code -- missing end-of-block",a.mode=30;break}if(a.lenbits=9,z={bits:a.lenbits},x=O(D,a.lens,0,a.nlen,a.lencode,0,a.work,z),a.lenbits=z.bits,x){t.msg="invalid literal/lengths set",a.mode=30;break}if(a.distbits=6,a.distcode=a.distdyn,z={bits:a.distbits},x=O(I,a.lens,a.nlen,a.ndist,a.distcode,0,a.work,z),a.distbits=z.bits,x){t.msg="invalid distances set",a.mode=30;break}if(a.mode=20,6===e)break t;case 20:a.mode=21;case 21:if(6<=o&&258<=l){t.next_out=s,t.avail_out=l,t.next_in=r,t.avail_in=o,a.hold=h,a.bits=d,N(t,_),s=t.next_out,n=t.output,l=t.avail_out,r=t.next_in,i=t.input,o=t.avail_in,h=a.hold,d=a.bits,12===a.mode&&(a.back=-1);break}for(a.back=0;m=(S=a.lencode[h&(1<<a.lenbits)-1])>>>16&255,w=65535&S,!((g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(m&&0==(240&m)){for(p=g,v=m,k=w;m=(S=a.lencode[k+((h&(1<<p+v)-1)>>p)])>>>16&255,w=65535&S,!(p+(g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}h>>>=p,d-=p,a.back+=p}if(h>>>=g,d-=g,a.back+=g,a.length=w,0===m){a.mode=26;break}if(32&m){a.back=-1,a.mode=12;break}if(64&m){t.msg="invalid literal/length code",a.mode=30;break}a.extra=15&m,a.mode=22;case 22:if(a.extra){for(B=a.extra;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.length+=h&(1<<a.extra)-1,h>>>=a.extra,d-=a.extra,a.back+=a.extra}a.was=a.length,a.mode=23;case 23:for(;m=(S=a.distcode[h&(1<<a.distbits)-1])>>>16&255,w=65535&S,!((g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(0==(240&m)){for(p=g,v=m,k=w;m=(S=a.distcode[k+((h&(1<<p+v)-1)>>p)])>>>16&255,w=65535&S,!(p+(g=S>>>24)<=d);){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}h>>>=p,d-=p,a.back+=p}if(h>>>=g,d-=g,a.back+=g,64&m){t.msg="invalid distance code",a.mode=30;break}a.offset=w,a.extra=15&m,a.mode=24;case 24:if(a.extra){for(B=a.extra;d<B;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}a.offset+=h&(1<<a.extra)-1,h>>>=a.extra,d-=a.extra,a.back+=a.extra}if(a.offset>a.dmax){t.msg="invalid distance too far back",a.mode=30;break}a.mode=25;case 25:if(0===l)break t;if(u=_-l,a.offset>u){if((u=a.offset-u)>a.whave&&a.sane){t.msg="invalid distance too far back",a.mode=30;break}u>a.wnext?(u-=a.wnext,c=a.wsize-u):c=a.wnext-u,u>a.length&&(u=a.length),b=a.window}else b=n,c=s-a.offset,u=a.length;for(l<u&&(u=l),l-=u,a.length-=u;n[s++]=b[c++],--u;);0===a.length&&(a.mode=21);break;case 26:if(0===l)break t;n[s++]=a.length,l--,a.mode=21;break;case 27:if(a.wrap){for(;d<32;){if(0===o)break t;o--,h|=i[r++]<<d,d+=8}if(_-=l,t.total_out+=_,a.total+=_,_&&(t.adler=a.check=a.flags?C(a.check,n,_,s-_):R(a.check,n,_,s-_)),_=l,(a.flags?h:L(h))!==a.check){t.msg="incorrect data check",a.mode=30;break}d=h=0}a.mode=28;case 28:if(a.wrap&&a.flags){for(;d<32;){if(0===o)break t;o--,h+=i[r++]<<d,d+=8}if(h!==(4294967295&a.total)){t.msg="incorrect length check",a.mode=30;break}d=h=0}a.mode=29;case 29:x=1;break t;case 30:x=-3;break t;case 31:return-4;case 32:default:return T}return t.next_out=s,t.avail_out=l,t.next_in=r,t.avail_in=o,a.hold=h,a.bits=d,(a.wsize||_!==t.avail_out&&a.mode<30&&(a.mode<27||4!==e))&&j(t,t.output,t.next_out,_-t.avail_out)?(a.mode=31,-4):(f-=t.avail_in,_-=t.avail_out,t.total_in+=f,t.total_out+=_,a.total+=_,a.wrap&&_&&(t.adler=a.check=a.flags?C(a.check,n,_,t.next_out-_):R(a.check,n,_,t.next_out-_)),t.data_type=a.bits+(a.last?64:0)+(12===a.mode?128:0)+(20===a.mode||15===a.mode?256:0),(0===f&&0===_||4===e)&&x===U&&(x=-5),x)},a.inflateEnd=function(t){if(!t||!t.state)return T;var e=t.state;return e.window&&(e.window=null),t.state=null,U},a.inflateGetHeader=function(t,e){var a;return t&&t.state?0==(2&(a=t.state).wrap)?T:((a.head=e).done=!1,U):T},a.inflateSetDictionary=function(t,e){var a,i=e.length;return t&&t.state?0!==(a=t.state).wrap&&11!==a.mode?T:11===a.mode&&R(1,e,i,0)!==a.check?-3:j(t,e,i,i)?(a.mode=31,-4):(a.havedict=1,U):T},a.inflateInfo="pako inflate (from Nodeca project)"},{"../utils/common":3,"./adler32":5,"./crc32":7,"./inffast":10,"./inftrees":12}],12:[function(t,e,a){"use strict";var D=t("../utils/common"),I=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,0,0],U=[16,16,16,16,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,16,72,78],T=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577,0,0],F=[16,16,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,64,64];e.exports=function(t,e,a,i,n,r,s,o){var l,h,d,f,_,u,c,b,g,m=o.bits,w=0,p=0,v=0,k=0,y=0,x=0,z=0,B=0,S=0,E=0,A=null,Z=0,R=new D.Buf16(16),C=new D.Buf16(16),N=null,O=0;for(w=0;w<=15;w++)R[w]=0;for(p=0;p<i;p++)R[e[a+p]]++;for(y=m,k=15;1<=k&&0===R[k];k--);if(k<y&&(y=k),0===k)return n[r++]=20971520,n[r++]=20971520,o.bits=1,0;for(v=1;v<k&&0===R[v];v++);for(y<v&&(y=v),w=B=1;w<=15;w++)if(B<<=1,(B-=R[w])<0)return-1;if(0<B&&(0===t||1!==k))return-1;for(C[1]=0,w=1;w<15;w++)C[w+1]=C[w]+R[w];for(p=0;p<i;p++)0!==e[a+p]&&(s[C[e[a+p]]++]=p);if(0===t?(A=N=s,u=19):1===t?(A=I,Z-=257,N=U,O-=257,u=256):(A=T,N=F,u=-1),w=v,_=r,z=p=E=0,d=-1,f=(S=1<<(x=y))-1,1===t&&852<S||2===t&&592<S)return 1;for(;;){for(c=w-z,s[p]<u?(b=0,g=s[p]):s[p]>u?(b=N[O+s[p]],g=A[Z+s[p]]):(b=96,g=0),l=1<<w-z,v=h=1<<x;n[_+(E>>z)+(h-=l)]=c<<24|b<<16|g|0,0!==h;);for(l=1<<w-1;E&l;)l>>=1;if(0!==l?(E&=l-1,E+=l):E=0,p++,0==--R[w]){if(w===k)break;w=e[a+s[p]]}if(y<w&&(E&f)!==d){for(0===z&&(z=y),_+=v,B=1<<(x=w-z);x+z<k&&!((B-=R[x+z])<=0);)x++,B<<=1;if(S+=1<<x,1===t&&852<S||2===t&&592<S)return 1;n[d=E&f]=y<<24|x<<16|_-r|0}}return 0!==E&&(n[_+E]=w-z<<24|64<<16|0),o.bits=y,0}},{"../utils/common":3}],13:[function(t,e,a){"use strict";e.exports={2:"need dictionary",1:"stream end",0:"","-1":"file error","-2":"stream error","-3":"data error","-4":"insufficient memory","-5":"buffer error","-6":"incompatible version"}},{}],14:[function(t,e,a){"use strict";var l=t("../utils/common"),o=0,h=1;function i(t){for(var e=t.length;0<=--e;)t[e]=0}var d=0,s=29,f=256,_=f+1+s,u=30,c=19,g=2*_+1,m=15,n=16,b=7,w=256,p=16,v=17,k=18,y=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],x=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],z=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],B=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],S=new Array(2*(_+2));i(S);var E=new Array(2*u);i(E);var A=new Array(512);i(A);var Z=new Array(256);i(Z);var R=new Array(s);i(R);var C,N,O,D=new Array(u);function I(t,e,a,i,n){this.static_tree=t,this.extra_bits=e,this.extra_base=a,this.elems=i,this.max_length=n,this.has_stree=t&&t.length}function r(t,e){this.dyn_tree=t,this.max_code=0,this.stat_desc=e}function U(t){return t<256?A[t]:A[256+(t>>>7)]}function T(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}function F(t,e,a){t.bi_valid>n-a?(t.bi_buf|=e<<t.bi_valid&65535,T(t,t.bi_buf),t.bi_buf=e>>n-t.bi_valid,t.bi_valid+=a-n):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}function L(t,e,a){F(t,a[2*e],a[2*e+1])}function H(t,e){for(var a=0;a|=1&t,t>>>=1,a<<=1,0<--e;);return a>>>1}function j(t,e,a){var i,n,r=new Array(m+1),s=0;for(i=1;i<=m;i++)r[i]=s=s+a[i-1]<<1;for(n=0;n<=e;n++){var o=t[2*n+1];0!==o&&(t[2*n]=H(r[o]++,o))}}function K(t){var e;for(e=0;e<_;e++)t.dyn_ltree[2*e]=0;for(e=0;e<u;e++)t.dyn_dtree[2*e]=0;for(e=0;e<c;e++)t.bl_tree[2*e]=0;t.dyn_ltree[2*w]=1,t.opt_len=t.static_len=0,t.last_lit=t.matches=0}function M(t){8<t.bi_valid?T(t,t.bi_buf):0<t.bi_valid&&(t.pending_buf[t.pending++]=t.bi_buf),t.bi_buf=0,t.bi_valid=0}function P(t,e,a,i){var n=2*e,r=2*a;return t[n]<t[r]||t[n]===t[r]&&i[e]<=i[a]}function Y(t,e,a){for(var i=t.heap[a],n=a<<1;n<=t.heap_len&&(n<t.heap_len&&P(e,t.heap[n+1],t.heap[n],t.depth)&&n++,!P(e,i,t.heap[n],t.depth));)t.heap[a]=t.heap[n],a=n,n<<=1;t.heap[a]=i}function q(t,e,a){var i,n,r,s,o=0;if(0!==t.last_lit)for(;i=t.pending_buf[t.d_buf+2*o]<<8|t.pending_buf[t.d_buf+2*o+1],n=t.pending_buf[t.l_buf+o],o++,0===i?L(t,n,e):(L(t,(r=Z[n])+f+1,e),0!==(s=y[r])&&F(t,n-=R[r],s),L(t,r=U(--i),a),0!==(s=x[r])&&F(t,i-=D[r],s)),o<t.last_lit;);L(t,w,e)}function G(t,e){var a,i,n,r=e.dyn_tree,s=e.stat_desc.static_tree,o=e.stat_desc.has_stree,l=e.stat_desc.elems,h=-1;for(t.heap_len=0,t.heap_max=g,a=0;a<l;a++)0!==r[2*a]?(t.heap[++t.heap_len]=h=a,t.depth[a]=0):r[2*a+1]=0;for(;t.heap_len<2;)r[2*(n=t.heap[++t.heap_len]=h<2?++h:0)]=1,t.depth[n]=0,t.opt_len--,o&&(t.static_len-=s[2*n+1]);for(e.max_code=h,a=t.heap_len>>1;1<=a;a--)Y(t,r,a);for(n=l;a=t.heap[1],t.heap[1]=t.heap[t.heap_len--],Y(t,r,1),i=t.heap[1],t.heap[--t.heap_max]=a,t.heap[--t.heap_max]=i,r[2*n]=r[2*a]+r[2*i],t.depth[n]=(t.depth[a]>=t.depth[i]?t.depth[a]:t.depth[i])+1,r[2*a+1]=r[2*i+1]=n,t.heap[1]=n++,Y(t,r,1),2<=t.heap_len;);t.heap[--t.heap_max]=t.heap[1],function(t,e){var a,i,n,r,s,o,l=e.dyn_tree,h=e.max_code,d=e.stat_desc.static_tree,f=e.stat_desc.has_stree,_=e.stat_desc.extra_bits,u=e.stat_desc.extra_base,c=e.stat_desc.max_length,b=0;for(r=0;r<=m;r++)t.bl_count[r]=0;for(l[2*t.heap[t.heap_max]+1]=0,a=t.heap_max+1;a<g;a++)c<(r=l[2*l[2*(i=t.heap[a])+1]+1]+1)&&(r=c,b++),l[2*i+1]=r,h<i||(t.bl_count[r]++,s=0,u<=i&&(s=_[i-u]),o=l[2*i],t.opt_len+=o*(r+s),f&&(t.static_len+=o*(d[2*i+1]+s)));if(0!==b){do{for(r=c-1;0===t.bl_count[r];)r--;t.bl_count[r]--,t.bl_count[r+1]+=2,t.bl_count[c]--,b-=2}while(0<b);for(r=c;0!==r;r--)for(i=t.bl_count[r];0!==i;)h<(n=t.heap[--a])||(l[2*n+1]!==r&&(t.opt_len+=(r-l[2*n+1])*l[2*n],l[2*n+1]=r),i--)}}(t,e),j(r,h,t.bl_count)}function X(t,e,a){var i,n,r=-1,s=e[1],o=0,l=7,h=4;for(0===s&&(l=138,h=3),e[2*(a+1)+1]=65535,i=0;i<=a;i++)n=s,s=e[2*(i+1)+1],++o<l&&n===s||(o<h?t.bl_tree[2*n]+=o:0!==n?(n!==r&&t.bl_tree[2*n]++,t.bl_tree[2*p]++):o<=10?t.bl_tree[2*v]++:t.bl_tree[2*k]++,r=n,(o=0)===s?(l=138,h=3):n===s?(l=6,h=3):(l=7,h=4))}function W(t,e,a){var i,n,r=-1,s=e[1],o=0,l=7,h=4;for(0===s&&(l=138,h=3),i=0;i<=a;i++)if(n=s,s=e[2*(i+1)+1],!(++o<l&&n===s)){if(o<h)for(;L(t,n,t.bl_tree),0!=--o;);else 0!==n?(n!==r&&(L(t,n,t.bl_tree),o--),L(t,p,t.bl_tree),F(t,o-3,2)):o<=10?(L(t,v,t.bl_tree),F(t,o-3,3)):(L(t,k,t.bl_tree),F(t,o-11,7));r=n,(o=0)===s?(l=138,h=3):n===s?(l=6,h=3):(l=7,h=4)}}i(D);var J=!1;function Q(t,e,a,i){var n,r,s,o;F(t,(d<<1)+(i?1:0),3),r=e,s=a,o=!0,M(n=t),o&&(T(n,s),T(n,~s)),l.arraySet(n.pending_buf,n.window,r,s,n.pending),n.pending+=s}a._tr_init=function(t){J||(function(){var t,e,a,i,n,r=new Array(m+1);for(i=a=0;i<s-1;i++)for(R[i]=a,t=0;t<1<<y[i];t++)Z[a++]=i;for(Z[a-1]=i,i=n=0;i<16;i++)for(D[i]=n,t=0;t<1<<x[i];t++)A[n++]=i;for(n>>=7;i<u;i++)for(D[i]=n<<7,t=0;t<1<<x[i]-7;t++)A[256+n++]=i;for(e=0;e<=m;e++)r[e]=0;for(t=0;t<=143;)S[2*t+1]=8,t++,r[8]++;for(;t<=255;)S[2*t+1]=9,t++,r[9]++;for(;t<=279;)S[2*t+1]=7,t++,r[7]++;for(;t<=287;)S[2*t+1]=8,t++,r[8]++;for(j(S,_+1,r),t=0;t<u;t++)E[2*t+1]=5,E[2*t]=H(t,5);C=new I(S,y,f+1,_,m),N=new I(E,x,0,u,m),O=new I(new Array(0),z,0,c,b)}(),J=!0),t.l_desc=new r(t.dyn_ltree,C),t.d_desc=new r(t.dyn_dtree,N),t.bl_desc=new r(t.bl_tree,O),t.bi_buf=0,t.bi_valid=0,K(t)},a._tr_stored_block=Q,a._tr_flush_block=function(t,e,a,i){var n,r,s=0;0<t.level?(2===t.strm.data_type&&(t.strm.data_type=function(t){var e,a=4093624447;for(e=0;e<=31;e++,a>>>=1)if(1&a&&0!==t.dyn_ltree[2*e])return o;if(0!==t.dyn_ltree[18]||0!==t.dyn_ltree[20]||0!==t.dyn_ltree[26])return h;for(e=32;e<f;e++)if(0!==t.dyn_ltree[2*e])return h;return o}(t)),G(t,t.l_desc),G(t,t.d_desc),s=function(t){var e;for(X(t,t.dyn_ltree,t.l_desc.max_code),X(t,t.dyn_dtree,t.d_desc.max_code),G(t,t.bl_desc),e=c-1;3<=e&&0===t.bl_tree[2*B[e]+1];e--);return t.opt_len+=3*(e+1)+5+5+4,e}(t),n=t.opt_len+3+7>>>3,(r=t.static_len+3+7>>>3)<=n&&(n=r)):n=r=a+5,a+4<=n&&-1!==e?Q(t,e,a,i):4===t.strategy||r===n?(F(t,2+(i?1:0),3),q(t,S,E)):(F(t,4+(i?1:0),3),function(t,e,a,i){var n;for(F(t,e-257,5),F(t,a-1,5),F(t,i-4,4),n=0;n<i;n++)F(t,t.bl_tree[2*B[n]+1],3);W(t,t.dyn_ltree,e-1),W(t,t.dyn_dtree,a-1)}(t,t.l_desc.max_code+1,t.d_desc.max_code+1,s+1),q(t,t.dyn_ltree,t.dyn_dtree)),K(t),i&&M(t)},a._tr_tally=function(t,e,a){return t.pending_buf[t.d_buf+2*t.last_lit]=e>>>8&255,t.pending_buf[t.d_buf+2*t.last_lit+1]=255&e,t.pending_buf[t.l_buf+t.last_lit]=255&a,t.last_lit++,0===e?t.dyn_ltree[2*a]++:(t.matches++,e--,t.dyn_ltree[2*(Z[a]+f+1)]++,t.dyn_dtree[2*U(e)]++),t.last_lit===t.lit_bufsize-1},a._tr_align=function(t){var e;F(t,2,3),L(t,w,S),16===(e=t).bi_valid?(T(e,e.bi_buf),e.bi_buf=0,e.bi_valid=0):8<=e.bi_valid&&(e.pending_buf[e.pending++]=255&e.bi_buf,e.bi_buf>>=8,e.bi_valid-=8)}},{"../utils/common":3}],15:[function(t,e,a){"use strict";e.exports=function(){this.input=null,this.next_in=0,this.avail_in=0,this.total_in=0,this.output=null,this.next_out=0,this.avail_out=0,this.total_out=0,this.msg="",this.state=null,this.data_type=2,this.adler=0}},{}],"/":[function(t,e,a){"use strict";var i={};(0,t("./lib/utils/common").assign)(i,t("./lib/deflate"),t("./lib/inflate"),t("./lib/zlib/constants")),e.exports=i},{"./lib/deflate":1,"./lib/inflate":2,"./lib/utils/common":3,"./lib/zlib/constants":6}]},{},[])("/")});
+
+(function(global){
+'use strict';
+/* SHAHID ERP offline XLSX compatibility layer.
+ * Purpose: keep the ERP's existing XLSX API operational without SheetJS/CDN.
+ * Supports the API used by this application and standard OOXML/XLSX workbooks,
+ * including normal DEFLATE-compressed ZIP entries used by Microsoft Excel.
+ */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');}
+function colName(n){let s='';n=Number(n)||0;do{s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)-1;}while(n>=0);return s;}
+function colIndex(s){let n=0;for(let i=0;i<s.length;i++)n=n*26+s.charCodeAt(i)-64;return n-1;}
+function ref(r,c){return colName(c)+(r+1);}
+function rows(ws){const out=[],range=ws&&ws['!ref'];if(!range)return out;const m=/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i.exec(range);if(!m)return out;const r1=+m[2]-1,r2=+m[4]-1,c1=colIndex(m[1].toUpperCase()),c2=colIndex(m[3].toUpperCase());for(let r=r1;r<=r2;r++){const row=[];for(let c=c1;c<=c2;c++){const v=ws[ref(r,c)];row.push(v&&v.v!=null?v.v:'');}out.push(row);}return out;}
+function jsonToSheet(data){data=Array.isArray(data)?data:[];const headers=[];data.forEach(o=>{if(o&&typeof o==='object'&&!Array.isArray(o))Object.keys(o).forEach(k=>{if(!headers.includes(k))headers.push(k);});});const all=[headers].concat(data.map(o=>headers.map(k=>o&&typeof o==='object'?o[k]:'')));const ws={};let mc=0;all.forEach((r,ri)=>r.forEach((v,ci)=>{ws[ref(ri,ci)]={v:v==null?'':v,t:typeof v==='number'?'n':typeof v==='boolean'?'b':'s'};mc=Math.max(mc,ci);}));ws['!ref']=all.length?ref(0,0)+':'+ref(all.length-1,mc):'A1:A1';return ws;}
+function sheetToJson(ws,opt){opt=opt||{};const r=rows(ws);if(!r.length)return[];const h=r[0].map((v,i)=>String(v==null||v===''?'Column'+(i+1):v)),out=[];for(let i=1;i<r.length;i++){const o={};let any=false;for(let c=0;c<h.length;c++){let v=r[i][c];if(v==null)v='';if(v!==''||opt.defval!==undefined){if(v===''&&opt.defval!==undefined)v=opt.defval;o[h[c]]=v;}if(v!=='')any=true;}if(any||opt.blankrows!==false)out.push(o);}return out;}
+function csvEscape(v){const s=String(v==null?'':v);return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function csvToSheet(text){const lines=String(text).replace(/\r/g,'').split('\n');const data=[];for(const line of lines){if(line===''&&data.length===lines.length-1)continue;const a=[];let cur='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(ch===','&&!q){a.push(cur);cur='';}else cur+=ch;}a.push(cur);data.push(a);}const ws={};let mc=0;data.forEach((r,ri)=>r.forEach((v,ci)=>{ws[ref(ri,ci)]={v,t:'s'};mc=Math.max(mc,ci);}));ws['!ref']=data.length?ref(0,0)+':'+ref(data.length-1,mc):'A1:A1';return ws;}
+function u16(a,p){return a[p]|a[p+1]<<8;}function u32(a,p){return (a[p]|a[p+1]<<8|a[p+2]<<16|a[p+3]<<24)>>>0;}
+function crc32(data){let c=0xFFFFFFFF;for(let i=0;i<data.length;i++){c^=data[i];for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xEDB88320:0);}return (c^0xFFFFFFFF)>>>0;}
+function concat(parts){let n=0;parts.forEach(p=>n+=p.length);const o=new Uint8Array(n);let at=0;parts.forEach(p=>{o.set(p,at);at+=p.length;});return o;}
+function strBytes(s){return new TextEncoder().encode(s);}
+function zipStore(entries){const local=[],central=[];let offset=0;entries.forEach(e=>{const name=strBytes(e.name),data=e.data instanceof Uint8Array?e.data:strBytes(e.data),crc=crc32(data);const h=new Uint8Array(30+name.length);const dv=new DataView(h.buffer);dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0,true);dv.setUint16(8,0,true);dv.setUint16(10,0,true);dv.setUint16(12,0,true);dv.setUint32(14,crc,true);dv.setUint32(18,data.length,true);dv.setUint32(22,data.length,true);dv.setUint16(26,name.length,true);dv.setUint16(28,0,true);h.set(name,30);local.push(h,data);const c=new Uint8Array(46+name.length),cv=new DataView(c.buffer);cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0,true);cv.setUint16(10,0,true);cv.setUint16(12,0,true);cv.setUint16(14,0,true);cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint16(30,0,true);cv.setUint16(32,0,true);cv.setUint16(34,0,true);cv.setUint16(36,0,true);cv.setUint32(38,0,true);cv.setUint32(42,offset,true);c.set(name,46);central.push(c);offset+=h.length+data.length;});const cd=concat(central),end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,entries.length,true);ev.setUint16(10,entries.length,true);ev.setUint32(12,cd.length,true);ev.setUint32(16,offset,true);return concat(local.concat([cd,end]));}
+function zipReadStored(bytes){
+  const files={};
+  const u16l=u16, u32l=u32;
+  let eocd=-1;
+  const minEnd=Math.max(0,bytes.length-0xFFFF-22);
+  for(let i=bytes.length-22;i>=minEnd;i--){ if(u32l(bytes,i)===0x06054b50){eocd=i;break;} }
+  if(eocd<0) throw new Error('Invalid XLSX/ZIP structure: end-of-central-directory record not found.');
+  const cdSize=u32l(bytes,eocd+12),cdOffset=u32l(bytes,eocd+16),count=u16l(bytes,eocd+10);
+  if(cdOffset+cdSize>bytes.length) throw new Error('Invalid XLSX/ZIP structure: central directory is truncated.');
+  let p=cdOffset, seen=0;
+  while(p+46<=bytes.length && seen<count){
+    if(u32l(bytes,p)!==0x02014b50) throw new Error('Invalid XLSX/ZIP structure: invalid central-directory entry.');
+    const flags=u16l(bytes,p+8),method=u16l(bytes,p+10),cs=u32l(bytes,p+20),us=u32l(bytes,p+24),ns=u16l(bytes,p+28),es=u16l(bytes,p+30),csz=u16l(bytes,p+32),lho=u32l(bytes,p+42);
+    const name=new TextDecoder().decode(bytes.subarray(p+46,p+46+ns));
+    if(flags&1) throw new Error('Encrypted XLSX files are not supported.');
+    if(method!==0 && method!==8) throw new Error('Unsupported XLSX ZIP compression method: '+method+'.');
+    if(lho+30>bytes.length || u32l(bytes,lho)!==0x04034b50) throw new Error('Invalid XLSX/ZIP structure: local header not found.');
+    const lns=u16l(bytes,lho+26),les=u16l(bytes,lho+28),dataStart=lho+30+lns+les;
+    if(dataStart+cs>bytes.length) throw new Error('Invalid XLSX/ZIP structure: compressed entry is truncated.');
+    const compressed=bytes.subarray(dataStart,dataStart+cs);
+    let data;
+    if(method===0) data=compressed.slice();
+    else {
+      if(!global.pako || typeof global.pako.inflateRaw!=='function') throw new Error('Offline XLSX decompression engine is unavailable.');
+      data=global.pako.inflateRaw(compressed);
+    }
+    if(us && data.length!==us) throw new Error('XLSX ZIP entry size mismatch for '+name+'.');
+    files[name]=data instanceof Uint8Array?data:new Uint8Array(data);
+    p+=46+ns+es+csz; seen++;
+  }
+  if(seen!==count) throw new Error('Invalid XLSX/ZIP structure: incomplete central directory.');
+  return files;
+}
+function parseXml(text){return new DOMParser().parseFromString(text,'application/xml');}
+function readXlsx(bytes){const files=zipReadStored(bytes);const wb=parseXml(new TextDecoder().decode(files['xl/workbook.xml']||new Uint8Array()));if(!wb||!files['xl/workbook.xml'])throw new Error('Invalid XLSX workbook.');const rel=parseXml(new TextDecoder().decode(files['xl/_rels/workbook.xml.rels']||new Uint8Array()));const relMap={};Array.from(rel.getElementsByTagName('Relationship')).forEach(x=>relMap[x.getAttribute('Id')]=x.getAttribute('Target'));const shared=[];if(files['xl/sharedStrings.xml']){const d=parseXml(new TextDecoder().decode(files['xl/sharedStrings.xml']));Array.from(d.getElementsByTagName('si')).forEach(si=>shared.push(Array.from(si.getElementsByTagName('t')).map(t=>t.textContent||'').join('')));}const Sheets={},SheetNames=[];for(const sh of Array.from(wb.getElementsByTagName('sheet'))){const name=sh.getAttribute('name')||'Sheet'+(SheetNames.length+1);SheetNames.push(name);let target=relMap[sh.getAttribute('r:id')]||relMap[sh.getAttribute('id')];target=String(target||'');if(target.startsWith('/'))target=target.slice(1);else if(!target.startsWith('xl/')){target='xl/'+target.replace(/^\.?\//,'');}const parts=[];target.split('/').forEach(seg=>{if(!seg||seg==='.')return;if(seg==='..')parts.pop();else parts.push(seg);});target=parts.join('/');const xml=files[target];if(!xml)continue;const d=parseXml(new TextDecoder().decode(xml)),ws={};let maxR=0,maxC=0;Array.from(d.getElementsByTagName('c')).forEach(c=>{const rr=c.getAttribute('r')||'',m=/^([A-Z]+)(\d+)$/i.exec(rr);if(!m)return;const ci=colIndex(m[1].toUpperCase()),ri=+m[2]-1,t=c.getAttribute('t')||'',ve=c.getElementsByTagName('v')[0];let v=ve?ve.textContent||'':'';if(t==='s')v=shared[+v]||'';else if(t==='inlineStr'){v=Array.from(c.getElementsByTagName('t')).map(tn=>tn.textContent||'').join('');}else if(t==='b')v=v==='1';else if(t==='str'&&v===''){v=Array.from(c.getElementsByTagName('t')).map(tn=>tn.textContent||'').join('');}else if(t!=='str'&&v!==''&&!isNaN(Number(v)))v=Number(v);ws[rr]={v,t:typeof v==='number'?'n':typeof v==='boolean'?'b':'s'};maxR=Math.max(maxR,ri);maxC=Math.max(maxC,ci);});ws['!ref']=maxR>=0?ref(0,0)+':'+ref(maxR,maxC):'A1:A1';Sheets[name]=ws;}return{SheetNames,Sheets};}
+function buildWorkbook(wb){const sheets=wb.SheetNames||[];const shared=[],seen=new Map();const add=v=>{const s=String(v==null?'':v);if(!seen.has(s)){seen.set(s,shared.length);shared.push(s);}return seen.get(s);};const sheetXml=ws=>{let x='<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';rows(ws).forEach((row,r)=>{x+='<row r="'+(r+1)+'">';row.forEach((v,c)=>{if(v==null||v==='')return;const rr=ref(r,c);if(typeof v==='number')x+='<c r="'+rr+'"><v>'+v+'</v></c>';else if(typeof v==='boolean')x+='<c r="'+rr+'" t="b"><v>'+(v?'1':'0')+'</v></c>';else x+='<c r="'+rr+'" t="s"><v>'+add(v)+'</v></c>';});x+='</row>';});return x+'</sheetData></worksheet>';};sheets.forEach(n=>rows(wb.Sheets[n]).forEach(r=>r.forEach(v=>{if(typeof v!=='number'&&typeof v!=='boolean')add(v);})));const entries=[];entries.push({name:'[Content_Types].xml',data:'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+sheets.map((_,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>'});entries.push({name:'_rels/.rels',data:'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'});entries.push({name:'xl/workbook.xml',data:'<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map((n,i)=>'<sheet name="'+esc(n.slice(0,31))+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>'});entries.push({name:'xl/_rels/workbook.xml.rels',data:'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'</Relationships>'});entries.push({name:'xl/sharedStrings.xml',data:'<?xml version="1.0" encoding="UTF-8"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="'+shared.length+'" uniqueCount="'+shared.length+'">'+shared.map(s=>'<si><t>'+esc(s)+'</t></si>').join('')+'</sst>'});sheets.forEach((n,i)=>entries.push({name:'xl/worksheets/sheet'+(i+1)+'.xml',data:sheetXml(wb.Sheets[n])}));return zipStore(entries);}
+const utils={book_new:()=>({SheetNames:[],Sheets:{}}),book_append_sheet:(wb,ws,name)=>{wb.SheetNames.push(name);wb.Sheets[name]=ws;},json_to_sheet:jsonToSheet,sheet_to_json:sheetToJson,sheet_to_csv:ws=>rows(ws).map(r=>r.map(csvEscape).join(',')).join('\r\n')};
+const XLSX={version:'SHAHID-OFFLINE-XLSX-3.0',utils,read:(data,opt)=>opt&&opt.type==='string'?{SheetNames:['Sheet1'],Sheets:{Sheet1:csvToSheet(data)}}:readXlsx(data instanceof Uint8Array?data:new Uint8Array(data)),write:(wb)=>buildWorkbook(wb),writeFile:(wb,name)=>{const bytes=buildWorkbook(wb),blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name||'workbook.xlsx';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}};
+global.XLSX=XLSX;
+})(window);
+
 /* SHAHID ERP 2.0 - Combined 56 JS Files
    Generated by preserving the original index.html execution order.
    No functional logic intentionally changed.
@@ -1435,373 +1794,8 @@ avoid changing runtime dependencies or breaking legacy functions.
 */
 
 
-// ==================== DATA DEFINITIONS ====================
-const AIR_MIN_THRESHOLDS = {
-    'CARTAGE': 450,
-    'MCC': 550,
-    'XRAY': 850,
-    'GATE PASS': 850
-};
-
-const airChargePlaceholders = {
-    "AIR FREIGHT": "Min 850 INR",
-    "CARTAGE": "Rate per KGS (min 450)",
-    "MCC": "Rate per KGS (min 550)",
-    "XRAY": "Rate per KGS (min 850)",
-    "GATE PASS": "Rate per KGS ×4 (min 850)",
-    "PALLETISATION": "₹1,875/pallet (auto)",
-    "PLY": "₹1,000/pallet (auto)"
-};
-
-
-
-const defaultCharges = {
-    sea: ["FREIGHT", "THC", "SEAL", "MUC", "DOCS", "SEAWAY BL", "ETS", "HAZ DOCS", "AMS", "CFS", "CLEARANCE", "VGM",
-        "TOLL", "LASHING & CHOKING", "HAZ STICKER", "TRANSPORTATION", "LOLO", "ON WHEEL", "OTHER LOCALS"
-    ],
-    air: ["AIR FREIGHT", "CARTAGE", "MCC", "XRAY", "GATE PASS", "ASI GMAX", "CUSTOM CLEARANCE", "TERMINAL TRANSFER",
-        "AWB FEES", "TEDI", "AMS", "PALLETISATION", "PLY", "LOADING & UNLOADING", "DG FEES", "DG AGENT FEE",
-        "REPACKING", "TRANSPORATION", "ADD.SURCHARGE"
-    ],
-    lcl: ["FREIGHT", "THC", "MUC", "DOCS", "SEAWAY BL", "HAZ DOCS", "AMS", "CLEARANCE", "VGM"]
-};
-
-const chargeCategories = {
-    sea: {
-        "Freight": ["FREIGHT"],
-        "Carrier Charges": ["THC", "SEAL", "MUC", "DOCS", "SEAWAY BL", "ETS", "HAZ DOCS", "AMS"],
-        "CFS / Transport Charges": ["CFS", "CLEARANCE", "VGM", "TOLL", "LASHING & CHOKING", "HAZ STICKER",
-            "ON WHEEL", "TRANSPORTATION", "LOLO", "OTHER LOCALS"
-        ]
-    },
-    air: {
-        "Freight": ["AIR FREIGHT"],
-        "Origin Charges": ["CARTAGE", "MCC", "XRAY", "GATE PASS", "ASI GMAX", "AMS", "PALLETISATION", "PLY",
-            "LOADING & UNLOADING", "DG FEES", "DG AGENT FEE", "REPACKING", "AWB FEES", "TEDI",
-            "ADD.SURCHARGE", "TRANSPORATION"
-        ],
-        "Local Charges": ["CUSTOM CLEARANCE", "TERMINAL TRANSFER"]
-    },
-    lcl: {
-        "Freight": ["FREIGHT"],
-        "Origin Charges": ["THC", "MUC", "DOCS", "SEAWAY BL", "HAZ DOCS", "AMS", "CLEARANCE", "VGM"]
-    }
-};
-
-
-const defaultContainerDimensions = [
-    { type: "20 GP", length: "5.898m", width: "2.352m", height: "2.393m", maxWeight: "28,200 kg", cbm: "33.2" },
-    { type: "40 GP", length: "12.032m", width: "2.352m", height: "2.393m", maxWeight: "26,580 kg", cbm: "67.7" },
-    { type: "40 HC", length: "12.032m", width: "2.352m", height: "2.698m", maxWeight: "26,480 kg", cbm: "76.3" },
-    { type: "20 RF", length: "5.444m", width: "2.286m", height: "2.275m", maxWeight: "27,700 kg", cbm: "28.4" },
-    { type: "40 RF", length: "11.572m", width: "2.286m", height: "2.275m", maxWeight: "26,500 kg", cbm: "54.3" },
-    { type: "20 TK", length: "5.898m", width: "2.352m", height: "2.393m", maxWeight: "24,000 kg", cbm: "33.2" },
-    { type: "40 TK", length: "12.032m", width: "2.352m", height: "2.393m", maxWeight: "26,000 kg", cbm: "67.7" }
-];
-
-// ==================== EMBEDDED BACKUP DATA (FULL) ====================
-const EMBEDDED_BACKUP = {
-  "carriers": [
-    "MSC", "COSCO", "CMA", "HAPAG", "EVERGREEN", "WAN HAI", "UNI FEEDER", "SAMSARA", "ESL", "AIYER",
-    "SCI", "WIN WIN", "SEA BRIDGE", "SEA HORSE", "ECON", "KMTC", "PIL", "OOCL", "SINOKOR", "ONE",
-    "SAMUDERA", "HMM", "ANL", "MAERSK", "25", "GOOD RICH", "SEA LEAD", "INTER ASIA", "SIMA MARINE",
-    "RCL", "YML", "T S LINE", "33", "BEN LINE", "ZIM", "FESCO", "Z LINE", "SEMA MARINE",
-    "QNL / MILAHA", "GIGA", "GOLD", "DGR", "NVOCC", "ALADIN EXP", "SEAPOL", "MAXICON", "RADIANT",
-    "HUB & LINK", "TURKON", "GOLDAIR"
-  ],
-  "pol": [
-    "-", "MUMBAI, IN", "AHMEDABAD, IN", "HYDERABAD, IN", "DELHI, IN", "NHAVA SHEVA, IN",
-    "MUNDRA, IN", "HAZIRA, IN", "ANKLESWAR, IN", "VADODRA, IN", "PIPAVAV, IN", "CHENNAI, IN",
-    "JAIPUR, IN"
-  ],
-  "pod": [
-    "ALGIERS, DZ", "ANNABA, DZ", "ORAN, DZ", "LOBITO, AO", "LUANDA, AO", "BAHIA BLANCA, AR",
-    "BUENOS AIRES, AR", "PUERTO BELGRANO, AR", "ROSARIO, AR", "ADELAIDE, AU", "BRISBANE, AU",
-    "FREMANTLE, AU", "GLADSTONE, AU", "MELBOURNE, AU", "NEWCASTLE, AU", "PORT HEDLAND, AU",
-    "SYDNEY, AU", "VIENNA, AT", "BAHRAIN, BH", "CHATTOGRAM, BD", "ICD DHAKA, BD", "ANTWERP, BE",
-    "BELIZE CITY, BZ", "COTONOU, BJ", "FORTALEZA, BR", "ITAJAI, BR", "ITAPOA, BR", "NAVEGANTES, BR",
-    "PARANAGUA, BR", "PECEM, BR", "RIO DE JANEIRO, BR", "SANTOS, BR", "SUAPE, BR", "VILA DO CONDE, BR",
-    "PHNOM PENH, KH", "SIHANOUKVILLE, KH", "DOUALA, CM", "HALIFAX, CA", "MONTREAL, CA",
-    "PRINCE RUPERT, CA", "VANCOUVER, CA", "TORONTO, CA", "ARICA, CL", "IQUIQUE, CL", "SAN ANTONIO, CL",
-    "VALPARAISO, CL", "BEICUN, CN", "BEIJAO, CN", "CHANGSHA, CN", "CHANGZHOU, CN", "CHIWAN, CN",
-    "CHONGQING, CN", "DALIAN, CN", "DOU MEN, CN", "FOSHAN JIUJIANG, CN", "GAOMING, CN", "GAOYAO, CN",
-    "GAOLAN, CN", "GAOSHA, CN", "HAIKOU, CN", "HEFEI, CN", "HONGWAN, CN", "HUADU, CN", "HUANGPU, CN",
-    "HUMEN, CN", "JIANGMEN, CN", "JIANGYIN, CN", "JIAOXIN, CN", "JIUJIANG, CN", "LIANHUA SHAN, CN",
-    "LIANYUNGANG, CN", "MAWEI, CN", "NANCHANG, CN", "NANJING, CN", "NANSHA, CN", "NANTONG, CN",
-    "NINGBO, CN", "PSA DONGGUAN, CN", "QINGDAO, CN", "QINGYUAN, CN", "QINZHOU, CN", "SANSHAN, CN",
-    "SANSHUI, CN", "SHANGHAI, CN", "SHANTOU, CN", "SHATIAN, CN", "SHEKOU, CN", "SHENZHEN, CN",
-    "SHUNDE LELIU, CN", "SHUNDE NEW PORT, CN", "SI HUI, CN", "TAICANG, CN", "TIANJIN, CN",
-    "XINGANG, CN", "WENZHOU, CN", "WU ZHOU, CN", "WUHAN, CN", "WUHU, CN", "XIAMEN, CN",
-    "XIAOLAN, CN", "XINHUI, CN", "YANGZHOU, CN", "YANGPU, CN", "YANTIAN, CN", "YICHANG, CN",
-    "YUEYANG, CN", "ZHANGJIAGANG, CN", "ZHANJIANG, CN", "ZHAOQING, CN", "ZHAPU, CN", "ZHONGSHAN, CN",
-    "BARRANQUILLA, CO", "BUENAVENTURA, CO", "CARTAGENA, CO", "COMUNION, CO", "MATADI, CD",
-    "POINTE-NOIRE, CG", "PUERTO CALDERA, CR", "PUERTO LIMON, CR", "HAVANA, CU", "MARIEL, CU",
-    "ESBJERG, DK", "AARHUS, DK", "DJIBOUTI, DJ", "CAUCEDO, DO", "GUAYAQUIL, EC", "MANTA, EC",
-    "PUERTO BOLIVAR, EC", "AL SOKHNA, EG", "ALEXANDRIA, EG", "DAMIETTA, EG", "PORT SAID, EG",
-    "ACAJUTLA, SV", "MASSAWA, ER", "HELSINKI, FI", "FOS SUR MER, FR", "LE HAVRE, FR", "MARSEILLE, FR",
-    "LIBREVILLE, GA", "BREMERHAVEN, DE", "HAMBURG, DE", "ACCRA (TEMA), GH", "TAKORADI, GH",
-    "HERAKLION, GR", "PIRAEUS, GR", "THESSALONIKI, GR", "PUERTO QUETZAL, GT", "CONAKRY, GN",
-    "MALABO, GQ", "PUERTO CORTES, HN", "HONG KONG, HK", "BUDAPEST, HU", "BALIKPAPAN, ID",
-    "BATAM, ID", "BELAWAN, ID", "JAKARTA, ID", "PALEMBANG, ID", "PANJANG, ID", "PONTIANAK, ID",
-    "SEMARANG, ID", "SURABAYA, ID", "BANDAR ABBAS, IR", "CHABAHAR, IR", "BUSHEHR, IR", "BASRA, IQ",
-    "UMM QASR, IQ", "ASHDOD, IL", "HAIFA, IL", "GENOA, IT", "GIOIA TAURO, IT", "NAPLES, IT",
-    "RAVENNA, IT", "TRIESTE, IT", "LA SPEZIA, IT", "LIVORNO, IT", "TARANTO, IT", "ABIDJAN, CI",
-    "SAN PEDRO, CI", "KINGSTON, JM", "FUKUYAMA, JP", "HAKATA, JP", "HIROSHIMA, JP", "KAWASAKI, JP",
-    "KOBE, JP", "MATSUYAMA, JP", "MIZUSHIMA, JP", "MOJI, JP", "NAGOYA, JP", "OSAKA, JP",
-    "SENDAI, JP", "SHIMIZU, JP", "TOKYO, JP", "YOKKAICHI, JP", "YOKOHAMA, JP", "LAMU, KE",
-    "MOMBASA, KE", "NAIROBI, KE", "KUWAIT, KW", "SHUAIBA, KW", "RIGA, LV", "KLAIPEDA, LT",
-    "TOAMASINA, MG", "BINTULU, MY", "KOTA KINABALU, MY", "KUCHING, MY", "MIRI, MY",
-    "PASIR GUDANG, MY", "PENANG, MY", "PORT KLANG, MY", "SANDAKAN, MY", "SIBU, MY",
-    "TANJUNG PELEPAS, MY", "TAWAO, MY", "MALTA FREEPORT, MT", "PORT LOUIS, MU", "ALTAMIRA, MX",
-    "ENSENADA, MX", "LAZARO CARDENAS, MX", "MANZANILLO, MX", "TAMPICO, MX", "VERACRUZ, MX",
-    "AGADIR, MA", "CASABLANCA, MA", "TANGER MED, MA", "BEIRA, MZ", "MAPUTO, MZ", "NACALA, MZ",
-    "YANGON, MM", "ROTTERDAM, NL", "AUCKLAND, NZ", "LYTTELTON, NZ", "NAPIER, NZ", "TAURANGA, NZ",
-    "WELLINGTON, NZ", "CORINTO, NI", "LAGOS, NG", "APAPA, NG", "ONNE, NG", "PORT HARCOURT, NG",
-    "OSLO, NO", "STAVANGER, NO", "SALALAH, OM", "SOHAR, OM", "KARACHI, PK", "CALLAO, PE",
-    "CHIMBOTE, PE", "MATARANI, PE", "PAITA, PE", "BATANGAS, PH", "CAGAYAN DE ORO, PH", "CEBU, PH",
-    "DAVAO, PH", "GENERAL SANTOS, PH", "MANILA NORTH, PH", "MANILA SOUTH, PH", "MANILA, PH",
-    "SUBIC BAY, PH", "GDANSK, PL", "GDYNIA, PL", "LISBON, PT", "SINES, PT", "HAMAD, QA",
-    "CONSTANTA, RO", "NOVOROSSIYSK, RU", "ST PETERSBURG, RU", "VLADIVOSTOK, RU", "DAMMAM, SA",
-    "JEDDAH, SA", "RIYADH, SA", "YANBU, SA", "DAKAR, SN", "SINGAPORE, SG", "BERBERA, SO",
-    "BOSASO, SO", "KISMAYO, SO", "MERCA, SO", "MOGADISHU, SO", "CAPE TOWN, ZA", "DURBAN, ZA",
-    "JOHANNESBURG, ZA", "PORT ELIZABETH, ZA", "RICHARDS BAY, ZA", "BUSAN, KR", "GWANGYANG, KR",
-    "INCHON, KR", "ULSAN, KR", "ALGECIRAS, ES", "BARCELONA, ES", "BILBAO, ES", "VALENCIA, ES",
-    "VIGO, ES", "COLOMBO, LK", "HAMBANTOTA, LK", "PORT SUDAN, SD", "GOTHENBURG, SE", "KAOHSIUNG, TW",
-    "KEELUNG, TW", "TAICHUNG, TW", "TAIPEI, TW", "TAOYUAN, TW", "BAGAMOYO, TZ", "DAR ES SALAAM, TZ",
-    "ZANZIBAR, TZ", "BANGKOK PAT, TH", "BANGKOK, TH", "LAEM CHABANG, TH", "LAT KRABANG, TH",
-    "LOME, TG", "BIZERTE, TN", "RADES, TN", "SFAX, TN", "GABZE, TR", "GEMLIK, TR", "ISKENDERUN, TR",
-    "ISTANBUL, TR", "IZMIR, TR", "IZMIT, TR", "MERSIN, TR", "ABU DHABI, AE", "JEBEL ALI, AE",
-    "KHALIFA PORT, AE", "SHARJAH, AE", "FELIXSTOWE, GB", "LIVERPOOL, GB", "LONDON GATEWAY, GB",
-    "SOUTHAMPTON, GB", "MONTEVIDEO, UY", "NUEVA PALMIRA, UY", "LONG BEACH, US", "LOS ANGELES, US",
-    "OAKLAND, US", "SEATTLE, US", "TACOMA, US", "PORTLAND, US", "SAN DIEGO, US", "NEW YORK, US",
-    "NEW JERSEY, US", "SAVANNAH, US", "NORFOLK, VA", "CHARLESTON, US", "JACKSONVILLE, US",
-    "BALTIMORE, US", "COLUMBUS, OH", "BOSTON, US", "HOUSTON, US", "GALVESTON, US", "FREEPORT, US",
-    "MOBILE, US", "MIAMI, US", "PORT EVERGLADES, US", "TAMPA, US", "NEW ORLEANS, US", "NORFOLK, US",
-    "PHILADELPHIA, US", "CHICAGO, US", "KINGSBURY, US", "DALLAS, US", "MEMPHIS, US",
-    "MINNEAPOLIS, US", "ATLANTA, US", "KANSAS CITY, US", "LA GUAIRA, VE", "MARACAIBO, VE",
-    "PUERTO CABELLO, VE", "CAI MEP, VN", "CAT LAI, VN", "DANANG, VN", "HAIPHONG, VN",
-    "HO CHI MINH, VN", "PHUOC LONG ICD, VN", "QUY NHON, VN", "VUNG TAU, VN", "ADEN, YE",
-    "AL HODEIDAH, YE", "AL MUKALLA, YE", "ASH SHIHR, YE", "MOKHA, YE", "NASHTOON, YE",
-    "RAS ISA, YE", "SALEEF, YE", "SOCOTRA, YE", "MUARA, BN", "SAN JUAN, PR", "TAMATAVE, MG",
-    "LEIXOES, PT", "PORT OF SPAIN", "BRIDGETOWN, BB", "PARANGUA, BR", "BEIRUT, LB",
-    "LOUISVILLE, KY", "NOUAKCHOTT, MR", "FUJAIRAH, AE", "KHOR FAKKAN, AE", "AQABA, JD",
-    "INDIANAPOLIS, US", "KOPER, SI"
-  ],
-  "incoterms": ["EXW", "FOB", "CIF", "CFR", "DAP", "DDP", "FCA", "CPT"],
-  "containers": ["20 GP", "40 GP", "40 HC", "20 RF", "40 RF", "20 TK", "40 TK"],
-  "containerDimensions": [
-    {"type":"20 GP","length":5.898,"width":2.352,"height":2.393,"maxWeight":28200,"cbm":33.2,"tareWeight":"0 kg","unit":"m"},
-    {"type":"40 GP","length":12.032,"width":2.352,"height":2.393,"maxWeight":26580,"cbm":67.7,"tareWeight":"0 kg","unit":"m"},
-    {"type":"40 HC","length":12.032,"width":2.352,"height":2.698,"maxWeight":26480,"cbm":76.3,"tareWeight":"0 kg","unit":"m"},
-    {"type":"20 RF","length":5.444,"width":2.286,"height":2.275,"maxWeight":27700,"cbm":28.4,"tareWeight":"0 kg","unit":"m"},
-    {"type":"40 RF","length":11.572,"width":2.286,"height":2.275,"maxWeight":26500,"cbm":54.3,"tareWeight":"0 kg","unit":"m"},
-    {"type":"20 TK","length":5.898,"width":2.352,"height":2.393,"maxWeight":24000,"cbm":33.2,"tareWeight":"0 kg","unit":"m"},
-    {"type":"40 TK","length":12.032,"width":2.352,"height":2.393,"maxWeight":26000,"cbm":67.7,"tareWeight":"0 kg","unit":"m"}
-  ],
-  "companyName": "GATEWAY EXIM",
-  "companyAddress": "OFFICE NO.523, TOWER 1A, 73, EAST AVENUE, NR. GENDA CIRCLE, SARA BHAI CAMPUS, VADODARA, GUJARAT 390007 - INDIA",
-  "defaultUser": "Shaikh Shahid",
-  "exchangeRates": {"USD":97,"GBP":105.2,"RMB":11.5,"EUR":90.1,"AED":22.75,"INR":1},
-  "defaultSeaCharges": [
-    {"pol":"HAZIRA, IN","commodity":"NON HAZ","charges":{"CFS":{"amount":16950,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":2000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":2020,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"20 GP"},
-    {"pol":"HAZIRA, IN","commodity":"NON HAZ","charges":{"CFS":{"amount":23950,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":3320,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"40 HC"},
-    {"pol":"NHAVA SHEVA, IN","commodity":"NON HAZ","charges":{"CFS":{"amount":15300,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"TOLL":{"amount":600,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LASHING & CHOKING":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"20 GP"},
-    {"pol":"NHAVA SHEVA, IN","commodity":"NON HAZ","charges":{"CFS":{"amount":25500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"TOLL":{"amount":1200,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LASHING & CHOKING":{"amount":3500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"40 HC"},
-    {"pol":"MUNDRA, IN","commodity":"NON HAZ","charges":{"CFS":{"amount":17900,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":2000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LOLO":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":2020,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"20 GP"},
-    {"pol":"MUNDRA, IN","commodity":"NON HAZ","charges":{"CFS":{"amount":29950,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LOLO":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":3320,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"40 HC"},
-    {"pol":"HAZIRA, IN","commodity":"HAZ","charges":{"CFS":{"amount":16950,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":2000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":2020,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"20 GP"},
-    {"pol":"HAZIRA, IN","commodity":"HAZ","charges":{"CFS":{"amount":23950,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":3320,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"40 HC"},
-    {"pol":"NHAVA SHEVA, IN","commodity":"HAZ","charges":{"CFS":{"amount":15300,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"TOLL":{"amount":600,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LASHING & CHOKING":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"HAZ STCKER":{"amount":700,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"20 GP"},
-    {"pol":"NHAVA SHEVA, IN","commodity":"HAZ","charges":{"CFS":{"amount":25500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"TOLL":{"amount":1200,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LASHING & CHOKING":{"amount":3500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"HAZ STCKER":{"amount":900,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"40 HC"},
-    {"pol":"MUNDRA, IN","commodity":"HAZ","charges":{"CFS":{"amount":17900,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":2500,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":2000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LOLO":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":2020,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"20 GP"},
-    {"pol":"MUNDRA, IN","commodity":"HAZ","charges":{"CFS":{"amount":29950,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"CLEARANCE":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"VGM":{"amount":25,"currency":"USD","buyAmount":0,"buyCurrency":"USD","basis":"Normal"},"LASHING & CHOKING":{"amount":3000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"ON WHEEL":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"LOLO":{"amount":5000,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"},"OTHER LOCALS":{"amount":3320,"currency":"INR","buyAmount":0,"buyCurrency":"INR","basis":"Normal"}},"carrier":"ALL","container":"40 HC"}
-  ],
-  "defaultAirCharges": [
-    {"pol":"MUMBAI, IN","commodity":"NON HAZ","charges":{"CARTAGE":{"amount":1,"currency":"INR"},"MCC":{"amount":1,"currency":"INR"},"XRAY":{"amount":3.14,"currency":"INR"},"CUSTOM CLEARANCE":{"amount":3500,"currency":"INR"},"AWB FEES":{"amount":800,"currency":"INR"},"LOADING & UNLOADING":{"amount":800,"currency":"INR"},"ASI GMAX":{"amount":281,"currency":"INR"},"AMS":{"amount":1750,"currency":"INR"},"TEDI":{"amount":225,"currency":"INR"}}},
-    {"pol":"MUMBAI, IN","commodity":"HAZ","charges":{"CARTAGE":{"amount":1,"currency":"INR"},"MCC":{"amount":1,"currency":"INR"},"XRAY":{"amount":3.14,"currency":"INR"},"CUSTOM CLEARANCE":{"amount":3500,"currency":"INR"},"AWB FEES":{"amount":800,"currency":"INR"},"LOADING & UNLOADING":{"amount":800,"currency":"INR"},"ASI GMAX":{"amount":281,"currency":"INR"},"AMS":{"amount":1750,"currency":"INR"},"TEDI":{"amount":225,"currency":"INR"},"DG FEES":{"amount":10000,"currency":"INR"},"DG AGENT FEE":{"amount":3500,"currency":"INR"}},"createdAt":"2026-07-30T16:23:38.785Z","updatedAt":"2026-07-30T16:23:38.785Z"},
-    {"pol":"AHMEDABAD, IN","commodity":"NON HAZ","charges":{"CARTAGE":{"amount":850,"currency":"INR"},"MCC":{"amount":850,"currency":"INR"},"XRAY":{"amount":850,"currency":"INR"},"CUSTOM CLEARANCE":{"amount":2500,"currency":"INR"},"AWB FEES":{"amount":800,"currency":"INR"},"LOADING & UNLOADING":{"amount":800,"currency":"INR"},"ASI GMAX":{"amount":281,"currency":"INR"},"AMS":{"amount":1750,"currency":"INR"},"TEDI":{"amount":225,"currency":"INR"}},"createdAt":"2026-07-30T16:26:44.137Z","updatedAt":"2026-07-30T16:26:44.137Z"},
-    {"pol":"AHMEDABAD, IN","commodity":"HAZ","charges":{"CARTAGE":{"amount":850,"currency":"INR"},"MCC":{"amount":850,"currency":"INR"},"XRAY":{"amount":850,"currency":"INR"},"CUSTOM CLEARANCE":{"amount":2500,"currency":"INR"},"AWB FEES":{"amount":800,"currency":"INR"},"LOADING & UNLOADING":{"amount":800,"currency":"INR"},"ASI GMAX":{"amount":281,"currency":"INR"},"AMS":{"amount":1750,"currency":"INR"},"TEDI":{"amount":225,"currency":"INR"},"DG FEES":{"amount":10000,"currency":"INR"},"DG AGENT FEE":{"amount":3500,"currency":"INR"}},"createdAt":"2026-07-30T16:27:00.870Z","updatedAt":"2026-07-30T16:27:00.870Z"}
-  ],
-  "defaultLclCharges": [
-    {"pol":"NHAVA SHEVA, IN","commodity":"NON HAZ","charges":{"THC":{"amount":1000,"currency":"INR"},"CLEARANCE":{"amount":2500,"currency":"INR"},"VGM":{"amount":25,"currency":"USD"},"DOCS":{"amount":3200,"currency":"INR"}}},
-    {"pol":"NHAVA SHEVA, IN","commodity":"HAZ","charges":{"THC":{"amount":1350,"currency":"INR"},"CLEARANCE":{"amount":2500,"currency":"INR"},"VGM":{"amount":25,"currency":"USD"},"DOCS":{"amount":3200,"currency":"INR"},"HAZ DOCS":{"amount":2500,"currency":"INR"}},"createdAt":"2026-07-30T16:25:47.841Z","updatedAt":"2026-07-30T16:25:47.841Z"}
-  ],
-  "carrierChargesSeaLcl": [
-    {"mode":"sea","carrier":"HAPAG","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":18408,"currency":"INR","buyAmount":18408,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":2118,"currency":"INR","buyAmount":2118,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":23238,"currency":"INR","buyAmount":23238,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11560,"currency":"INR","buyAmount":11560,"buyCurrency":"INR"},"SEAL":{"amount":1120,"currency":"INR","buyAmount":1120,"buyCurrency":"INR"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR"}},"updated":"2026-07-30T16:29:17.129Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17805,"currency":"INR","buyAmount":17805,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"AHMEDABAD, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11700,"currency":"INR","buyAmount":11700,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":920,"currency":"INR","buyAmount":920,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":45450,"currency":"INR","buyAmount":45450,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"AHMEDABAD, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17668,"currency":"INR","buyAmount":17668,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"AHMEDABAD, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":20498,"currency":"INR","buyAmount":20498,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":920,"currency":"INR","buyAmount":920,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"AHMEDABAD, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":25877,"currency":"INR","buyAmount":25877,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":20725,"currency":"INR","buyAmount":20725,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":920,"currency":"INR","buyAmount":920,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":30796,"currency":"INR","buyAmount":30796,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":10512,"currency":"INR","buyAmount":10512,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":920,"currency":"INR","buyAmount":920,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":14808,"currency":"INR","buyAmount":14808,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":20498,"currency":"INR","buyAmount":20498,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":920,"currency":"INR","buyAmount":920,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":25877,"currency":"INR","buyAmount":25877,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":13200,"currency":"INR","buyAmount":13200,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1120,"currency":"INR","buyAmount":1120,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5300,"currency":"INR","buyAmount":5300,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":3750,"currency":"INR","buyAmount":3750,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HAPAG","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":16075,"currency":"INR","buyAmount":16075,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":10940,"currency":"INR","buyAmount":10940,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":38,"currency":"USD","buyAmount":38,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17925,"currency":"INR","buyAmount":17925,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":14305,"currency":"INR","buyAmount":14305,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":38,"currency":"USD","buyAmount":38,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":3300,"currency":"INR","buyAmount":3300,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":21775,"currency":"INR","buyAmount":21775,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":12385,"currency":"INR","buyAmount":12385,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":38,"currency":"USD","buyAmount":38,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17170,"currency":"INR","buyAmount":17170,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":18050,"currency":"INR","buyAmount":18050,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":33,"currency":"USD","buyAmount":33,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":3300,"currency":"INR","buyAmount":3300,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":23645,"currency":"INR","buyAmount":23645,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":9795,"currency":"INR","buyAmount":9795,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":33,"currency":"USD","buyAmount":33,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":14455,"currency":"INR","buyAmount":14455,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":14255,"currency":"INR","buyAmount":14255,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":38,"currency":"USD","buyAmount":38,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":3300,"currency":"INR","buyAmount":3300,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":21675,"currency":"INR","buyAmount":21675,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":9070,"currency":"INR","buyAmount":9070,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"},"ETS":{"amount":2800,"currency":"INR","buyAmount":2800,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":15000,"currency":"INR","buyAmount":15000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":11500,"currency":"INR","buyAmount":11500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":9,"currency":"USD","buyAmount":9,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"},"ETS":{"amount":2800,"currency":"INR","buyAmount":2800,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":16700,"currency":"INR","buyAmount":16700,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11590,"currency":"INR","buyAmount":11590,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":9,"currency":"USD","buyAmount":9,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"},"ETS":{"amount":2800,"currency":"INR","buyAmount":2800,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":15690,"currency":"INR","buyAmount":15690,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":15690,"currency":"INR","buyAmount":15690,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":9,"currency":"USD","buyAmount":9,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"},"ETS":{"amount":2800,"currency":"INR","buyAmount":2800,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":17790,"currency":"INR","buyAmount":17790,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":9400,"currency":"INR","buyAmount":9400,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"},"ETS":{"amount":2800,"currency":"INR","buyAmount":2800,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":13850,"currency":"INR","buyAmount":13850,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":12000,"currency":"INR","buyAmount":12000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":9,"currency":"USD","buyAmount":9,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"},"ETS":{"amount":2800,"currency":"INR","buyAmount":2800,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":30,"currency":"USD","buyAmount":30,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MSC","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":17500,"currency":"INR","buyAmount":17500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11575,"currency":"INR","buyAmount":11575,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1050,"currency":"INR","buyAmount":1050,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":1250,"currency":"INR","buyAmount":1250,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17100,"currency":"INR","buyAmount":17100,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":20300,"currency":"INR","buyAmount":20300,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1050,"currency":"INR","buyAmount":1050,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":1250,"currency":"INR","buyAmount":1250,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":30200,"currency":"INR","buyAmount":30200,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":12850,"currency":"INR","buyAmount":12850,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1050,"currency":"INR","buyAmount":1050,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":1250,"currency":"INR","buyAmount":1250,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":19800,"currency":"INR","buyAmount":19800,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":30100,"currency":"INR","buyAmount":30100,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1050,"currency":"INR","buyAmount":1050,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":1250,"currency":"INR","buyAmount":1250,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":45125,"currency":"INR","buyAmount":45125,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11625,"currency":"INR","buyAmount":11625,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1050,"currency":"INR","buyAmount":1050,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":1250,"currency":"INR","buyAmount":1250,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":18775,"currency":"INR","buyAmount":18775,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":16125,"currency":"INR","buyAmount":16125,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":1050,"currency":"INR","buyAmount":1050,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":1250,"currency":"INR","buyAmount":1250,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ZIM","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":26100,"currency":"INR","buyAmount":26100,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ESL","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4300,"currency":"INR","buyAmount":4300,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1600,"currency":"INR","buyAmount":1600,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ESL","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4300,"currency":"INR","buyAmount":4300,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1600,"currency":"INR","buyAmount":1600,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ESL","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4300,"currency":"INR","buyAmount":4300,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1600,"currency":"INR","buyAmount":1600,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ESL","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4300,"currency":"INR","buyAmount":4300,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1600,"currency":"INR","buyAmount":1600,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ESL","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4300,"currency":"INR","buyAmount":4300,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1600,"currency":"INR","buyAmount":1600,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ESL","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4300,"currency":"INR","buyAmount":4300,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1600,"currency":"INR","buyAmount":1600,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"EVERGREEN","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":12400,"currency":"INR","buyAmount":12400,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":700,"currency":"INR","buyAmount":700,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"EVERGREEN","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":11500,"currency":"INR","buyAmount":11500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"EVERGREEN","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":700,"currency":"INR","buyAmount":700,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1000,"currency":"INR","buyAmount":1000,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":14,"currency":"USD","buyAmount":14,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4200,"currency":"INR","buyAmount":4200,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4200,"currency":"INR","buyAmount":4200,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":16225,"currency":"INR","buyAmount":16225,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4200,"currency":"INR","buyAmount":4200,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4200,"currency":"INR","buyAmount":4200,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4200,"currency":"INR","buyAmount":4200,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ONE","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4200,"currency":"INR","buyAmount":4200,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":11,"currency":"USD","buyAmount":11,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":20,"currency":"USD","buyAmount":20,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":11,"currency":"USD","buyAmount":11,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":40,"currency":"USD","buyAmount":40,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":15700,"currency":"INR","buyAmount":15700,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":11,"currency":"USD","buyAmount":11,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":40,"currency":"USD","buyAmount":40,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":11,"currency":"USD","buyAmount":11,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":40,"currency":"USD","buyAmount":40,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":11,"currency":"USD","buyAmount":11,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":20,"currency":"USD","buyAmount":20,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":15515,"currency":"INR","buyAmount":15515,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":11,"currency":"USD","buyAmount":11,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":40,"currency":"USD","buyAmount":40,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAERSK","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":21200,"currency":"INR","buyAmount":21200,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4000,"currency":"INR","buyAmount":4000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1200,"currency":"INR","buyAmount":1200,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4000,"currency":"INR","buyAmount":4000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1200,"currency":"INR","buyAmount":1200,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4000,"currency":"INR","buyAmount":4000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1200,"currency":"INR","buyAmount":1200,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":24500,"currency":"INR","buyAmount":24500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4000,"currency":"INR","buyAmount":4000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1200,"currency":"INR","buyAmount":1200,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":38500,"currency":"INR","buyAmount":38500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":10222,"currency":"INR","buyAmount":10222,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4000,"currency":"INR","buyAmount":4000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1200,"currency":"INR","buyAmount":1200,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":16608,"currency":"INR","buyAmount":16608,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":15000,"currency":"INR","buyAmount":15000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4000,"currency":"INR","buyAmount":4000,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":1200,"currency":"INR","buyAmount":1200,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ALADINEXP","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":22470,"currency":"INR","buyAmount":22470,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":9250,"currency":"INR","buyAmount":9250,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":14200,"currency":"INR","buyAmount":14200,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":17000,"currency":"INR","buyAmount":17000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":26000,"currency":"INR","buyAmount":26000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":12650,"currency":"INR","buyAmount":12650,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":19767,"currency":"INR","buyAmount":19767,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":28462,"currency":"INR","buyAmount":28462,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":44476,"currency":"INR","buyAmount":44476,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":10968,"currency":"INR","buyAmount":10968,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17655,"currency":"INR","buyAmount":17655,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":13108,"currency":"INR","buyAmount":13108,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"HMM","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":21935,"currency":"INR","buyAmount":21935,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11500,"currency":"INR","buyAmount":11500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17000,"currency":"INR","buyAmount":17000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":20500,"currency":"INR","buyAmount":20500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":30000,"currency":"INR","buyAmount":30000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":12500,"currency":"INR","buyAmount":12500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"ECON","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":15,"currency":"USD","buyAmount":15,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"NVOCC","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":13500,"currency":"INR","buyAmount":13500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":3500,"currency":"INR","buyAmount":3500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"NVOCC","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":18500,"currency":"INR","buyAmount":18500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"NVOCC","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":18500,"currency":"INR","buyAmount":18500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":3500,"currency":"INR","buyAmount":3500,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"EVERGREEN","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":25500,"currency":"INR","buyAmount":25500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"EVERGREEN","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":700,"currency":"INR","buyAmount":700,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":3500,"currency":"INR","buyAmount":3500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"WANHAI","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11300,"currency":"INR","buyAmount":11300,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"WANHAI","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":18300,"currency":"INR","buyAmount":18300,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"WANHAI","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":13100,"currency":"INR","buyAmount":13100,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":400,"currency":"INR","buyAmount":400,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"WANHAI","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":21100,"currency":"INR","buyAmount":21100,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"HAZIRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":18000,"currency":"INR","buyAmount":18000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":5,"currency":"USD","buyAmount":5,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"HAZIRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":27000,"currency":"INR","buyAmount":27000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":9000,"currency":"INR","buyAmount":9000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":5,"currency":"USD","buyAmount":5,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"HAZIRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":13500,"currency":"INR","buyAmount":13500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"MUNDRA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":29000,"currency":"INR","buyAmount":29000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":5,"currency":"USD","buyAmount":5,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"MUNDRA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":43450,"currency":"INR","buyAmount":43450,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"MUNDRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11900,"currency":"INR","buyAmount":11900,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":5,"currency":"USD","buyAmount":5,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"MUNDRA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17800,"currency":"INR","buyAmount":17800,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":13700,"currency":"INR","buyAmount":13700,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":5,"currency":"USD","buyAmount":5,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":21250,"currency":"INR","buyAmount":21250,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":10000,"currency":"INR","buyAmount":10000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":5,"currency":"USD","buyAmount":5,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5500,"currency":"INR","buyAmount":5500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"COSCO","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":15900,"currency":"INR","buyAmount":15900,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"SEAPOL","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":15500,"currency":"INR","buyAmount":15500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":3000,"currency":"INR","buyAmount":3000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"SEAPOL","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":22500,"currency":"INR","buyAmount":22500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"KMTC","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":11400,"currency":"INR","buyAmount":11400,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"KMTC","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17900,"currency":"INR","buyAmount":17900,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"KMTC","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":14500,"currency":"INR","buyAmount":14500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":8,"currency":"USD","buyAmount":8,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"HAZDOCS":{"amount":3000,"currency":"INR","buyAmount":3000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"KMTC","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":22500,"currency":"INR","buyAmount":22500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"MAXICON","pol":"HAZIRA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":13500,"currency":"INR","buyAmount":13500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":750,"currency":"INR","buyAmount":750,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5000,"currency":"INR","buyAmount":5000,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"RADIANT","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":13000,"currency":"INR","buyAmount":13000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":750,"currency":"INR","buyAmount":750,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":3000,"currency":"INR","buyAmount":3000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"RADIANT","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":19500,"currency":"INR","buyAmount":19500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"RADIANT","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":18500,"currency":"INR","buyAmount":18500,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":750,"currency":"INR","buyAmount":750,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"SEAWAY":{"amount":3000,"currency":"INR","buyAmount":3000,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2500,"currency":"INR","buyAmount":2500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"RADIANT","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":28000,"currency":"INR","buyAmount":28000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"SINOKOR","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":15779,"currency":"INR","buyAmount":15779,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"SINOKOR","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":3000,"currency":"INR","buyAmount":3000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"AHMEDABAD, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":17270,"currency":"INR","buyAmount":17270,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"CMA","pol":"AHMEDABAD, IN","container":"20 GP","commodity":"NON HAZ","charges":{"SEAL":{"amount":10,"currency":"USD","buyAmount":10,"buyCurrency":"USD","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":5100,"currency":"INR","buyAmount":5100,"buyCurrency":"INR","basis":"Normal"},"ETS":{"amount":33,"currency":"USD","buyAmount":33,"buyCurrency":"USD","basis":"Normal"},"AMS":{"amount":35,"currency":"USD","buyAmount":35,"buyCurrency":"USD","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"TURKON","pol":"NHAVA SHEVA, IN","container":"20 GP","commodity":"NON HAZ","charges":{"THC":{"amount":12000,"currency":"INR","buyAmount":12000,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":2068,"currency":"INR","buyAmount":2068,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"TURKON","pol":"NHAVA SHEVA, IN","container":"40 HC","commodity":"NON HAZ","charges":{"THC":{"amount":19000,"currency":"INR","buyAmount":19000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"TURKON","pol":"NHAVASHEVA, IN","container":"20 GP","commodity":"HAZ","charges":{"THC":{"amount":14250,"currency":"INR","buyAmount":14250,"buyCurrency":"INR","basis":"Normal"},"SEAL":{"amount":2068,"currency":"INR","buyAmount":2068,"buyCurrency":"INR","basis":"Normal"},"MUC":{"amount":170,"currency":"INR","buyAmount":170,"buyCurrency":"INR","basis":"Normal"},"DOCS":{"amount":4500,"currency":"INR","buyAmount":4500,"buyCurrency":"INR","basis":"Normal"},"HAZDOCS":{"amount":2000,"currency":"INR","buyAmount":2000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"},
-    {"mode":"sea","carrier":"TURKON","pol":"NHAVASHEVA, IN","container":"40 HC","commodity":"HAZ","charges":{"THC":{"amount":22000,"currency":"INR","buyAmount":22000,"buyCurrency":"INR","basis":"Normal"}},"updated":"2026-07-30T16:17:43.350Z"}
-  ],
-  "carrierChargesAir": [],
-  "drafts": {"sea":[],"air":[],"lcl":[]},
-  "rates": {"sea":[],"air":[],"lcl":[]},
-  "rateSheet": [],
-  "hiddenItems": {"pol":[],"pod":[],"incoterms":[],"containers":[],"carriers":[]},
-  "theme": "light",
-  "lastBackup": "2026-07-30T18:09:22.760Z",
-  "duplicateDetectionDays": 30,
-  "navState": {"expandedCategories":["newQuote","quoteSheet","dsrCat","reports","admin"],"lastTab":"database"},
-  "shipments": [],
-  "bldrafts": [],
-  "cargoStatusMaster": ["RATES REQUESTED","RATES RECEIVED","RATES QUOTED","INQUERY","LOST","NO SERVICE","HIGH RATES","RATES APPROVED","BOOKING PLACED","BOOKING RECEIVED","BOOKING SENT","CARGO PICKED","TRANSPORATION","AT CFS","UNDER CLEARANCE","CONTAINER GATEIN","BY ROAD MOVEMENT","BY RAIL MOVEMENT","SOB DONE","COMPLETED","PLANNING","DUPLICATE"],
-  "docsStatusMaster": ["DOCS RECEIVED","CHECKLIST PENDING","CHECKLIST SHARED","CHECKLIST CORRECTION","CHECKLIST APPROVED","LEO RECEIVED","SI SUBMITED","DRAFT SHARED","BL CORRECTION","BL APPROVED","SELL GIVEN","INVOICE PENDING","PERFORMA INVOICE SENT","INVOICE APPROVED","TAX INVOICE SEND"],
-  "users": [{"id":"Shaikh Shahid","passwordHash":"b7158b64a98516b31d0c23609f69265a868c594dda5b3c8da9e13159e209c9b6","name":"Shaikh Shahid","role":"master","permissions":"all"}],
-  "defaults": {"gst":18,"insurance":0.05,"profitMargin":15,"defaultCurrency":"USD","usDuty":0,"usTariff":0,"usMPF":0.3464,"usHMF":0.125,"inDuty":7.5,"inSocialWelfare":10,"drawback":0,"rodtep":0},
-  "stuffing": [],
-  "truckingShipments": [],
-  "detentionLots": [
-    {"id":"lot-1","name":"20 GP Standard","freeDays":5,"slabs":[{"from":1,"to":5,"rate":10},{"from":6,"to":10,"rate":30},{"from":11,"to":20,"rate":50},{"from":21,"to":30,"rate":70},{"from":31,"to":999,"rate":100}]},
-    {"id":"lot-2","name":"40 GP Standard","freeDays":5,"slabs":[{"from":1,"to":5,"rate":10},{"from":6,"to":10,"rate":30},{"from":11,"to":20,"rate":50},{"from":21,"to":30,"rate":70},{"from":31,"to":999,"rate":100}]},
-    {"id":"lot-3","name":"40 HC Standard","freeDays":5,"slabs":[{"from":1,"to":5,"rate":10},{"from":6,"to":10,"rate":30},{"from":11,"to":20,"rate":50},{"from":21,"to":30,"rate":70},{"from":31,"to":999,"rate":100}]},
-    {"id":"lot-4","name":"Reefer 20 RF","freeDays":3,"slabs":[{"from":1,"to":5,"rate":10},{"from":6,"to":10,"rate":30},{"from":11,"to":20,"rate":50},{"from":21,"to":30,"rate":70},{"from":31,"to":999,"rate":100}]},
-    {"id":"lot-5","name":"Reefer 40 RF","freeDays":3,"slabs":[{"from":1,"to":5,"rate":10},{"from":6,"to":10,"rate":30},{"from":11,"to":20,"rate":50},{"from":21,"to":30,"rate":70},{"from":31,"to":999,"rate":100}]}
-  ],
-  "detentionRecords": [],
-  "freightCalculations": [],
-  "plannerNotes": [],
-  "plannerTasks": []
-};
+// ==================== DEFAULT DATA ====================
+// Factory/default data is loaded from JS/default-data.js before this file.
 
 // ==================== MAIN DB OBJECT ====================
 // Initialize defaultDB from the embedded backup (deep clone to avoid mutation)
@@ -2202,8 +2196,8 @@ function getTasksForDate(dateKey) {
 
 function getQuotesForDate(dateKey) {
     const all = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
-        db.rates[mode].forEach(q => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
+        (Array.isArray(db.rates?.[mode]) ? db.rates[mode] : []).forEach(q => {
             const qDate = new Date(q.timestamp);
             if (formatDateKey(qDate) === dateKey) {
                 all.push({ ...q, mode });
@@ -2215,8 +2209,8 @@ function getQuotesForDate(dateKey) {
 
 function getExpiringQuotesForDate(dateKey) {
     const all = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
-        db.rates[mode].forEach(q => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
+        (Array.isArray(db.rates?.[mode]) ? db.rates[mode] : []).forEach(q => {
             if (q.validityDate === dateKey) {
                 all.push({ ...q, mode });
             }
@@ -2785,9 +2779,20 @@ function islamTrackerYesNo(done) {
     return islamTrackerStatus(done);
 }
 
+function canViewIslamDailyTracker(user = checkLogin()) {
+    if (!user) return false;
+    return String(user.id || '').trim().toLowerCase() === 'shaikh shahid';
+}
+
 function renderIslamDailyTracker(dateKey) {
     const root = document.getElementById('islam-daily-tracker');
     if (!root) return;
+    if (!canViewIslamDailyTracker()) {
+        root.innerHTML = '';
+        root.style.display = 'none';
+        return;
+    }
+    root.style.display = '';
     const key = normalizeIslamDateKey(dateKey);
     const entry = getIslamDailyEntry(key) || {
         prayers: { fajar:{done:false,rakat:0}, zuhar:{done:false,rakat:0}, asr:{done:false,rakat:0}, maghrib:{done:false,rakat:0}, isha:{done:false,rakat:0} },
@@ -2797,9 +2802,37 @@ function renderIslamDailyTracker(dateKey) {
     const rows = [
         ['Fajar','fajar','2'], ['Zuhar','zuhar','4'], ['Asr','asr','4'], ['Maghrib','maghrib','3'], ['Isha','isha','4']
     ];
+    root.innerHTML = `
+      <div class="islam-tracker-header"><span>🕌 Islam - Daily Tracker</span><span>📅 ${fmt}</span></div>
+      <div class="islam-tracker-body">
+        <table class="islam-tracker-table">
+          <thead><tr><th>DETAILS</th><th>TODAY</th></tr></thead>
+          <tbody>
+            <tr class="islam-group"><td colspan="2">1. All 5 Times Prayer (Mark Yes / No &amp; No. of Rakat)</td></tr>
+            ${rows.map(([label,keyName,defaultRakat]) => {
+                const pr = entry.prayers[keyName] || {status:'NO',done:false,rakat:0};
+                return `<tr><td>🕌 ${label}</td><td><span>${islamTrackerStatus(pr.status ?? pr.done)}</span> <span class="islam-rakat">${pr.rakat} Rakat</span></td></tr>`;
+            }).join('')}
+            <tr class="islam-group"><td colspan="2">2. Quran Reading <small>(Done or Not)</small></td></tr>
+            <tr><td>📖 Quran Reading</td><td>${islamTrackerYesNo(entry.quranReading)}</td></tr>
+            <tr class="islam-group"><td colspan="2">3. Meditation <small>(Done or Not)</small></td></tr>
+            <tr><td>🧘 Meditation</td><td>${islamTrackerYesNo(entry.meditation)}</td></tr>
+            <tr class="islam-group"><td colspan="2">4. Darood Counting</td></tr>
+            <tr><td>📿 DAROOD</td><td><div class="islam-darood-counter"><button type="button" class="islam-darood-btn" onclick="changeIslamDaroodCount('${key}',-1)" aria-label="Decrease Darood count">−</button><span id="islam-darood-count-${key}" class="islam-darood-count">${Math.max(0,Math.floor(Number(entry.daroodCount)||0))}</span><button type="button" class="islam-darood-btn" onclick="changeIslamDaroodCount('${key}',1)" aria-label="Increase Darood count">+</button></div></td></tr>
+            <tr class="islam-group"><td colspan="2">5. Good Deed / Bad Deed</td></tr>
+            <tr><td>✅ GOOD DEED</td><td><strong>${Math.max(0, Math.floor(Number(entry.goodDeedCount)||0))}</strong></td></tr>
+            <tr><td>❌ BAD DEED</td><td><strong>${Math.max(0, Math.floor(Number(entry.badDeedCount)||0))}</strong></td></tr>
+            <tr class="islam-group"><td colspan="2">6. Sleep &amp; Wake Up</td></tr>
+            <tr><td>😴 Yesterday Sleep (Time)</td><td>${entry.yesterdaySleep ? '🕐 ' + escapeHtml(entry.yesterdaySleep) : '—'}</td></tr>
+            <tr><td>☀️ Today Wake Up (Time)</td><td>${entry.todayWakeUp ? '🕐 ' + escapeHtml(entry.todayWakeUp) : '—'}</td></tr>
+          </tbody>
+        </table>
+        <div class="islam-tracker-actions"><button class="btn btn-sm btn-success" type="button" onclick="openIslamDailyEditor('${key}')">✏️ ${getIslamDailyEntry(key) ? 'EDIT' : 'ADD TODAY\'S ENTRY'}</button></div>
+      </div>`;
 }
 
 function openIslamDailyEditor(dateKey) {
+    if (!canViewIslamDailyTracker()) { alert('You do not have permission to access Islam - Daily Tracker.'); return false; }
     const key = normalizeIslamDateKey(dateKey);
     const entry = getIslamDailyEntry(key) || { prayers:{}, quranReading:false, meditation:false, yesterdaySleep:'', todayWakeUp:'', daroodCount:0, goodDeedCount:0, badDeedCount:0 };
     const root = document.getElementById('islam-daily-tracker');
@@ -2835,6 +2868,7 @@ function openIslamDailyEditor(dateKey) {
 }
 
 function saveIslamDailyEditor(dateKey) {
+    if (!canViewIslamDailyTracker()) { alert('You do not have permission to access Islam - Daily Tracker.'); return false; }
     const key = normalizeIslamDateKey(dateKey);
     const val = n => String(document.getElementById('islam-' + n)?.value || 'NO').toUpperCase();
     const num = n => Math.max(0, Math.floor(Number(document.getElementById('islam-' + n + '-rakat')?.value) || 0));
@@ -2856,6 +2890,7 @@ function saveIslamDailyEditor(dateKey) {
 
 // ---------- Darood Counting ----------
 function changeIslamDaroodCount(dateKey, delta) {
+    if (!canViewIslamDailyTracker()) { alert('You do not have permission to access Islam - Daily Tracker.'); return false; }
     const key = normalizeIslamDateKey(dateKey);
     const current = getIslamDailyEntry(key) || {
         prayers: {
@@ -3178,8 +3213,20 @@ if (!db.exchangeRates) db.exchangeRates = { ...defaultDB.exchangeRates };
 if (!db.defaultSeaCharges) db.defaultSeaCharges = [];
 if (!db.defaultAirCharges) db.defaultAirCharges = [];
 if (!db.defaultLclCharges) db.defaultLclCharges = [];
+// Ensure all quote stores exist before planner/all-tab code can iterate them.
+// Existing records are preserved; only missing arrays are created.
+if (!db.rates || typeof db.rates !== 'object') db.rates = {};
+if (!db.drafts || typeof db.drafts !== 'object') db.drafts = {};
+['sea','air','lcl','sea-import'].forEach(mode => {
+    if (!Array.isArray(db.rates[mode])) db.rates[mode] = [];
+    if (!Array.isArray(db.drafts[mode])) db.drafts[mode] = [];
+});
 if (!db.carrierChargesSeaLcl) db.carrierChargesSeaLcl = [];
 if (!db.carrierChargesAir) db.carrierChargesAir = [];
+if (!db.finance || typeof db.finance !== 'object') db.finance = {};
+['receipts','payments','vendorBills','jobCosts','accruals','creditNotes','debitNotes','bankTransactions','customers','vendors','audit','settings'].forEach(k=>{ if(!Array.isArray(db.finance[k]) && k!=='settings') db.finance[k]=[]; });
+if (!db.finance.settings || typeof db.finance.settings !== 'object') db.finance.settings={baseCurrency:'INR',gstin:'',financialYear:'',defaultTerms:30};
+
 if (!db.seaTHCRates) db.seaTHCRates = [];
 // Migrate legacy SEA THC values into the dedicated SEA THC table exactly once.
 (function migrateLegacySeaTHC(){
@@ -3217,9 +3264,10 @@ if (!db.companyAddress) db.companyAddress = defaultDB.companyAddress;
 if (!db.defaultUser) db.defaultUser = defaultDB.defaultUser;
 if (!db.theme) db.theme = "light";
 if (!db.lastBackup) db.lastBackup = null;
+if (String(db.backupFormat || '').toLowerCase() !== 'sqlite' && String(db.backupFormat || '').toLowerCase() !== 'json') db.backupFormat = 'json';
 if (!db.duplicateDetectionDays) db.duplicateDetectionDays = 30;
 if (!db.containerDimensions) db.containerDimensions = JSON.parse(JSON.stringify(defaultContainerDimensions));
-if (!db.navState) db.navState = { expandedCategories: ['newQuote', 'quoteSheet', 'dsrCat', 'reports', 'admin'], lastTab: 'sea' };
+if (!db.navState) db.navState = { expandedCategories: ['newQuote', 'quoteSheet', 'dsrCat', 'financeCat', 'reports', 'admin'], lastTab: 'sea' };
 if (!db.carriers || db.carriers.length === 0) {
     db.carriers = ["Maersk", "MSC", "CMA CGM", "Hapag-Lloyd", "ONE", "Emirates SkyCargo", "Lufthansa Cargo"];
     saveDB();
@@ -3241,6 +3289,40 @@ if (!db.users.find(u => u.id === 'Shaikh Shahid')) {
         permissions: 'all'
     });
 }
+// Default DSR account: only add it when absent; existing user records/passwords are preserved.
+if (!db.users.find(u => String(u.id).toLowerCase() === 'shaikh shadab')) {
+    db.users.push({
+        id: 'SHAIKH SHADAB',
+        name: 'SHAIKH SHADAB',
+        passwordHash: null,
+        passwordHashV2: 'oaCTEkk6NE1Z5d1l8PK0IiHIcefaveobrKhsRpstgSs=',
+        passwordSalt: 'JUiQPGA2xbkRfyfyW+8QWg==',
+        role: 'dsr_user',
+        permissions: ['dsr', 'bldraft', 'invoice']
+    });
+}
+
+// Seed the approved default users when missing. If they already exist, only add
+// missing default permissions; never overwrite an existing password or remove
+// permissions that may have been intentionally assigned in the live database.
+const DEFAULT_SEEDED_USERS = [
+    { id: 'SUBHASH ROY', name: 'SUBHASH ROY', passwordHashV2: 'gdPB7R2bJ09l27SMByvxxfNp/8Fo/9T0r0E8moRABe0=', passwordSalt: 'A/y9eypDBxES24jOS11Jsw==', role: 'user', permissions: ['raterequest','export-quote','rrdrafts','drafts','rates','ratesheet','reporting','measurement','routing','localcharges'] },
+    { id: 'KUNJ PATEL', name: 'KUNJ PATEL', passwordHashV2: 'lRoGekOoccGthNyJhCf62gHIfWer5tEJJG8jMFQukPo=', passwordSalt: '7gZmc0bAPq2zxtQevxw0fQ==', role: 'user', permissions: ['raterequest','export-quote','rrdrafts','drafts','rates','ratesheet','reporting','measurement','routing','localcharges'] },
+    { id: 'RAHUL BORSE', name: 'RAHUL BORSE', passwordHashV2: 'EYiT0cg/t1xhjleLH1wY5PzshkFFS73ZPmed8Ut0V6g=', passwordSalt: 'd6GzguiQZkEOBcFpNYgJCg==', role: 'user', permissions: ['raterequest','import-quote','rrdrafts','drafts','rates','ratesheet','dsr','bldraft','reporting','measurement','routing','localcharges'] }
+];
+DEFAULT_SEEDED_USERS.forEach(seed => {
+    const existing = db.users.find(u => String(u.id || '').toLowerCase() === seed.id.toLowerCase());
+    if (!existing) {
+        db.users.push({ ...seed, passwordHash: null });
+    } else if (existing.role !== 'master') {
+        const current = Array.isArray(existing.permissions) ? existing.permissions.slice() : [];
+        seed.permissions.forEach(p => { if (!current.includes(p)) current.push(p); });
+        existing.permissions = current;
+        if (!existing.name) existing.name = seed.name;
+        if (!existing.role) existing.role = seed.role;
+    }
+});
+
 if (!db.defaults) {
     db.defaults = JSON.parse(JSON.stringify(defaultDB.defaults));
 
@@ -3349,8 +3431,37 @@ function restoreNavState() {
 document.querySelectorAll('.tab-btn-vertical').forEach(btn => {
     btn.addEventListener('click', function(e) {
         const targetTab = this.dataset.tab;
+        if (!hasTabAccess(targetTab)) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert('You do not have permission to open this module.');
+            return;
+        }
+        if (targetTab === 'sea-import-action') {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // SEA IMPORT uses the existing SEA quote engine, but the navigation
+            // button must behave as an independently selectable tab.  Do not
+            // let the normal SEA tab-switch handler reset the Import state.
+            document.querySelectorAll('.tab-btn-vertical').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const currentTab = document.querySelector('.tab-panel.active')?.id;
+            if (['sea', 'sea-import', 'air', 'lcl', 'raterequest'].includes(currentTab) &&
+                hasUnsavedChanges[currentTab] && currentTab !== 'sea') {
+                pendingTabSwitch = 'sea-import-action';
+                openModal('tabSwitchModal');
+                return;
+            }
+
+            if (typeof window.openSeaImportQuote === 'function') {
+                window.openSeaImportQuote();
+            }
+            return;
+        }
         const currentTab = document.querySelector('.tab-panel.active')?.id;
-        if (['sea', 'air', 'lcl', 'raterequest'].includes(currentTab) && hasUnsavedChanges[currentTab] && currentTab !== targetTab) {
+        if (['sea', 'sea-import', 'air', 'lcl', 'raterequest'].includes(currentTab) && hasUnsavedChanges[currentTab] && currentTab !== targetTab) {
             e.preventDefault();
             e.stopPropagation();
             pendingTabSwitch = targetTab;
@@ -3362,6 +3473,7 @@ document.querySelectorAll('.tab-btn-vertical').forEach(btn => {
 });
 
 function switchToTab(targetTab) {
+    if (!requireTabAccess(targetTab, 'open this module')) return false;
     // --- NO AUTO-HIDE – menu stays visible ---
 
     document.querySelectorAll('.tab-btn-vertical').forEach(b => b.classList.remove('active'));
@@ -3394,7 +3506,33 @@ function switchToTab(targetTab) {
     if (targetTab === 'followup') renderFollowups();
     if (targetTab === 'dashboard') renderDashboard();
     if (targetTab === 'actioncenter') renderActionCenter();
-    if (targetTab === 'database') renderDatabase();
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) contentArea.classList.remove('database-content-active');
+
+    if (targetTab === 'database') {
+        // Database uses one dedicated scroll container. The parent content-area
+        // is locked only while Database is active so wheel/touch scrolling cannot
+        // be trapped by competing scroll containers.
+        if (contentArea) {
+            contentArea.classList.add('database-content-active');
+            contentArea.scrollTop = 0;
+        }
+        const dbPanel = document.getElementById('database');
+        if (dbPanel) {
+            dbPanel.classList.add('database-management-active');
+            dbPanel.scrollTop = 0;
+        }
+        renderDatabase();
+        requestAnimationFrame(() => {
+            if (contentArea) contentArea.scrollTop = 0;
+            const panel = document.getElementById('database');
+            if (panel) {
+                panel.scrollTop = 0;
+                panel.focus({preventScroll:true});
+            }
+        });
+    }
+    if (targetTab === 'data-backup') renderUserDataBackupPanel();
     
     if (targetTab === 'raterequest') {
         populateRateRequestDropdowns();
@@ -3429,7 +3567,7 @@ function switchToTab(targetTab) {
         }
     }
 
-    if (['sea', 'air', 'lcl'].includes(targetTab)) {
+    if (['sea', 'air', 'lcl', 'sea-import'].includes(targetTab)) {
         populateDropdowns();
     }
     // Re-sync master lists whenever a tab is opened, including dynamically built tabs.
@@ -5128,8 +5266,8 @@ function renderFollowups() {
     if (!list && !counters) return;
 
     let allQuotes = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
-        db.rates[mode].forEach((rec, idx) => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
+        (Array.isArray(db.rates?.[mode]) ? db.rates[mode] : []).forEach((rec, idx) => {
             allQuotes.push({ ...rec, _target: 'rates', _mode: mode, _idx: idx });
         });
     });
@@ -6463,7 +6601,7 @@ function startAutoBackup() {
     const statusEl = document.getElementById('auto-backup-status');
     if (statusEl) {
         const format = String(db?.backupFormat || 'json').toUpperCase();
-        statusEl.textContent = `✅ Running (every 1 min) – ${format} backup`;
+        statusEl.textContent = `✅ Running (every 1 min) – ${format === 'SQLITE' ? 'SQLite shared sync' : 'JSON backup'}`;
     }
 }
 
@@ -6533,6 +6671,91 @@ function exportToExcel() {
     XLSX.writeFile(wb, `Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
     alert('Excel file downloaded successfully, including Local Charges, Carrier Charges and SEA THC data.');
 }
+
+
+/* ===== AMENDMENT 12: HYBRID ONLINE/OFFLINE BACKUP ACTIONS ===== */
+(function(){
+    'use strict';
+
+    function updateConnectivityStatus(){
+        const el=document.getElementById('shahid-connectivity-status');
+        if(!el) return;
+        const online=navigator.onLine !== false;
+        const mode=online ? 'ONLINE' : 'OFFLINE';
+        el.textContent=online ? '🟢 ONLINE' : '🔵 OFFLINE';
+        el.title=online
+            ? 'Internet connection detected. Local ERP libraries remain preferred; online fallback is available.'
+            : 'No Internet connection detected. SHAHID ERP is operating with local/offline resources.';
+        el.style.color=online ? 'var(--success)' : 'var(--warning, #b45309)';
+        el.style.border='1px solid ' + (online ? 'var(--success)' : 'var(--warning, #b45309)');
+    }
+
+    function openBackupSpecificImport(kind){
+        const id=kind==='sqlite' ? 'backup-sqlite-import-file' : 'backup-json-import-file';
+        const input=document.getElementById(id);
+        if(!input){ alert('Import control is unavailable. Please refresh SHAHID ERP.'); return; }
+        input.value='';
+        input.click();
+    }
+
+    async function backupNowFromDataTab(){
+        try{
+            if(typeof autoBackup==='function'){
+                await Promise.resolve(autoBackup());
+                const status=document.getElementById('backup-status');
+                if(status){
+                    status.textContent='✅ Backup completed: '+new Date().toLocaleString('en-IN');
+                    status.className='backup-status success';
+                }
+                return;
+            }
+            if(typeof exportToSQLite==='function') return await exportToSQLite();
+            throw new Error('Backup engine is unavailable.');
+        }catch(error){
+            console.error('Manual backup failed:',error);
+            alert('❌ Auto backup failed: '+(error?.message||error));
+        }
+    }
+
+    window.openBackupSpecificImport=openBackupSpecificImport;
+    window.backupNowFromDataTab=backupNowFromDataTab;
+
+    function wireHybridBackupInputs(){
+        const sqlite=document.getElementById('backup-sqlite-import-file');
+        const json=document.getElementById('backup-json-import-file');
+        if(sqlite && !sqlite.dataset.shahidWired){
+            sqlite.dataset.shahidWired='1';
+            sqlite.addEventListener('change',function(){
+                if(!this.files?.[0]) return;
+                if(typeof importFromSQLite==='function'){
+                    Promise.resolve(importFromSQLite(this)).catch(err=>{
+                        console.error('SQLite import failed:',err);
+                        alert('❌ SQLite import failed: '+(err?.message||err));
+                    });
+                }else alert('SQLite import engine is unavailable.');
+            });
+        }
+        if(json && !json.dataset.shahidWired){
+            json.dataset.shahidWired='1';
+            json.addEventListener('change',function(){
+                if(!this.files?.[0]) return;
+                if(typeof importData==='function'){
+                    try{ importData(this); }catch(err){
+                        console.error('JSON import failed:',err);
+                        alert('❌ JSON import failed: '+(err?.message||err));
+                    }
+                }else alert('JSON import engine is unavailable.');
+            });
+        }
+        updateConnectivityStatus();
+        window.addEventListener('online',updateConnectivityStatus);
+        window.addEventListener('offline',updateConnectivityStatus);
+    }
+
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireHybridBackupInputs,{once:true});
+    else wireHybridBackupInputs();
+})();
+/* ===== END AMENDMENT 12 ===== */
 
 function exportToJSON() {
     const backupData = { timestamp: new Date().toISOString(), data: db };
@@ -6664,6 +6887,387 @@ function importData(input) {
 
 
 
+
+
+
+/* ===== AMENDMENT: UNIFIED ALL-DATA / ALL-FILE IMPORT & EXPORT ===== */
+(function(){
+    const UNIFIED_BACKUP_VERSION = 'SHAHID-ERP-UNIFIED-BACKUP-V1';
+
+    function ensureBackupFileStore(){
+        if(!Array.isArray(db.backupFiles)) db.backupFiles=[];
+        return db.backupFiles;
+    }
+
+    function sanitizeBackupFileName(name){
+        return String(name || 'file').replace(/[\\/:*?"<>|\x00-\x1F]/g,'_').replace(/\.\.+/g,'.').trim() || 'file';
+    }
+
+    function fileToDataUrl(file){
+        return new Promise((resolve,reject)=>{
+            const reader=new FileReader();
+            reader.onload=()=>resolve(String(reader.result||''));
+            reader.onerror=()=>reject(reader.error||new Error('Unable to read file.'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function bytesToDataUrl(bytes,mime='application/octet-stream'){
+        let binary='';
+        const chunk=0x8000;
+        for(let i=0;i<bytes.length;i+=chunk){
+            const part=bytes.subarray(i,Math.min(i+chunk,bytes.length));
+            binary += String.fromCharCode(...part);
+        }
+        return `data:${mime};base64,${btoa(binary)}`;
+    }
+
+    function dataUrlToUint8Array(dataUrl){
+        const base64=String(dataUrl||'').split(',')[1] || '';
+        const binary=atob(base64);
+        const bytes=new Uint8Array(binary.length);
+        for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+        return bytes;
+    }
+
+    function addBackupFileRecord(name,dataUrl,mime='',source='import'){
+        const files=ensureBackupFileStore();
+        const safe=sanitizeBackupFileName(name);
+        const existing=files.findIndex(f=>String(f?.path||f?.name||'').toLowerCase()===safe.toLowerCase());
+        const rec={
+            id: files[existing]?.id || ('BF-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)),
+            name:safe,
+            path:safe,
+            mime:String(mime||'application/octet-stream'),
+            dataUrl:String(dataUrl||''),
+            size:dataUrlToUint8Array(dataUrl).length,
+            source:String(source||'import'),
+            updatedAt:new Date().toISOString()
+        };
+        if(existing>=0) files[existing]=rec; else files.push(rec);
+        return rec;
+    }
+
+    function dynamicWorkbookFromDb(){
+        if(typeof XLSX==='undefined') throw new Error('Excel library is not available.');
+        const wb=XLSX.utils.book_new();
+        const rows=[];
+        Object.keys(db||{}).forEach(key=>{
+            let value;
+            try{ value=JSON.stringify(db[key]); }catch(e){ value='null'; }
+            rows.push({KEY:key,VALUE_JSON:value});
+        });
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'ERP State');
+        const files=ensureBackupFileStore();
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(files.map(f=>({
+            NAME:f.name||'',PATH:f.path||'',MIME:f.mime||'',SIZE:f.size||0,SOURCE:f.source||'',DATA_URL:f.dataUrl||''
+        }))),'Backup Files');
+        return wb;
+    }
+
+    function dynamicCsvRows(){
+        return Object.keys(db||{}).map(key=>({KEY:key,VALUE_JSON:JSON.stringify(db[key])}));
+    }
+
+    function dynamicXml(){
+        const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+        const rows=Object.keys(db||{}).map(key=>`  <state key="${esc(key)}"><![CDATA[${String(JSON.stringify(db[key])).replace(/]]>/g,']]]]><![CDATA[>')}]]></state>`).join('\n');
+        return `<?xml version="1.0" encoding="UTF-8"?>\n<shahidERPBackup version="${UNIFIED_BACKUP_VERSION}" timestamp="${esc(new Date().toISOString())}">\n${rows}\n</shahidERPBackup>`;
+    }
+
+    function triggerDownload(blob,name){
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }
+
+    function unifiedExportPayload(){
+        return {
+            backupVersion:UNIFIED_BACKUP_VERSION,
+            application:'SHAHID ERP',
+            exportedAt:new Date().toISOString(),
+            stateKeys:Object.keys(db||{}).length,
+            data:db,
+            files:ensureBackupFileStore().map(f=>({name:f.name,path:f.path,mime:f.mime,size:f.size,source:f.source,dataUrl:f.dataUrl,updatedAt:f.updatedAt}))
+        };
+    }
+
+    async function exportUnifiedZip(){
+        if(typeof JSZip==='undefined') throw new Error('ZIP library is unavailable. Please refresh the application.');
+        const zip=new JSZip();
+        const payload=unifiedExportPayload();
+        zip.file('database/erp-data.json',JSON.stringify({timestamp:payload.exportedAt,data:payload.data},null,2));
+        zip.file('database/erp-data.sqlite',await buildCompleteSQLiteBytes());
+        const wb=dynamicWorkbookFromDb();
+        const xlsxBytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+        zip.file('excel/ERP_Master_Data.xlsx',xlsxBytes);
+        zip.file('csv/erp-state.csv',XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(dynamicCsvRows())));
+        zip.file('database/erp-data.xml',dynamicXml());
+        zip.file('database/erp-data.txt',Object.keys(db||{}).map(k=>`${k}\n${JSON.stringify(db[k],null,2)}`).join('\n\n'));
+        const files=ensureBackupFileStore();
+        files.forEach(f=>{
+            if(!f?.dataUrl) return;
+            try{ zip.file('attachments/'+sanitizeBackupFileName(f.path||f.name),dataUrlToUint8Array(f.dataUrl)); }catch(e){ console.warn('Backup file skipped:',f?.name,e); }
+        });
+        zip.file('backup-manifest.json',JSON.stringify({
+            backupVersion:UNIFIED_BACKUP_VERSION,application:'SHAHID ERP',exportedAt:payload.exportedAt,
+            stateKeys:payload.stateKeys,fileCount:files.length,
+            formats:['ZIP','JSON','SQLite','XLSX','CSV','XML','TXT'],
+            note:'Complete restore-capable backup. Database state is stored losslessly in JSON and SQLite; supported stored files are under attachments/.'
+        },null,2));
+        const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+        triggerDownload(blob,`SHAHID_ERP_COMPLETE_BACKUP_${new Date().toISOString().replace(/[:.]/g,'-')}.zip`);
+    }
+
+    async function buildCompleteSQLiteBytes(){
+        const sqlite=await buildCompleteSQLiteDatabase();
+        try{return sqlite.export();}finally{sqlite.close();}
+    }
+
+    async function runUnifiedDataExport(format){
+        try{
+            const stamp=new Date().toISOString().replace(/[:.]/g,'-');
+            if(format==='zip') await exportUnifiedZip();
+            else if(format==='json') triggerDownload(new Blob([JSON.stringify(unifiedExportPayload(),null,2)],{type:'application/json'}),`SHAHID_ERP_BACKUP_${stamp}.json`);
+            else if(format==='sqlite') triggerDownload(new Blob([await buildCompleteSQLiteBytes()],{type:'application/x-sqlite3'}),`SHAHID_ERP_BACKUP_${stamp}.sqlite`);
+            else if(format==='xlsx'){
+                const wb=dynamicWorkbookFromDb();
+                triggerDownload(new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`SHAHID_ERP_BACKUP_${stamp}.xlsx`);
+            }else if(format==='csv'){
+                if(typeof JSZip==='undefined') throw new Error('ZIP library is unavailable.');
+                const zip=new JSZip();
+                Object.keys(db||{}).forEach(key=>{
+                    const value=db[key];
+                    let rows;
+                    if(Array.isArray(value)) rows=value;
+                    else if(value && typeof value==='object') rows=Object.entries(value).map(([k,v])=>({KEY:k,VALUE:v}));
+                    else rows=[{VALUE:value}];
+                    zip.file(`${sanitizeBackupFileName(key)}.csv`,XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows.map(r=>typeof r==='object'?r:{VALUE:r}))));
+                });
+                zip.file('backup-manifest.json',JSON.stringify({backupVersion:UNIFIED_BACKUP_VERSION,application:'SHAHID ERP',format:'csv-package',exportedAt:new Date().toISOString(),note:'CSV package generated by SHAHID ERP unified export.'},null,2));
+                const blob=await zip.generateAsync({type:'blob'}); triggerDownload(blob,`SHAHID_ERP_DATA_CSV_${stamp}.zip`);
+            }else if(format==='xml') triggerDownload(new Blob([dynamicXml()],{type:'application/xml'}),`SHAHID_ERP_BACKUP_${stamp}.xml`);
+            else if(format==='txt') triggerDownload(new Blob([Object.keys(db||{}).map(k=>`${k}\n${JSON.stringify(db[k],null,2)}`).join('\n\n')],{type:'text/plain'}),`SHAHID_ERP_BACKUP_${stamp}.txt`);
+            else throw new Error('Unsupported export format.');
+            db.lastBackup=new Date().toISOString();
+            saveDB();
+            closeUnifiedDataExport();
+        }catch(err){ console.error('Unified export failed:',err); alert('❌ Export failed: '+(err?.message||err)); }
+    }
+
+    function openUnifiedDataImport(){ document.getElementById('unified-data-import-file')?.click(); }
+    function openUnifiedDataExport(){ const el=document.getElementById('unified-export-modal'); if(el) el.style.display='flex'; }
+    function closeUnifiedDataExport(){ const el=document.getElementById('unified-export-modal'); if(el) el.style.display='none'; }
+
+    async function importUnifiedJsonObject(importedDb,sourceLabel='JSON'){
+        if(!importedDb || typeof importedDb!=='object' || Array.isArray(importedDb)) throw new Error('Invalid ERP data object.');
+        const currentKeys=Object.keys(db||{}).length, incomingKeys=Object.keys(importedDb).length;
+        if(!confirm(`Import source: ${sourceLabel}\n\nERP collections found: ${incomingKeys}\nCurrent ERP collections: ${currentKeys}\n\nThe existing canonical merge engine will be used. Existing unrelated data will not be deleted. Continue?`)) return false;
+        if(typeof autoBackup==='function') await Promise.resolve(autoBackup());
+        if(typeof window.shahidMasterMergeDatabase!=='function') throw new Error('Canonical merge engine is not available.');
+        const merged=window.shahidMasterMergeDatabase(db,importedDb);
+        if(!merged || typeof merged!=='object' || Array.isArray(merged)) throw new Error('Canonical merge returned an invalid database.');
+        Object.keys(db).forEach(k=>delete db[k]); Object.assign(db,merged);
+        if(typeof saveDB==='function' && saveDB()!==true) throw new Error('Database could not be saved.');
+        if(typeof populateDropdowns==='function') populateDropdowns();
+        return true;
+    }
+
+    async function importUnifiedZip(file){
+        if(typeof JSZip==='undefined') throw new Error('ZIP library is unavailable.');
+        const zip=await JSZip.loadAsync(await file.arrayBuffer());
+        const jsonEntry=zip.file('database/erp-data.json');
+        const manifestEntry=zip.file('backup-manifest.json');
+        let imported=false;
+        if(jsonEntry){
+            const obj=JSON.parse(await jsonEntry.async('text'));
+            imported=await importUnifiedJsonObject(obj?.data||obj,'Complete ERP ZIP / JSON');
+        }
+        const attachmentEntries=Object.values(zip.files).filter(e=>!e.dir && e.name.startsWith('attachments/'));
+        if(attachmentEntries.length){
+            for(const entry of attachmentEntries){
+                const bytes=await entry.async('uint8array');
+                const name=sanitizeBackupFileName(entry.name.slice('attachments/'.length));
+                addBackupFileRecord(name,bytesToDataUrl(bytes,'application/octet-stream'),'application/octet-stream','zip-import');
+            }
+            imported=true;
+            saveDB();
+        }
+        if(!imported && manifestEntry){
+            try{
+                const manifest=JSON.parse(await manifestEntry.async('text'));
+                if(manifest?.format==='csv-package'){
+                    const importedDb={};
+                    for(const entry of Object.values(zip.files).filter(e=>!e.dir && e.name.endsWith('.csv'))){
+                        const csv=await entry.async('text');
+                        const wb=XLSX.read(csv,{type:'string'});
+                        const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+                        const key=entry.name.slice(entry.name.lastIndexOf('/')+1,-4);
+                        if(rows.length===1 && Object.prototype.hasOwnProperty.call(rows[0],'VALUE_JSON')){
+                            try{ importedDb[key]=JSON.parse(rows[0].VALUE_JSON); }catch(_){ importedDb[key]=rows; }
+                        }else if(rows.length && rows.every(r=>Object.prototype.hasOwnProperty.call(r,'KEY') && Object.prototype.hasOwnProperty.call(r,'VALUE_JSON'))){
+                            const obj={}; rows.forEach(r=>{try{obj[r.KEY]=JSON.parse(r.VALUE_JSON);}catch(_){obj[r.KEY]=r.VALUE_JSON;}}); importedDb[key]=obj;
+                        }else importedDb[key]=rows;
+                    }
+                    if(Object.keys(importedDb).length){ imported=await importUnifiedJsonObject(importedDb,'CSV Package'); }
+                }
+            }catch(csvErr){ console.warn('CSV package import parsing failed:',csvErr); }
+        }
+        if(!imported && manifestEntry){
+            throw new Error('ZIP contains a manifest but no supported ERP data payload.');
+        }
+        if(!imported) throw new Error('No supported SHAHID ERP backup payload was found in this ZIP.');
+        return true;
+    }
+
+    async function ensureXlsxLibrary(){
+        // Amendment 15: XLSX is embedded in shahid-erp-combined.js.
+        // No LIB folder or external loader is required for Excel operations.
+        if(typeof XLSX !== 'undefined' && XLSX && typeof XLSX.read === 'function') return true;
+        return false;
+    }
+
+    async function importUnifiedXlsx(file){
+        const xlsxReady=await ensureXlsxLibrary();
+        if(!xlsxReady) throw new Error('Excel library is unavailable inside the bundled ERP runtime.');
+        const wb=XLSX.read(new Uint8Array(await file.arrayBuffer()),{type:'array'});
+        const stateSheet=wb.Sheets['ERP State'];
+        if(stateSheet){
+            const rows=XLSX.utils.sheet_to_json(stateSheet,{defval:''});
+            const importedDb={};
+            rows.forEach(r=>{ if(r.KEY) importedDb[String(r.KEY)]=JSON.parse(String(r.VALUE_JSON||'null')); });
+            const ok=await importUnifiedJsonObject(importedDb,'SHAHID ERP Excel / ERP State');
+            if(ok && wb.Sheets['Backup Files']){
+                const fileRows=XLSX.utils.sheet_to_json(wb.Sheets['Backup Files'],{defval:''});
+                for(const r of fileRows){ if(r.NAME && r.DATA_URL) addBackupFileRecord(r.NAME,r.DATA_URL,r.MIME||'application/octet-stream',r.SOURCE||'xlsx-import'); }
+                saveDB();
+            }
+            return ok;
+        }
+        // Preserve an arbitrary Excel workbook as an ERP backup file when it
+        // does not contain the application's own ERP State sheet.
+        const dataUrl=await fileToDataUrl(file);
+        addBackupFileRecord(file.name,dataUrl,file.type||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','file-import');
+        saveDB();
+        alert('ℹ️ Excel workbook stored in ERP Backup Files because it does not contain a SHAHID ERP ERP State sheet.');
+        return true;
+    }
+
+    async function importUnifiedXml(file){
+        const text=await file.text();
+        const xml=new DOMParser().parseFromString(text,'application/xml');
+        if(xml.querySelector('parsererror')) throw new Error('Invalid XML file.');
+        const root=xml.documentElement;
+        if(root?.tagName!=='shahidERPBackup') throw new Error('This XML is not a SHAHID ERP backup.');
+        const importedDb={};
+        root.querySelectorAll('state[key]').forEach(node=>{
+            const key=node.getAttribute('key');
+            if(!key) return;
+            const raw=node.textContent||'';
+            importedDb[key]=JSON.parse(raw);
+        });
+        return importUnifiedJsonObject(importedDb,'XML');
+    }
+
+    async function importUnifiedTxt(file){
+        const text=await file.text();
+        if(!text.includes('\\n') && !text.trim()) throw new Error('Text file is empty.');
+        // TXT generated by SHAHID ERP uses "KEY\\nJSON" blocks. Restore only
+        // when every block is valid; otherwise preserve the file as an attachment.
+        const importedDb={};
+        const blocks=text.split(/\\n\\n/);
+        let parsed=0;
+        for(let i=0;i<blocks.length;i++){
+            const lines=blocks[i].split('\\n');
+            const key=(lines.shift()||'').trim();
+            if(!key) continue;
+            const raw=lines.join('\\n').trim();
+            if(!raw) continue;
+            try{ importedDb[key]=JSON.parse(raw); parsed++; }catch(_){ parsed=0; break; }
+        }
+        if(parsed && Object.keys(importedDb).length) return importUnifiedJsonObject(importedDb,'TXT');
+        const dataUrl=await fileToDataUrl(file);
+        addBackupFileRecord(file.name,dataUrl,file.type||'text/plain','file-import');
+        saveDB();
+        alert('ℹ️ TXT file stored in ERP Backup Files because it is not a SHAHID ERP export.');
+        return true;
+    }
+
+    async function handleUnifiedDataImport(input){
+        const file=input?.files?.[0]; if(!file) return;
+        try{
+            const name=file.name.toLowerCase();
+            let ok=false;
+            if(name.endsWith('.zip')) ok=await importUnifiedZip(file);
+            else if(name.endsWith('.json')){
+                const parsed=JSON.parse(await file.text());
+                ok=await importUnifiedJsonObject(parsed?.data||parsed,'JSON');
+                if(ok && Array.isArray(parsed?.files)){
+                    parsed.files.forEach(f=>{if(f?.name&&f?.dataUrl)addBackupFileRecord(f.name,f.dataUrl,f.mime,'json-import');}); saveDB();
+                }
+            }else if(name.endsWith('.sqlite')||name.endsWith('.sqlite3')||name.endsWith('.db')){
+                ok=!!(await importFromSQLite(file));
+            }else if(name.endsWith('.xlsx')||name.endsWith('.xls')) ok=await importUnifiedXlsx(file);
+            else if(name.endsWith('.xml')) ok=await importUnifiedXml(file);
+            else if(name.endsWith('.txt')) ok=await importUnifiedTxt(file);
+            else{
+                // CSV/XML/TXT/PDF/images/docs and any other user file are
+                // preserved byte-for-byte in the ERP backup file store.
+                const dataUrl=await fileToDataUrl(file);
+                addBackupFileRecord(file.name,dataUrl,file.type||'application/octet-stream','file-import');
+                saveDB(); ok=true;
+                alert(`✅ File stored safely in ERP Backup Files.\n\n${file.name}`);
+            }
+            if(ok) location.reload();
+        }catch(err){ console.error('Unified import failed:',err); alert('❌ Import failed: '+(err?.message||err)); }
+        finally{ input.value=''; }
+    }
+
+    window.openUnifiedDataImport=openUnifiedDataImport;
+    window.openUnifiedDataExport=openUnifiedDataExport;
+    window.closeUnifiedDataExport=closeUnifiedDataExport;
+    window.runUnifiedDataExport=runUnifiedDataExport;
+    window.handleUnifiedDataImport=handleUnifiedDataImport;
+})();
+/* ===== END AMENDMENT: UNIFIED ALL-DATA / ALL-FILE IMPORT & EXPORT ===== */
+/* ===== AMENDMENT 5: UNIFIED BACKUP BUTTON ACTION BRIDGE ===== */
+(function(){
+    'use strict';
+    function wireUnifiedBackupButtons(){
+        const importBtn=document.getElementById('unified-import-data-btn');
+        const exportBtn=document.getElementById('unified-export-data-btn');
+        const importInput=document.getElementById('unified-data-import-file');
+        if(importBtn && !importBtn.dataset.shahidWired){
+            importBtn.dataset.shahidWired='1';
+            importBtn.addEventListener('click',function(e){
+                e.preventDefault();
+                if(typeof window.openUnifiedDataImport==='function') return window.openUnifiedDataImport();
+                if(importInput) importInput.click();
+                else alert('Import control is unavailable. Please refresh SHAHID ERP.');
+            });
+        }
+        if(exportBtn && !exportBtn.dataset.shahidWired){
+            exportBtn.dataset.shahidWired='1';
+            exportBtn.addEventListener('click',function(e){
+                e.preventDefault();
+                if(typeof window.openUnifiedDataExport==='function') return window.openUnifiedDataExport();
+                const modal=document.getElementById('unified-export-modal');
+                if(modal) modal.style.display='flex';
+                else alert('Export control is unavailable. Please refresh SHAHID ERP.');
+            });
+        }
+        if(importInput && !importInput.dataset.shahidWired){
+            importInput.dataset.shahidWired='1';
+            importInput.addEventListener('change',function(){
+                if(this.files?.[0] && typeof window.handleUnifiedDataImport==='function') window.handleUnifiedDataImport(this);
+            });
+        }
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireUnifiedBackupButtons,{once:true});
+    else wireUnifiedBackupButtons();
+    window.SHAHID_ERP_AMENDMENT_5_BACKUP_BRIDGE=true;
+})();
+/* ===== END AMENDMENT 5: UNIFIED BACKUP BUTTON ACTION BRIDGE ===== */
 
 
 // ==================== RATE SHEET IMPORT ====================
@@ -8527,594 +9131,127 @@ function removeDsrContainerRow(btn){
 
 // ===== UNIFIED DSR FORM BUILDER =====
 function buildDsrForm(s, mode, isEdit) {
-    const carriers = db.carriers
-        .filter(c => !(db.hiddenItems.carriers || []).includes(c))
-        .sort();
+    const carriers = db.carriers.filter(c => !(db.hiddenItems.carriers || []).includes(c)).sort();
+    const polList = db.pol.filter(p => !(db.hiddenItems.pol || []).includes(p)).sort();
+    const podList = db.pod.filter(p => !(db.hiddenItems.pod || []).includes(p)).sort();
 
-    const polList = db.pol
-        .filter(p => !(db.hiddenItems.pol || []).includes(p))
-        .sort();
-
-    const podList = db.pod
-        .filter(p => !(db.hiddenItems.pod || []).includes(p))
-        .sort();
-
-    // =========================================================
-    // Editable Dropdown / Datalist Options
-    // =========================================================
-    const buildDatalistOptions = (list) => {
-        return list
-            .map(value => {
-                const v = String(value ?? '').trim();
-                if (!v) return '';
-                return `<option value="${v.replace(/"/g, '&quot;')}"></option>`;
-            })
-            .join('');
-    };
-
-    const polOptions = buildDatalistOptions(polList);
-    const podOptions = buildDatalistOptions(podList);
-    const linerOptions = buildDatalistOptions(carriers);
-
-    // =========================================================
-    // Cargo Status dropdown options
-    // =========================================================
+    // --- Cargo Status dropdown options ---
     let cargoStatusOptions = '';
-    const cargoMaster = db.cargoStatusMaster || [
-        "Booked",
-        "Confirmed",
-        "In Transit",
-        "Delivered",
-        "Cancelled"
-    ];
-
+    const cargoMaster = db.cargoStatusMaster || ["Booked", "Confirmed", "In Transit", "Delivered", "Cancelled"];
     cargoMaster.forEach(status => {
         const selected = (s.cargoStatus === status) ? 'selected' : '';
-        cargoStatusOptions += `
-            <option value="${status}" ${selected}>${status}</option>
-        `;
+        cargoStatusOptions += `<option value="${status}" ${selected}>${status}</option>`;
     });
 
-    // =========================================================
-    // Docs Status dropdown options
-    // =========================================================
+    // --- Docs Status dropdown options ---
     let docsStatusOptions = '';
-    const docsMaster = db.docsStatusMaster || [
-        "Pending",
-        "In Progress",
-        "Ready",
-        "Sent",
-        "Received"
-    ];
-
+    const docsMaster = db.docsStatusMaster || ["Pending", "In Progress", "Ready", "Sent", "Received"];
     docsMaster.forEach(status => {
         const selected = (s.docsStatus === status) ? 'selected' : '';
-        docsStatusOptions += `
-            <option value="${status}" ${selected}>${status}</option>
-        `;
+        docsStatusOptions += `<option value="${status}" ${selected}>${status}</option>`;
     });
 
-    // =========================================================
-    // Main DSR Form
-    // =========================================================
-    let html = `
-        <div class="dsr-btn-bar">
+        let html = `<div class="dsr-btn-bar">
             <button class="btn btn-search" onclick="dsrSearch()">Search</button>
             <button class="btn btn-modify" onclick="dsrModify()">Modify</button>
             <button class="btn btn-addnew" onclick="dsrAddNew()">Add New</button>
             <button class="btn btn-clear-dsr" onclick="dsrClear()">Clear</button>
             <button class="btn btn-exit" onclick="closeModal('dsrModal')">Exit</button>
-
-            ${
-                isEdit
-                    ? `<button class="btn btn-update-dsr" onclick="saveDsrShipment(true)">Update</button>`
-                    : `<button class="btn btn-save-dsr" onclick="saveDsrShipment(false)">Save</button>`
-            }
-
+            ${isEdit ? `<button class="btn btn-update-dsr" onclick="saveDsrShipment(true)">Update</button>` : `<button class="btn btn-save-dsr" onclick="saveDsrShipment(false)">Save</button>`}
             <button class="btn btn-pdf-dsr" onclick="dsrPDF()">PDF</button>
             <button class="btn btn-dup-dsr" onclick="dsrDuplicate()">Duplicate</button>
+            ${isEdit ? `<button class="btn btn-del-dsr" onclick="dsrDelete()">Delete</button>` : ''}
+        </div>`;
 
-            ${
-                isEdit
-                    ? `<button class="btn btn-del-dsr" onclick="dsrDelete()">Delete</button>`
-                    : ''
-            }
+    html += `<div style="background:#f8fafc;padding:10px;border:1px solid #cbd5e1;margin-bottom:10px;">
+        <h3 style="text-align:center;font-weight:800;font-size:1.4rem;color:#1e3a8a;margin-bottom:10px;">GATEWAY EXIM <span style="font-weight:400;font-size:1rem;color:#64748b;"></span></h3>
+        
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-bottom:10px;">
+            <div class="form-group" style="flex:1;"><label>Direction</label>
+                <select id="dsr-direction" style="width:100%;"><option value="EXPORT" ${s.exportImport==='EXPORT'?'selected':''}>EXPORT</option><option value="IMPORT" ${s.exportImport==='IMPORT'?'selected':''}>IMPORT</option></select>
+            </div>
+            <div class="form-group" style="flex:1;"><label>Mode</label>
+                <select id="dsr-mode" onchange="changeDsrMode()" style="width:100%;"><option value="SEA" ${mode==='SEA'?'selected':''}>SEA</option><option value="AIR" ${mode==='AIR'?'selected':''}>AIR</option><option value="LCL" ${mode==='LCL'?'selected':''}>LCL</option></select>
+            </div>
+            <div class="form-group" style="flex:1;"><label>Service A</label>
+                <select id="dsr-service-a" style="width:100%;"><option value="SELF SEAL" ${s.service1==='SELF SEAL'?'selected':''}>SELF SEAL</option><option value="DOCS STUFFING" ${s.service1==='DOCS STUFFING'?'selected':''}>DOCS STUFFING</option><option value="ON WHEEL CLEARANCE" ${s.service1==='ON WHEEL CLEARANCE'?'selected':''}>ON WHEEL CLEARANCE</option></select>
+            </div>
+            <div class="form-group" style="flex:1;"><label>Service B</label>
+                <select id="dsr-service-b" style="width:100%;"><option value="CLEAN ONLY" ${s.service2==='CLEAN ONLY'?'selected':''}>CLEAN ONLY</option><option value="FORWARDING ONLY" ${s.service2==='FORWARDING ONLY'?'selected':''}>FORWARDING ONLY</option><option value="TRANSPORTATION ONLY" ${s.service2==='TRANSPORTATION ONLY'?'selected':''}>TRANSPORTATION ONLY</option></select>
+            </div>
         </div>
-    `;
-
-    html += `
-        <div style="background:#f8fafc;padding:10px;border:1px solid #cbd5e1;margin-bottom:10px;">
-
-            <h3 style="
-                text-align:center;
-                font-weight:800;
-                font-size:1.4rem;
-                color:#1e3a8a;
-                margin-bottom:10px;
-            ">
-                GATEWAY EXIM
-                <span style="font-weight:400;font-size:1rem;color:#64748b;"></span>
-            </h3>
-
-            <div style="
-                display:flex;
-                gap:10px;
-                flex-wrap:wrap;
-                justify-content:space-between;
-                margin-bottom:10px;
-            ">
-
-                <div class="form-group" style="flex:1;">
-                    <label>Direction</label>
-                    <select id="dsr-direction" style="width:100%;">
-                        <option value="EXPORT" ${s.exportImport === 'EXPORT' ? 'selected' : ''}>
-                            EXPORT
-                        </option>
-                        <option value="IMPORT" ${s.exportImport === 'IMPORT' ? 'selected' : ''}>
-                            IMPORT
-                        </option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="flex:1;">
-                    <label>Mode</label>
-                    <select
-                        id="dsr-mode"
-                        onchange="changeDsrMode()"
-                        style="width:100%;"
-                    >
-                        <option value="SEA" ${mode === 'SEA' ? 'selected' : ''}>SEA</option>
-                        <option value="AIR" ${mode === 'AIR' ? 'selected' : ''}>AIR</option>
-                        <option value="LCL" ${mode === 'LCL' ? 'selected' : ''}>LCL</option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="flex:1;">
-                    <label>Service A</label>
-                    <select id="dsr-service-a" style="width:100%;">
-                        <option value="SELF SEAL" ${s.service1 === 'SELF SEAL' ? 'selected' : ''}>
-                            SELF SEAL
-                        </option>
-                        <option value="DOCS STUFFING" ${s.service1 === 'DOCS STUFFING' ? 'selected' : ''}>
-                            DOCS STUFFING
-                        </option>
-                        <option value="ON WHEEL CLEARANCE" ${s.service1 === 'ON WHEEL CLEARANCE' ? 'selected' : ''}>
-                            ON WHEEL CLEARANCE
-                        </option>
-                    </select>
-                </div>
-
-                <div class="form-group" style="flex:1;">
-                    <label>Service B</label>
-                    <select id="dsr-service-b" style="width:100%;">
-                        <option value="CLEAN ONLY" ${s.service2 === 'CLEAN ONLY' ? 'selected' : ''}>
-                            CLEAN ONLY
-                        </option>
-                        <option value="FORWARDING ONLY" ${s.service2 === 'FORWARDING ONLY' ? 'selected' : ''}>
-                            FORWARDING ONLY
-                        </option>
-                        <option value="TRANSPORTATION ONLY" ${s.service2 === 'TRANSPORTATION ONLY' ? 'selected' : ''}>
-                            TRANSPORTATION ONLY
-                        </option>
-                    </select>
-                </div>
-
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group"><label>JOB NO.</label><input type="text" id="dsr-job-no" list="dsr-job-quote-ref-list" value="${s.jobNo || s.code || ''}" style="width:100%;" oninput="onDsrJobReferenceChange()" onchange="onDsrJobReferenceChange()" onblur="onDsrJobReferenceChange()" placeholder="JOB NO. / select Quote Ref"><datalist id="dsr-job-quote-ref-list"></datalist><datalist id="dsr-job-list"></datalist></div>
+            <div class="form-group"><label>QUOTE REF NO.</label><input type="text" id="dsr-quote-ref" list="dsr-quote-ref-list" value="${s.quoteRef || s.quoteNumber || s.rateQuoteRef || ''}" style="width:100%;" oninput="onDsrQuoteRefChange()" onchange="onDsrQuoteRefChange()" onblur="onDsrQuoteRefChange()"><datalist id="dsr-quote-ref-list"></datalist></div>
+            <div class="form-group"><label>Shipper</label><input type="text" id="dsr-shipper" value="${s.shipper || ''}" style="width:100%;"></div>
+            <div class="form-group"><label>Booking No.</label><input type="text" id="dsr-booking-no" value="${s.bookingNo || s.jobBkg || ''}" style="width:100%;"></div>
+            
+            <div class="form-group"><label>Port of Loading (POL)</label><input type="text" id="dsr-pol" list="dsr-pol-list" value="${s.pol || ''}" autocomplete="off" placeholder="Type or select POL" style="width:100%;"><datalist id="dsr-pol-list"></datalist></div>
+            <div class="form-group"><label>Port of Discharge (POD)</label><input type="text" id="dsr-pod" list="dsr-pod-list" value="${s.pod || ''}" autocomplete="off" placeholder="Type or select POD" style="width:100%;"><datalist id="dsr-pod-list"></datalist></div>
+            
+            <div class="form-group"><label>Shipping Line</label><input type="text" id="dsr-liner" list="dsr-liner-list" value="${s.liner || ''}" autocomplete="off" placeholder="Type or select Shipping Line" style="width:100%;"><datalist id="dsr-liner-list"></datalist></div>
+            <div class="form-group"><label>ETD</label><input type="date" id="dsr-etd" value="${s.etd || ''}" style="width:100%;"></div>
+            
+            <div class="form-group"><label>Shipping Bill NO.</label><input type="text" id="dsr-shipping-bill-no" value="${s.shippingBillNo || ''}" style="width:100%;"></div>
+            <div class="form-group"><label>Date</label><input type="date" id="dsr-shipping-bill-date" value="${s.shippingBillDate || ''}" style="width:100%;"></div>
+            
+            <div class="form-group"><label>MBL NO.</label><input type="text" id="dsr-mbl-no" value="${s.mblNo || ''}" style="width:100%;"></div>
+            <div class="form-group"><label>HBL NO</label><input type="text" id="dsr-hbl-no" value="${s.hblNo || ''}" style="width:100%;"></div>
+            
+            <div class="form-group"><label>Pickup Date</label><input type="date" id="dsr-pickup-date" value="${s.pickupDate || ''}" style="width:100%;"></div>
+            <div class="form-group"><label>Clearance Date</label><input type="date" id="dsr-clearance-date" value="${s.clearanceDate || ''}" style="width:100%;"></div>
+            
+            <div class="form-group"><label>Docs hand. Date</label><input type="date" id="dsr-docs-hand-date" value="${s.docsHandDate || ''}" style="width:100%;"></div>
+            <div class="form-group"><label>Gatein Date</label><input type="date" id="dsr-gatein-date" value="${s.gateinDate || ''}" style="width:100%;"></div>
+            
+            <div class="form-group"><label>DGD Indexing Date</label><input type="date" id="dsr-dgd-indexing-date" value="${s.dgdIndexingDate || ''}" style="width:100%;"></div>
+            <div class="form-group"><label>BL Release Date</label><input type="date" id="dsr-bl-release-date" value="${s.blReleaseDate || ''}" style="width:100%;"></div>
+            
+            <div class="form-group" style="grid-column:span 2;display:flex;gap:10px;">
+                <div style="flex:2;"><label>Vessel & ATD</label><input type="text" id="dsr-vessel-atd" value="${s.vesselAtd || ''}" style="width:100%;"></div>
+                <div style="flex:1;"><label>ETA</label><input type="date" id="dsr-eta" value="${s.eta || ''}" style="width:100%;"></div>
             </div>
-
-            <div style="
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:10px;
-            ">
-
-                <div class="form-group">
-                    <label>JOB NO.</label>
-                    <input
-                        type="text"
-                        id="dsr-job-no"
-                        list="dsr-job-quote-ref-list"
-                        value="${s.jobNo || s.code || ''}"
-                        style="width:100%;"
-                        oninput="onDsrJobReferenceChange()"
-                        onchange="onDsrJobReferenceChange()"
-                        onblur="onDsrJobReferenceChange()"
-                        placeholder="JOB NO. / select Quote Ref"
-                    >
-                    <datalist id="dsr-job-quote-ref-list"></datalist>
-                    <datalist id="dsr-job-list"></datalist>
-                </div>
-
-                <div class="form-group">
-                    <label>QUOTE REF NO.</label>
-                    <input
-                        type="text"
-                        id="dsr-quote-ref"
-                        list="dsr-quote-ref-list"
-                        value="${s.quoteRef || s.quoteNumber || s.rateQuoteRef || ''}"
-                        style="width:100%;"
-                        oninput="onDsrQuoteRefChange()"
-                        onchange="onDsrQuoteRefChange()"
-                        onblur="onDsrQuoteRefChange()"
-                    >
-                    <datalist id="dsr-quote-ref-list"></datalist>
-                </div>
-
-                <div class="form-group">
-                    <label>Shipper</label>
-                    <input
-                        type="text"
-                        id="dsr-shipper"
-                        value="${s.shipper || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Booking No.</label>
-                    <input
-                        type="text"
-                        id="dsr-booking-no"
-                        value="${s.bookingNo || s.jobBkg || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <!-- =====================================================
-                     POL — EDITABLE DROPDOWN
-                     ===================================================== -->
-                <div class="form-group">
-                    <label>Port of Loading (POL)</label>
-
-                    <input
-                        type="text"
-                        id="dsr-pol"
-                        list="dsr-pol-list"
-                        value="${String(s.pol || '').replace(/"/g, '&quot;')}"
-                        style="width:100%;"
-                        autocomplete="off"
-                        placeholder="Type or select POL"
-                    >
-
-                    <datalist id="dsr-pol-list">
-                        ${polOptions}
-                    </datalist>
-                </div>
-
-                <!-- =====================================================
-                     POD — EDITABLE DROPDOWN
-                     ===================================================== -->
-                <div class="form-group">
-                    <label>Port of Discharge (POD)</label>
-
-                    <input
-                        type="text"
-                        id="dsr-pod"
-                        list="dsr-pod-list"
-                        value="${String(s.pod || '').replace(/"/g, '&quot;')}"
-                        style="width:100%;"
-                        autocomplete="off"
-                        placeholder="Type or select POD"
-                    >
-
-                    <datalist id="dsr-pod-list">
-                        ${podOptions}
-                    </datalist>
-                </div>
-
-                <!-- =====================================================
-                     SHIPPING LINE — EDITABLE DROPDOWN
-                     ===================================================== -->
-                <div class="form-group">
-                    <label>Shipping Line</label>
-
-                    <input
-                        type="text"
-                        id="dsr-liner"
-                        list="dsr-liner-list"
-                        value="${String(s.liner || '').replace(/"/g, '&quot;')}"
-                        style="width:100%;"
-                        autocomplete="off"
-                        placeholder="Type or select Shipping Line"
-                    >
-
-                    <datalist id="dsr-liner-list">
-                        ${linerOptions}
-                    </datalist>
-                </div>
-
-                <div class="form-group">
-                    <label>ETD</label>
-                    <input
-                        type="date"
-                        id="dsr-etd"
-                        value="${s.etd || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Shipping Bill NO.</label>
-                    <input
-                        type="text"
-                        id="dsr-shipping-bill-no"
-                        value="${s.shippingBillNo || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Date</label>
-                    <input
-                        type="date"
-                        id="dsr-shipping-bill-date"
-                        value="${s.shippingBillDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>MBL NO.</label>
-                    <input
-                        type="text"
-                        id="dsr-mbl-no"
-                        value="${s.mblNo || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>HBL NO</label>
-                    <input
-                        type="text"
-                        id="dsr-hbl-no"
-                        value="${s.hblNo || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Pickup Date</label>
-                    <input
-                        type="date"
-                        id="dsr-pickup-date"
-                        value="${s.pickupDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Clearance Date</label>
-                    <input
-                        type="date"
-                        id="dsr-clearance-date"
-                        value="${s.clearanceDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Docs hand. Date</label>
-                    <input
-                        type="date"
-                        id="dsr-docs-hand-date"
-                        value="${s.docsHandDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>Gatein Date</label>
-                    <input
-                        type="date"
-                        id="dsr-gatein-date"
-                        value="${s.gateinDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>DGD Indexing Date</label>
-                    <input
-                        type="date"
-                        id="dsr-dgd-indexing-date"
-                        value="${s.dgdIndexingDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>BL Release Date</label>
-                    <input
-                        type="date"
-                        id="dsr-bl-release-date"
-                        value="${s.blReleaseDate || ''}"
-                        style="width:100%;"
-                    >
-                </div>
-
-                <div
-                    class="form-group"
-                    style="
-                        grid-column:span 2;
-                        display:flex;
-                        gap:10px;
-                    "
-                >
-                    <div style="flex:2;">
-                        <label>Vessel & ATD</label>
-                        <input
-                            type="text"
-                            id="dsr-vessel-atd"
-                            value="${s.vesselAtd || ''}"
-                            style="width:100%;"
-                        >
-                    </div>
-
-                    <div style="flex:1;">
-                        <label>ETA</label>
-                        <input
-                            type="date"
-                            id="dsr-eta"
-                            value="${s.eta || ''}"
-                            style="width:100%;"
-                        >
-                    </div>
-                </div>
-
-            </div>
-
-            ${
-                mode === 'SEA'
-                    ? `
-                        <div style="
-                            margin-top:10px;
-                            border-top:1px solid #cbd5e1;
-                            padding-top:10px;
-                        ">
-                            <div style="
-                                display:flex;
-                                justify-content:space-between;
-                                align-items:center;
-                                margin-bottom:8px;
-                            ">
-                                <strong style="color:#1e3a8a;">
-                                    📦 Container Details
-                                </strong>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-success btn-sm"
-                                    onclick="addDsrContainerRow()"
-                                >
-                                    + Add Container
-                                </button>
-                            </div>
-
-                            <div id="dsr-container-rows"></div>
-                        </div>
-
-                        <div style="
-                            margin-top:10px;
-                            border-top:1px solid #cbd5e1;
-                            padding-top:10px;
-                        ">
-                            <strong style="
-                                color:#1e3a8a;
-                                display:block;
-                                margin-bottom:8px;
-                            ">
-                                ⏱️ SEA Cut-off Defaults
-                            </strong>
-
-                            <div style="
-                                display:grid;
-                                grid-template-columns:repeat(4,1fr);
-                                gap:10px;
-                            ">
-
-                                <div class="form-group">
-                                    <label>Gate Opening</label>
-                                    <input
-                                        type="date"
-                                        id="dsr-gate-opening"
-                                        value="${s.gateOpening || ''}"
-                                        onchange="applyDsrCutoffDefaults(false)"
-                                        style="width:100%;"
-                                    >
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Gate Cut-off</label>
-                                    <input
-                                        type="date"
-                                        id="dsr-gate-cutoff"
-                                        value="${s.gateCutoff || ''}"
-                                        onchange="applyDsrCutoffDefaults(false)"
-                                        style="width:100%;"
-                                    >
-                                </div>
-
-                                <div class="form-group">
-                                    <label>SB Cut-off</label>
-                                    <input
-                                        type="date"
-                                        id="dsr-sb-cutoff"
-                                        value="${s.sbCutoff || ''}"
-                                        onchange="applyDsrCutoffDefaults(false)"
-                                        style="width:100%;"
-                                    >
-                                </div>
-
-                                <div class="form-group">
-                                    <label>SI Cut-off</label>
-                                    <input
-                                        type="date"
-                                        id="dsr-si-cutoff"
-                                        value="${s.siCutoff || ''}"
-                                        onchange="applyDsrCutoffDefaults(false)"
-                                        style="width:100%;"
-                                    >
-                                </div>
-
-                            </div>
-
-                            <small style="color:#64748b;">
-                                Defaults: SI −4 days • Gate −2 days •
-                                SB −2 days • Gate Opening = Gate Cut-off −3 days
-                            </small>
-                        </div>
-                    `
-                    : ''
-            }
-
-            <!-- STATUS DROPDOWNS -->
-            <div style="
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:10px;
-                margin-top:10px;
-                border-top:1px solid #cbd5e1;
-                padding-top:10px;
-            ">
-
-                <div class="form-group">
-                    <label>Cargo Status</label>
-                    <select id="dsr-cargo-status" style="width:100%;">
-                        ${cargoStatusOptions}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Docs Status</label>
-                    <select id="dsr-docs-status" style="width:100%;">
-                        ${docsStatusOptions}
-                    </select>
-                </div>
-
-            </div>
-
-            <div
-                class="form-group"
-                style="margin-top:8px;"
-            >
-                <label>Remarks</label>
-                <textarea
-                    id="dsr-remarks"
-                    rows="2"
-                    style="width:100%;"
-                >${s.remarks || ''}</textarea>
-            </div>
-
-            <input
-                type="hidden"
-                id="dsr-code"
-                value="${s.code || ''}"
-            />
-
         </div>
 
-        <div id="dsr-charges-area"></div>
-    `;
+        ${mode === 'SEA' ? `
+        <div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <strong style="color:#1e3a8a;">📦 Container Details</strong>
+                <button type="button" class="btn btn-success btn-sm" onclick="addDsrContainerRow()">+ Add Container</button>
+            </div>
+            <div id="dsr-container-rows"></div>
+        </div>
+
+        <div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:10px;">
+            <strong style="color:#1e3a8a;display:block;margin-bottom:8px;">⏱️ SEA Cut-off Defaults</strong>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                <div class="form-group"><label>Gate Opening</label><input type="date" id="dsr-gate-opening" value="${s.gateOpening || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
+                <div class="form-group"><label>Gate Cut-off</label><input type="date" id="dsr-gate-cutoff" value="${s.gateCutoff || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
+                <div class="form-group"><label>SB Cut-off</label><input type="date" id="dsr-sb-cutoff" value="${s.sbCutoff || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
+                <div class="form-group"><label>SI Cut-off</label><input type="date" id="dsr-si-cutoff" value="${s.siCutoff || ''}" onchange="applyDsrCutoffDefaults(false)" style="width:100%;"></div>
+            </div>
+            <small style="color:#64748b;">Defaults: SI −4 days • Gate −2 days • SB −2 days • Gate Opening = Gate Cut-off −3 days</small>
+        </div>` : ''}
+
+        <!-- ===== STATUS DROPDOWNS (NEW) ===== -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;border-top:1px solid #cbd5e1;padding-top:10px;">
+            <div class="form-group"><label>Cargo Status</label>
+                <select id="dsr-cargo-status" style="width:100%;">
+                    ${cargoStatusOptions}
+                </select>
+            </div>
+            <div class="form-group"><label>Docs Status</label>
+                <select id="dsr-docs-status" style="width:100%;">
+                    ${docsStatusOptions}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:8px;"><label>Remarks</label><textarea id="dsr-remarks" rows="2" style="width:100%;">${s.remarks || ''}</textarea></div>
+        <input type="hidden" id="dsr-code" value="${s.code || ''}" />
+    </div>
+    <div id="dsr-charges-area"></div>`;
 
     return html;
 }
@@ -9190,43 +9327,28 @@ function openDsrModal(mode, editIdx = null, prefill = null) {
         const visiblePol = db.pol.filter(p => !(db.hiddenItems.pol || []).includes(p));
         const visiblePod = db.pod.filter(p => !(db.hiddenItems.pod || []).includes(p));
 
-        // Populate dropdowns
-        populateSelect('dsr-pol', visiblePol, s.pol);
-        populateSelect('dsr-pod', visiblePod, s.pod);
-        populateSelect('dsr-liner', visibleCarriers, s.liner);
+        // Populate editable dropdowns (datalist). Manual values are allowed and saved as entered.
+        const fillDsrDatalist = (id, values) => {
+            const list = document.getElementById(id);
+            if (!list) return;
+            const seen = new Set();
+            list.innerHTML = (values || []).map(v => {
+                const text = String(v ?? '').trim();
+                const key = text.toLowerCase();
+                if (!text || seen.has(key)) return '';
+                seen.add(key);
+                return `<option value="${text.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}"></option>`;
+            }).join('');
+        };
+        fillDsrDatalist('dsr-pol-list', visiblePol);
+        fillDsrDatalist('dsr-pod-list', visiblePod);
+        fillDsrDatalist('dsr-liner-list', visibleCarriers);
         refreshJobReferenceDropdowns();
         refreshDsrQuoteReferenceDropdown();
         if (s.quoteRef || s.quoteNumber || s.rateQuoteRef) { onDsrQuoteRefChange(true); }
         else if (s.jobNo || s.code) { onDsrJobReferenceChange(true); }
 
-        // --- Case‑insensitive fallback for POL, POD, Liner ---
-        if (s.pol) {
-            const polSel = document.getElementById('dsr-pol');
-            if (polSel) {
-                const options = Array.from(polSel.options);
-                const match = options.find(opt => opt.value.toLowerCase() === s.pol.toLowerCase());
-                if (match) polSel.value = match.value;
-                else if (options.some(opt => opt.value === s.pol)) polSel.value = s.pol;
-            }
-        }
-        if (s.pod) {
-            const podSel = document.getElementById('dsr-pod');
-            if (podSel) {
-                const options = Array.from(podSel.options);
-                const match = options.find(opt => opt.value.toLowerCase() === s.pod.toLowerCase());
-                if (match) podSel.value = match.value;
-                else if (options.some(opt => opt.value === s.pod)) podSel.value = s.pod;
-            }
-        }
-        if (s.liner) {
-            const linerSel = document.getElementById('dsr-liner');
-            if (linerSel) {
-                const options = Array.from(linerSel.options);
-                const match = options.find(opt => opt.value.toLowerCase() === s.liner.toLowerCase());
-                if (match) linerSel.value = match.value;
-                else if (options.some(opt => opt.value === s.liner)) linerSel.value = s.liner;
-            }
-        }
+        // Existing/manual POL, POD and Shipping Line values are already preserved by the editable inputs.
 
         renderDsrCharges(mode, s);
         if (mode === 'SEA') {
@@ -9830,19 +9952,65 @@ function dsrKpiCard(label,value,sub,icon,filterKind){
 }
 function renderDsrKpis(rows, allRows){
     const el=document.getElementById('dsr-kpi-grid'); if(!el) return;
-    const total=rows.length, containers=rows.reduce((n,s)=>n+dsrContainerCount(s),0), weight=rows.reduce((n,s)=>n+dsrWeightOf(s),0), cbm=rows.reduce((n,s)=>n+dsrCbmOf(s),0);
+    const total=rows.length, containers=rows.reduce((n,s)=>n+dsrContainerCount(s),0), cbm=rows.reduce((n,s)=>n+dsrCbmOf(s),0);
     const transit=rows.filter(s=>/in transit/i.test(dsrGetStatus(s))).length;
     const delivered=rows.filter(s=>/delivered|closed/i.test(dsrGetStatus(s))).length;
     const delayed=rows.filter(s=>/delay/i.test(dsrGetStatus(s))).length;
-    const pct=total ? ((delivered/total)*100).toFixed(1)+'%' : '0%';
-    const modeLabel=dsrDashboardMode==='ALL'?'All Shipments':dsrDashboardMode+' Freight';
+    const upcoming=rows.filter(s=>dsrDateValue(s,'eta')>Date.now() || dsrDateValue(s,'etd')>Date.now()).length;
     el.innerHTML=[
-      dsrKpiCard('Total Shipments',total,modeLabel,'📦','ALL'),
-      dsrKpiCard('In Transit',transit,total?((transit/total)*100).toFixed(1)+'%':'0%','🚚','IN TRANSIT'),
-      dsrKpiCard('ARRIVED',delivered,pct+' arrived','✓','DELIVERED'),
-      dsrKpiCard('Total Containers',containers,'Shipment containers','🧊','ALL'),
-      dsrKpiCard('Total CBM',cbm?cbm.toFixed(2):'0.00','Recorded volume','◫','ALL')
+      dsrKpiCard('Total Shipments',total,dsrDashboardMode==='ALL'?'All Shipments':dsrDashboardMode+' Freight','📦','ALL'),
+      dsrKpiCard('In Transit',transit,total?((transit/total)*100).toFixed(0)+'% of total':'0%','🚚','IN TRANSIT'),
+      dsrKpiCard('Arrived',delivered,total?((delivered/total)*100).toFixed(0)+'% of total':'0%','✓','DELIVERED'),
+      dsrKpiCard('Delayed',delayed,total?((delayed/total)*100).toFixed(0)+'% of total':'0%','⏱️','DELAYED'),
+      dsrKpiCard('Upcoming',upcoming,total?((upcoming/total)*100).toFixed(0)+'% of total':'0%','📅','UPCOMING'),
+      dsrKpiCard('Containers',containers,'Shipment containers','📦','ALL'),
+      dsrKpiCard('CBM',cbm?cbm.toFixed(2):'0.00','Recorded volume','◫','ALL')
     ].join('');
+}
+function dsrSafeText(v){ return escapeHtml(String(v==null?'':v)); }
+function dsrStatusCounts(rows){
+    const counts={transit:0,arrived:0,delayed:0,upcoming:0,other:0};
+    rows.forEach(s=>{const st=dsrGetStatus(s); if(/delay/i.test(st)) counts.delayed++; else if(/in transit/i.test(st)) counts.transit++; else if(/delivered|closed|arrived/i.test(st)) counts.arrived++; else if(dsrDateValue(s,'eta')>Date.now() || dsrDateValue(s,'etd')>Date.now()) counts.upcoming++; else counts.other++;});
+    return counts;
+}
+function dsrTopCounts(rows, keyFn){
+    const map=new Map(); rows.forEach(s=>{const k=String(keyFn(s)||'').trim(); if(k) map.set(k,(map.get(k)||0)+1);});
+    return [...map.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0],undefined,{sensitivity:'base'})).slice(0,5);
+}
+function dsrAttentionData(rows){
+    const delayed=rows.filter(s=>/delay/i.test(dsrGetStatus(s))).length;
+    const etaChanged=rows.filter(s=>s.etaChanged===true || s.etaChanged==='true' || s.etaChange || s.etaUpdated || s.originalEta).length;
+    const missingContainer=rows.filter(s=>{const count=dsrContainerCount(s); return !count || !(Array.isArray(s.containers)?s.containers.some(c=>String(c?.containerNo||c?.number||'').trim()):String(s.containerNo||'').trim());}).length;
+    const blPending=rows.filter(s=>/pending|draft/i.test(String(s.docsStatus||s.blStatus||s.blDraftStatus||''))).length;
+    const costing=rows.filter(s=>/pending|due/i.test(String(s.costingStatus||s.jobCostingStatus||s.costing||''))).length;
+    return {delayed,etaChanged,missingContainer,blPending,costing};
+}
+function renderDsrInsights(allRows, visibleRows){
+    const rows=Array.isArray(allRows)?allRows:[];
+    const counts=dsrStatusCounts(rows), total=rows.length||1;
+    const setText=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
+    setText('dsr-mode-count-all',`${rows.length} Shipments`);
+    setText('dsr-mode-count-sea',`${rows.filter(s=>dsrModeOf(s)==='SEA').length} Shipments`);
+    setText('dsr-mode-count-lcl',`${rows.filter(s=>dsrModeOf(s)==='LCL').length} Shipments`);
+    setText('dsr-mode-count-air',`${rows.filter(s=>dsrModeOf(s)==='AIR').length} Shipments`);
+    const statusEl=document.getElementById('dsr-status-overview');
+    if(statusEl){
+      const items=[['In Transit',counts.transit,'#2563eb','IN TRANSIT'],['Arrived',counts.arrived,'#10b981','DELIVERED'],['Delayed',counts.delayed,'#ef4444','DELAYED'],['Upcoming',counts.upcoming,'#94a3b8','UPCOMING']];
+      statusEl.innerHTML=`<div class="dsr-donut" style="--p1:${(counts.transit/total)*100}%;--p2:${((counts.transit+counts.arrived)/total)*100}%;--p3:${((counts.transit+counts.arrived+counts.delayed)/total)*100}%"><div>${rows.length}<small>Total</small></div></div><div class="dsr-status-legend">${items.map(([l,v,c,k])=>`<button type="button" class="dsr-legend-row" onclick="applyDsrDashboardFilter('${k}')"><i style="background:${c}"></i><span>${l}</span><strong>${v}</strong></button>`).join('')}</div></div>`;
+    }
+    const modeEl=document.getElementById('dsr-mode-wise-summary');
+    if(modeEl){
+      const modes=[['SEA','🚢 Sea Freight','#2563eb'],['LCL','📦 LCL Freight','#f59e0b'],['AIR','✈️ Air Freight','#8b5cf6']];
+      modeEl.innerHTML=modes.map(([m,label,c])=>{const n=rows.filter(s=>dsrModeOf(s)===m).length; const pct=Math.round((n/total)*100); return `<button type="button" class="dsr-bar-row" onclick="applyDsrDashboardFilter('ALL','${m}')"><span>${label}</span><div class="dsr-bar-track"><b style="width:${pct}%;background:${c}"></b></div><strong>${n}</strong></button>`;}).join('');
+    }
+    const keyEl=document.getElementById('dsr-key-stats');
+    if(keyEl){const containers=rows.reduce((n,s)=>n+dsrContainerCount(s),0),cbm=rows.reduce((n,s)=>n+dsrCbmOf(s),0),upcoming=counts.upcoming; keyEl.innerHTML=[['Total',rows.length,'📊'],['In Transit',counts.transit,'🚚'],['Arrived',counts.arrived,'✓'],['Delayed',counts.delayed,'⏱️'],['Containers',containers,'📦'],['CBM',cbm?cbm.toFixed(2):'0.00','◫']].map(x=>`<div class="dsr-stat-tile"><span>${x[2]}</span><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');}
+    const routeEl=document.getElementById('dsr-top-routes');
+    if(routeEl){const routes=dsrTopCounts(rows,s=>`${s.pol||'-'} → ${s.pod||'-'}`),max=routes[0]?.[1]||1; routeEl.innerHTML=routes.length?routes.map(([k,v])=>`<button type="button" class="dsr-ranking-row" onclick="document.getElementById('dsr-search').value='${String(k).replace(/'/g,"\\'")}';renderShipments()"><span>${dsrSafeText(k)}</span><b>${v}</b><i><em style="width:${Math.round(v/max*100)}%"></em></i></button>`).join(''):'<div class="dsr-empty-insight">No route data</div>';}
+    const carrierEl=document.getElementById('dsr-top-carriers');
+    if(carrierEl){const carriers=dsrTopCounts(rows,dsrCarrierOf),max=carriers[0]?.[1]||1; carrierEl.innerHTML=carriers.length?carriers.map(([k,v])=>`<button type="button" class="dsr-ranking-row" onclick="document.getElementById('dsr-carrier-filter').value='${String(k).replace(/'/g,"\\'")}';renderShipments()"><span>${dsrSafeText(k)}</span><b>${v}</b><i><em style="width:${Math.round(v/max*100)}%"></em></i></button>`).join(''):'<div class="dsr-empty-insight">No carrier data</div>';}
+    const att=dsrAttentionData(rows), attEl=document.getElementById('dsr-attention-panel');
+    if(attEl){const cards=[['delayed','⏱️','Delayed Shipments',att.delayed,'DELAYED'],['etaChanged','⚠️','ETA Changed',att.etaChanged,'ALL'],['missingContainer','📦','Missing Container Details',att.missingContainer,'ALL'],['blPending','📄','BL Draft Pending',att.blPending,'ALL'],['costing','₹','Pending Costing',att.costing,'ALL']]; attEl.innerHTML=`<div class="dsr-attention-head"><strong>⚠️ ATTENTION REQUIRED</strong><span>Operational items requiring review</span></div><div class="dsr-attention-grid">${cards.map(([id,icon,label,val,filter])=>`<button type="button" class="dsr-attention-card ${val?'has-alert':''}" onclick="applyDsrDashboardFilter('${filter}')"><span>${icon}</span><strong>${val}</strong><small>${label}</small></button>`).join('')}</div>`;}
 }
 function dsrSummaryCard(mode,rows){
     const total=rows.length, transit=rows.filter(s=>/in transit/i.test(dsrGetStatus(s))).length, delivered=rows.filter(s=>/delivered|closed/i.test(dsrGetStatus(s))).length, delayed=rows.filter(s=>/delay/i.test(dsrGetStatus(s))).length;
@@ -9894,7 +10062,7 @@ function renderShipments() {
         if(carrierFilter && carrier!==carrierFilter) return false;
         return true;
     });
-    renderDsrKpis(shipments,allRows); renderDsrSummary(allRows);
+    renderDsrKpis(shipments,allRows); renderDsrSummary(allRows); renderDsrInsights(allRows,shipments);
     if(dsrSortState.key && dsrSortState.dir) shipments.sort((a,b)=>dsrCompare(a,b,dsrSortState.key,dsrSortState.dir));
     else shipments.sort((a,b)=>dsrDateValue(b,'date')-dsrDateValue(a,'date'));
     const total=shipments.length, perPageVal=perPage===0?total:perPage, totalPages=perPageVal>0?Math.ceil(total/perPageVal):1;
@@ -10427,6 +10595,7 @@ function openBLModal(editIdx = null, shipmentIdx = null, mode = 'SEA') {
                     <input type="number" class="bl-cont-net-weight" value="${c.netWeight||''}" placeholder="Net Wt (KGS)" step="0.01" oninput="updateBLTotals()" />
                     <input type="number" class="bl-cont-volume" value="${c.volume||''}" placeholder="Volume (CBM)" step="0.01" oninput="updateBLTotals()" />
                     <input type="text" class="bl-cont-packages" value="${c.packages||''}" placeholder="Packages" />
+                    <button type="button" class="btn btn-sm btn-info bl-cont-ldb-track" title="Track this container on LDB" onclick="trackBLContainerLdb(this)">🔗 LDB Tracking</button>
                     <button type="button" class="btn btn-sm btn-preview bl-cont-duplicate" title="Duplicate container with all data" onclick="duplicateBLContainerRow(this)">⧉</button>
                     <button type="button" class="btn btn-sm btn-clear" title="Remove container" onclick="this.closest('.bl-container-row').remove(); updateBLTotals();">×</button>
                 </div>`;
@@ -10505,7 +10674,7 @@ function openBLModal(editIdx = null, shipmentIdx = null, mode = 'SEA') {
             <!-- Vessel & Port Details -->
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:16px; background:var(--bg); padding:12px; border-radius:8px;" id="bl-vessel-row">
                 <div class="form-group"><label id="bl-label-pre-carriage">PRE-CARRIAGE BY</label><input type="text" id="bl-pre-carriage" value="${b.preCarriage||''}" /></div>
-                <div class="form-group"><label id="bl-label-receipt">PLACE OF RECEIPT</label><input type="text" id="bl-receipt" value="${b.placeOfReceipt||(b.mode==='AIR'?'AIRPORT, INDIA':'')}" /></div>
+                <div class="form-group"><label id="bl-label-receipt">PLACE OF RECEIPT</label><input type="text" id="bl-receipt" value="${b.placeOfReceipt||''}" /></div>
                 <div class="form-group"><label id="bl-label-vessel">${b.mode==='AIR'?'15. FLIGHT NO.':'VESSEL NAME'}</label><input type="text" id="bl-vessel" value="${b.vessel||''}" /></div>
                 <div class="form-group">
                     <label id="bl-label-voyage">${b.mode==='AIR'?'DATE':'VOYAGE NO.'}</label>
@@ -10527,7 +10696,7 @@ function openBLModal(editIdx = null, shipmentIdx = null, mode = 'SEA') {
             <div style="margin-bottom:16px; background:var(--bg); padding:12px; border-radius:8px;">
                 <h4 style="color:var(--primary); margin-bottom:6px;">Goods Details</h4>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="form-group"><label>Marks & Numbers</label><input type="text" id="bl-marks" value="${b.marks||''}" /></div>
+                    <div class="form-group"><label>Marks & Numbers</label><textarea id="bl-marks" rows="3" style="width:100%;">${b.marks||''}</textarea></div>
                     <div class="form-group"><label>No. of Packages</label><input type="text" id="bl-packages-count" value="${b.packagesCount||''}" /></div>
                     <div class="form-group" style="grid-column:1/-1;"><label>Description of Goods</label><textarea id="bl-goods" rows="3" style="width:100%;">${b.goodsDesc||''}</textarea></div>
                     <div class="form-group"><label>Gross Weight (KGS)</label><input type="number" id="bl-gross-weight" value="${b.grossWeight||''}" step="0.01" oninput="updateBLTotals()" /></div>
@@ -10631,28 +10800,45 @@ function updateBLLabels(mode) {
 /* Original source preserved from 07-master-admin.js; assigned to this functional module without code changes. */
 // ==================== DATABASE RENDER ====================
 function renderDatabase() {
-    document.getElementById('company-name').value = db.companyName || '';
-    document.getElementById('company-address').value = db.companyAddress || '';
-    document.getElementById('current-company-name').textContent = db.companyName || 'Not Set';
-    document.getElementById('default-user-input').value = db.defaultUser || '';
-    document.getElementById('current-default-user').textContent = db.defaultUser || 'Not Set';
+    // Database tab is a persistent admin panel. Normalize only missing containers/fields
+    // so older saved databases cannot stop the remaining Database Management UI from rendering.
+    db = db || {};
+    if (!db.hiddenItems) db.hiddenItems = { pol: [], pod: [], incoterms: [], containers: [], carriers: [], cargostatus: [], docsstatus: [] };
+    ['pol','pod','incoterms','containers','carriers','cargostatus','docsstatus'].forEach(k => { if (!Array.isArray(db.hiddenItems[k])) db.hiddenItems[k] = []; });
+    if (!db.exchangeRates || typeof db.exchangeRates !== 'object') db.exchangeRates = { INR: 1, USD: 83, EUR: 90 };
+    if (!db.defaults || typeof db.defaults !== 'object') db.defaults = {};
+    if (!Array.isArray(db.users)) db.users = [];
+
+    const setValue = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+    const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value ?? ''; };
+    setValue('company-name', db.companyName || '');
+    setValue('company-address', db.companyAddress || '');
+    setText('current-company-name', db.companyName || 'Not Set');
+    setValue('default-user-input', db.defaultUser || '');
+    setText('current-default-user', db.defaultUser || 'Not Set');
     renderExchangeRates();
     switchMasterTab(currentMasterTab);
     renderUserTable();
     const d = db.defaults || {};
 	loadDefaultCC();
 
-    document.getElementById('def-gst').value = d.gst || 0;
-    document.getElementById('def-insurance').value = d.insurance || 0;
-    document.getElementById('def-profit').value = d.profitMargin || 0;
-    document.getElementById('def-us-duty').value = d.usDuty || 0;
-    document.getElementById('def-us-tariff').value = d.usTariff || 0;
-    document.getElementById('def-us-mpf').value = d.usMPF || 0;
-    document.getElementById('def-us-hmf').value = d.usHMF || 0;
-    document.getElementById('def-in-duty').value = d.inDuty || 0;
-    document.getElementById('def-in-social').value = d.inSocialWelfare || 0;
-    document.getElementById('def-drawback').value = d.drawback || 0;
-    document.getElementById('def-rodtep').value = d.rodtep || 0;
+    setValue('def-gst', d.gst || 0);
+    setValue('def-insurance', d.insurance || 0);
+    setValue('def-profit', d.profitMargin || 0);
+    setValue('def-us-duty', d.usDuty || 0);
+    setValue('def-us-tariff', d.usTariff || 0);
+    setValue('def-us-mpf', d.usMPF || 0);
+    setValue('def-us-hmf', d.usHMF || 0);
+    setValue('def-in-duty', d.inDuty || 0);
+    setValue('def-in-social', d.inSocialWelfare || 0);
+    setValue('def-drawback', d.drawback || 0);
+    setValue('def-rodtep', d.rodtep || 0);
+
+    const dbPanel = document.getElementById('database');
+    if (dbPanel) {
+        dbPanel.classList.add('database-management-active');
+        dbPanel.setAttribute('data-db-rendered', 'true');
+    }
 
     const curSelect = document.getElementById('def-currency');
     if (curSelect) {
@@ -11175,13 +11361,13 @@ function populateDropdowns() {
     const visibleContainers = containers.filter(c => !hiddenContainers.includes(c));
 
     // For each mode, populate datalists and selects
-    ['sea', 'air', 'lcl'].forEach(mode => {
-        // POL datalist
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
+        // POL/POD datalists. SEA Import deliberately reverses the master lists.
+        const isImportContext = mode === 'sea-import' || ((mode === 'air' || mode === 'lcl') && String(window.__quoteDirection || 'EXPORT').toUpperCase() === 'IMPORT');
         const polList = document.getElementById(`${mode}-pol-list`);
-        if (polList) polList.innerHTML = visiblePol.map(p => `<option value="${p}">`).join('');
-        // POD datalist
+        if (polList) polList.innerHTML = (isImportContext ? visiblePod : visiblePol).map(p => `<option value="${p}">`).join('');
         const podList = document.getElementById(`${mode}-pod-list`);
-        if (podList) podList.innerHTML = visiblePod.map(p => `<option value="${p}">`).join('');
+        if (podList) podList.innerHTML = (isImportContext ? visiblePol : visiblePod).map(p => `<option value="${p}">`).join('');
         // Carrier datalist
         const carrierList = document.getElementById(`${mode}-carrier-list`);
         if (carrierList) carrierList.innerHTML = visibleCarriers.map(c => `<option value="${c}">`).join('');
@@ -11191,7 +11377,7 @@ function populateDropdowns() {
         if (incotermList) incotermList.innerHTML = visibleIncoterms.map(i => `<option value="${i}">`).join('');
 
         // Container datalist (only for sea)
-        if (mode === 'sea') {
+        if (mode === 'sea' || mode === 'sea-import') {
             const containerList = document.getElementById(`${mode}-container-list`);
             if (containerList) containerList.innerHTML = visibleContainers.map(c => `<option value="${c}">`).join('');
         }
@@ -12629,8 +12815,85 @@ const AUTH_CONFIG = {
     failKey: 'erpLoginFailures',
     rememberKey: 'erpRememberedLogin'
 };
+
+const SHAHID_RBAC = Object.freeze({
+    roles: Object.freeze({ MASTER: 'master', DSR_USER: 'dsr_user' }),
+    permissions: Object.freeze({ FULL_ACCESS: '*', DSR: 'dsr', BL_DRAFT: 'bldraft', INVOICE: 'invoice' }),
+    dsrTabs: Object.freeze(['dsr', 'bldraft', 'invoice'])
+});
+
 let authIdleTimer = null;
 let alertCenterOpen = false;
+
+function getCurrentUserPermissions(user = checkLogin()) {
+    if (!user) return [];
+    if (user.role === SHAHID_RBAC.roles.MASTER || user.permissions === SHAHID_RBAC.permissions.FULL_ACCESS) return ['*'];
+    return Array.isArray(user.permissions) ? user.permissions.slice() : [];
+}
+function hasPermission(permission, user = checkLogin()) {
+    if (!user) return false;
+    const permissions = getCurrentUserPermissions(user);
+    return permissions.includes('*') || permissions.includes(permission);
+}
+function hasTabAccess(tabId, user = checkLogin()) {
+    if (!user || !tabId) return false;
+    if (user.role === SHAHID_RBAC.roles.MASTER || user.permissions === '*') return true;
+
+    // Quote hub permissions control the underlying SEA/AIR/LCL quote forms.
+    // The navigation hub uses export-quote/import-quote, while the actual
+    // rendered forms use sea/air/lcl/sea-import as their internal tab IDs.
+    // Normalize those internal IDs before checking RBAC so a user who has
+    // Export Quote access is not incorrectly blocked after selecting SEA/AIR/LCL.
+    const accessKeyMap = {
+        sea: 'export-quote',
+        air: 'export-quote',
+        lcl: 'export-quote',
+        'sea-import': 'import-quote'
+    };
+    const accessKey = accessKeyMap[String(tabId).toLowerCase()] || tabId;
+    return Array.isArray(user.permissions) && user.permissions.includes(accessKey);
+}
+function requireTabAccess(tabId, action = 'open this module') {
+    const user = checkLogin();
+    if (!user) { alert('Please login again to continue.'); return false; }
+    if (!hasTabAccess(tabId, user)) { alert(`You do not have permission to ${action}.`); return false; }
+    return true;
+}
+function isMasterUser(user = checkLogin()) {
+    return !!user && (user.role === SHAHID_RBAC.roles.MASTER || user.permissions === '*');
+}
+function updateLoggedInUserBadge() {
+    const user = checkLogin();
+    let badge = document.getElementById('shahid-current-user-badge');
+    if (!badge) {
+        const headerActions = document.querySelector('.header-actions');
+        if (!headerActions) return;
+        badge = document.createElement('div');
+        badge.id = 'shahid-current-user-badge';
+        badge.style.cssText = 'display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:.72rem;line-height:1.15;white-space:nowrap;';
+        headerActions.insertBefore(badge, headerActions.querySelector('.logout-btn') || null);
+    }
+    if (!user) { badge.style.display='none'; return; }
+    badge.style.display='flex';
+    const roleLabel = isMasterUser(user) ? 'MASTER' : 'DSR USER';
+    badge.innerHTML = `<span>👤</span><span><strong>${escapeHtml(user.name || user.id)}</strong><br><small>${roleLabel}</small></span>`;
+}
+function applyRoleVisibility() {
+    const user = checkLogin();
+    if (!user) return;
+    const dsrOnly = !isMasterUser(user);
+    ['global-search','action-center-header-badge','alertCenterBtn'].forEach(id => {
+        const el=document.getElementById(id);
+        if (!el) return;
+        const host=el.closest('.global-search-wrapper, .header-action-center-btn, .alert-center-wrap') || el;
+        host.style.display=dsrOnly?'none':'';
+    });
+    document.querySelectorAll('.nav-category').forEach(category => {
+        const visible=[...category.querySelectorAll('.tab-btn-vertical')].some(btn => hasTabAccess(btn.dataset.tab,user));
+        category.style.display=visible?'':'none';
+    });
+    updateLoggedInUserBadge();
+}
 
 function getAuthFailures(){
     try { return JSON.parse(localStorage.getItem(AUTH_CONFIG.failKey) || '{"count":0,"until":0}'); }
@@ -12695,8 +12958,7 @@ function requireMasterAccess(action = 'perform this action') {
         alert('Please login again to continue.');
         return false;
     }
-    const permissions = user.permissions;
-    const allowed = user.role === 'master' || permissions === 'all' || (Array.isArray(permissions) && permissions.includes('master'));
+    const allowed = isMasterUser(user);
     if (!allowed) {
         alert(`You do not have permission to ${action}.`);
         return false;
@@ -12711,10 +12973,24 @@ function checkLogin() {
     try {
         const raw=sessionStorage.getItem(AUTH_CONFIG.sessionKey);
         if(!raw) return null;
-        const user=JSON.parse(raw);
+        const sessionUser=JSON.parse(raw);
         const last=Number(sessionStorage.getItem(AUTH_CONFIG.lastActivityKey)||0);
         if(last && Date.now()-last>AUTH_CONFIG.idleTimeoutMs){ performLogout(true); return null; }
-        return user;
+
+        // Keep the active session synchronized with the current runtime user
+        // record. This is important after permissions are amended in
+        // default-data.js or migrated into an existing local database: an old
+        // session must not retain stale tab permissions. Password/session
+        // credentials are not changed here.
+        const liveUser = Array.isArray(db?.users)
+            ? db.users.find(u => String(u?.id || '').toLowerCase() === String(sessionUser?.id || '').toLowerCase())
+            : null;
+        if (liveUser) {
+            const mergedUser = { ...sessionUser, ...liveUser };
+            sessionStorage.setItem(AUTH_CONFIG.sessionKey, JSON.stringify(mergedUser));
+            return mergedUser;
+        }
+        return sessionUser;
     } catch(e){ sessionStorage.removeItem(AUTH_CONFIG.sessionKey); return null; }
 }
 function markAuthActivity(){
@@ -12791,7 +13067,7 @@ async function performLogin() {
         sessionStorage.setItem(AUTH_CONFIG.lastActivityKey,String(Date.now()));
         const overlay=document.getElementById('login-overlay'); if(overlay) overlay.classList.add('hidden');
         const err=document.getElementById('login-error'); if(err) err.style.display='none';
-        applyPermissions(); startAuthWatchdog(); init();
+        applyPermissions(); updateLoggedInUserBadge(); startAuthWatchdog(); init();
     }catch(e){ console.error(e); showLoginError('Login service error. Please refresh and try again.'); }
     finally{ if(btn && !isLoginLocked()) btn.disabled=false; }
 }
@@ -12799,55 +13075,587 @@ function performLogout(auto=false){
     sessionStorage.removeItem(AUTH_CONFIG.sessionKey); sessionStorage.removeItem(AUTH_CONFIG.sessionStartedKey); sessionStorage.removeItem(AUTH_CONFIG.lastActivityKey);
     if(auto) sessionStorage.setItem('erpLogoutReason','Your session expired after 30 minutes of inactivity.');
     else sessionStorage.removeItem('erpLogoutReason');
+    const badge=document.getElementById('shahid-current-user-badge');
+    if(badge) badge.style.display='none';
     location.reload();
 }
 function applyPermissions() {
-    const user=checkLogin(); if(!user) return;
+    const user=checkLogin();
+    if(!user) return;
+    // Amendment: the DSR user is explicitly allowed the separate user-scoped
+    // Data Backup & Restore tab. This migration only adds the requested tab
+    // permission and does not change any other permission.
+    if(String(user.id||'').toLowerCase()==='shaikh shadab' && user.role==='dsr_user') {
+        const stored=db.users?.find(u=>String(u.id||'').toLowerCase()==='shaikh shadab');
+        if(stored && Array.isArray(stored.permissions) && !stored.permissions.includes('data-backup')) {
+            stored.permissions.push('data-backup');
+            saveDB();
+            user.permissions = stored.permissions.slice();
+            sessionStorage.setItem(AUTH_CONFIG.sessionKey, JSON.stringify(normalizeUser(stored)));
+        }
+    }
     const adminUserMgmt=document.getElementById('admin-user-management');
-    if(adminUserMgmt) adminUserMgmt.style.display=user.role==='master'?'block':'none';
+    if(adminUserMgmt) adminUserMgmt.style.display=isMasterUser(user)?'block':'none';
     document.querySelectorAll('.tab-btn-vertical').forEach(btn=>{
-        const tabId=btn.dataset.tab;
-        const permissions=user.permissions==='all'?'all':(Array.isArray(user.permissions)?user.permissions:[]);
-        const allowed=user.role==='master'||permissions==='all'||permissions.includes(tabId);
-        btn.style.display=allowed?'block':'none'; btn.disabled=!allowed;
+        const allowed=hasTabAccess(btn.dataset.tab,user);
+        btn.style.display=allowed?'block':'none';
+        btn.disabled=!allowed;
+        btn.setAttribute('aria-hidden', allowed ? 'false' : 'true');
     });
+    const localRoutingBtn=document.querySelector('.local-sub-tabs .master-tab[data-local="routing"]');
+    if(localRoutingBtn){
+        const routingAllowed=hasTabAccess('routing',user);
+        localRoutingBtn.style.display=routingAllowed?'inline-flex':'none';
+        localRoutingBtn.disabled=!routingAllowed;
+        localRoutingBtn.setAttribute('aria-hidden',routingAllowed?'false':'true');
+    }
+    applyRoleVisibility();
 }
+
 function renderUserTable() {
     const tbody=document.getElementById('user-table-body'); if(!tbody) return;
     tbody.innerHTML=db.users.map((u,idx)=>{
         const permDisplay=u.role==='master'?'All Access':(Array.isArray(u.permissions)?u.permissions.join(', '):'-');
-        return `<tr><td><strong>${escapeHtml(u.id)}</strong></td><td>${escapeHtml(u.name||'-')}</td><td><span class="status-badge ${u.role==='master'?'status-active':'status-expiring'}">${escapeHtml(String(u.role||'USER').toUpperCase())}</span></td><td style="font-size:0.7rem;">${escapeHtml(permDisplay)}</td><td><button class="btn btn-sm btn-preview" onclick="openEditUserModal(${idx})">✏️</button> ${u.id!=='Shaikh Shahid'?`<button class="btn btn-sm btn-clear" onclick="deleteUser(${idx})">×</button>`:''}</td></tr>`;
+        const editButton=`<button type="button" class="btn btn-sm btn-preview user-edit-btn" data-user-index="${idx}" title="Edit User">✏️</button>`;
+        const deleteButton=u.id!=='Shaikh Shahid'?`<button type="button" class="btn btn-sm btn-clear user-delete-btn" data-user-index="${idx}" title="Delete User">×</button>`:'';
+        return `<tr><td><strong>${escapeHtml(u.id)}</strong></td><td>${escapeHtml(u.name||'-')}</td><td><span class="status-badge ${u.role==='master'?'status-active':'status-expiring'}">${escapeHtml(String(u.role||'USER').toUpperCase())}</span></td><td style="font-size:0.7rem;">${escapeHtml(permDisplay)}</td><td>${editButton} ${deleteButton}</td></tr>`;
     }).join('');
+    if(!tbody.__userManagementEventsBound){
+        tbody.__userManagementEventsBound=true;
+        tbody.addEventListener('click',function(event){
+            const edit=event.target.closest('.user-edit-btn');
+            if(edit){
+                event.preventDefault();
+                openEditUserModal(Number(edit.dataset.userIndex));
+                return;
+            }
+            const del=event.target.closest('.user-delete-btn');
+            if(del){
+                event.preventDefault();
+                deleteUser(Number(del.dataset.userIndex));
+            }
+        });
+    }
 }
+/* ===== Amendment: Dynamic User Management Tab Auto-Sync =====
+ * The User Management permission matrix is derived from the live ERP
+ * navigation DOM every time the editor is opened. This prevents the matrix
+ * from becoming stale when a new user-facing navigation tab is added.
+ * Existing stored permissions are preserved; this only changes how the
+ * available permission choices are discovered and displayed.
+ */
+function getDynamicUserAccessGroups(){
+    const fallback = (typeof DEFAULT_USER_ACCESS_GROUPS !== 'undefined' && Array.isArray(DEFAULT_USER_ACCESS_GROUPS))
+        ? DEFAULT_USER_ACCESS_GROUPS
+        : [];
+    const nav = document.querySelector('.tab-nav-vertical');
+    if(!nav) return fallback.map(group => ({
+        key: group.key,
+        title: group.title,
+        items: Array.isArray(group.items) ? group.items.map(item => ({...item})) : []
+    }));
+
+    const groups=[];
+    nav.querySelectorAll(':scope > .nav-category').forEach((category, categoryIndex)=>{
+        const header=category.querySelector(':scope > .nav-category-header');
+        const items=[];
+        category.querySelectorAll(':scope > .nav-category-items > .tab-btn-vertical[data-tab]').forEach(btn=>{
+            const id=String(btn.dataset.tab||'').trim();
+            if(!id || items.some(item=>item.id===id)) return;
+            const label=String(btn.textContent||'').replace(/\s+/g,' ').trim();
+            if(label) items.push({id,label});
+        });
+        if(items.length){
+            const title=String(header?.querySelector('span')?.textContent || header?.textContent || `Section ${categoryIndex+1}`)
+                .replace(/\s+/g,' ').trim();
+            const key=String(category.querySelector(':scope > .nav-category-items')?.id || `dynamic-${categoryIndex}`)
+                .replace(/^cat-/,'');
+            groups.push({key,title,items});
+        }
+    });
+
+    // Routing is a real user-facing permission tab, but is intentionally a
+    // Local Charges sub-tab in the existing UI. Keep it in its own dynamic
+    // group so its existing RBAC behaviour remains unchanged.
+    const routingBtn=document.querySelector('.local-sub-tabs .master-tab[data-local="routing"]');
+    if(routingBtn){
+        const id='routing';
+        if(!groups.some(group=>group.items.some(item=>item.id===id))){
+            groups.push({
+                key:'localChargesSubTabs',
+                title:'📋 LOCAL CHARGES — SUB TABS',
+                items:[{id,label:String(routingBtn.textContent||'').replace(/\s+/g,' ').trim()||'🧭 Routing'}]
+            });
+        }
+    }
+
+    return groups.length ? groups : fallback.map(group => ({
+        key: group.key,
+        title: group.title,
+        items: Array.isArray(group.items) ? group.items.map(item => ({...item})) : []
+    }));
+}
+
+function getDynamicUserPermissionIds(){
+    const ids=new Set();
+    getDynamicUserAccessGroups().forEach(group => (group.items||[]).forEach(item => {
+        if(item?.id) ids.add(String(item.id));
+    }));
+    return ids;
+}
+
 function openAddUserModal(){ openUserModal(null); }
-function openEditUserModal(idx){ const user=db.users[idx]; if(!user) return alert('User not found.'); openUserModal(idx,user); }
+function openEditUserModal(idx){
+    // Amendment 8: resolve the live user record by index first, then pass a
+    // clean snapshot to the modal. This prevents a stale table index from
+    // causing the wrong record to be loaded/saved after another render.
+    if(!Array.isArray(db.users)) return alert('User data is not available.');
+    const numericIdx=Number(idx);
+    const user=db.users[numericIdx];
+    if(!user) return alert('User not found.');
+    const snapshot={...user, permissions:Array.isArray(user.permissions)?user.permissions.slice():user.permissions};
+    openUserModal(numericIdx,snapshot);
+}
 function openUserModal(idx,userData=null){
-    const isEdit=idx!==null; const title=isEdit?'Edit User':'Add New User'; const data=userData||{id:'',name:'',password:'',passwordHash:'',role:'user',permissions:[]};
-    const allTabs=['sea','air','lcl','drafts','rates','ratesheet','dsr','bldraft','dashboard','measurement','database','sealocal','airlocal','lcllocal'];
-    let permHtml='<div class="perm-grid">'; allTabs.forEach(tab=>{ const checked=data.role==='master'||(data.permissions&&data.permissions.includes(tab))?'checked':''; const disabled=data.role==='master'?'disabled':''; permHtml+=`<label class="${data.role==='master'?'disabled':''}"><input type="checkbox" class="user-perm-cb" value="${tab}" ${checked} ${disabled}>${tab.charAt(0).toUpperCase()+tab.slice(1)}</label>`; }); permHtml+='</div>';
-    const html=`<h3 style="color:var(--primary);margin-bottom:12px;">${title}</h3><div class="form-grid-2col"><div class="form-group"><label>User ID *</label><input type="text" id="modal-user-id" value="${escapeHtml(data.id)}" ${isEdit?'readonly':''}></div><div class="form-group"><label>Full Name</label><input type="text" id="modal-user-name" value="${escapeHtml(data.name||'')}"></div><div class="form-group"><label>Password ${isEdit?'(leave blank to keep current)':'*'}</label><input type="password" id="modal-user-pass" value="" placeholder="Set password"></div><div class="form-group"><label>Role</label><select id="modal-user-role" onchange="toggleUserPerms()"><option value="user" ${data.role==='user'?'selected':''}>User</option><option value="master" ${data.role==='master'?'selected':''}>Master (Full Access)</option></select></div></div><div style="margin-top:10px;"><label style="font-weight:700;font-size:0.85rem;color:var(--text-light);">Tab Permissions (for Users)</label>${permHtml}</div><div style="margin-top:16px;text-align:right;"><button class="btn btn-clear" onclick="closeModal('previewModal')">Cancel</button><button class="btn btn-quoted" onclick="saveUser(${idx})">💾 Save User</button></div>`;
-    document.getElementById('modal-title').textContent=title; document.getElementById('previewBody').innerHTML=html; openModal('previewModal');
+    const isEdit=idx!==null; const title=isEdit?'Edit User':'Add New User'; const data=userData||{id:'',name:'',password:'',passwordHash:'',role:'user',permissions:(typeof DEFAULT_USER_ACCESS !== 'undefined' && Array.isArray(DEFAULT_USER_ACCESS.newUserPermissions)?DEFAULT_USER_ACCESS.newUserPermissions:[])};
+    // Always rebuild the permission choices from the current ERP navigation.
+    const accessGroups = getDynamicUserAccessGroups();
+    const isMaster=data.role==='master';
+    // Normalize existing permissions only for display in the editor. The
+    // stored db.users record is not modified until Save User is clicked.
+    const currentPermissions=Array.isArray(data.permissions)?data.permissions.slice():[];
+    const legacyMap={sea:'export-quote',air:'export-quote',lcl:'export-quote',sealocal:'localcharges',airlocal:'localcharges',lcllocal:'localcharges',dashboard:'reporting'};
+    const effectivePermissions=new Set(currentPermissions.flatMap(p=>legacyMap[p]?[legacyMap[p]]:[p]));
+    let permHtml='<div class="user-access-groups">';
+    accessGroups.forEach(group=>{
+        permHtml+=`<div class="user-access-group"><div class="user-access-group-title">${escapeHtml(group.title)}</div><div class="perm-grid user-access-grid">`;
+        (group.items||[]).forEach(item=>{
+            const checked=isMaster||effectivePermissions.has(item.id)?' checked':'';
+            const disabled=isMaster?' disabled':'';
+            permHtml+=`<label class="${isMaster?'disabled':''}"><input type="checkbox" class="user-perm-cb" name="user-permission" data-permission="${escapeHtml(item.id)}" value="${escapeHtml(item.id)}"${checked}${disabled}>${escapeHtml(item.label)}</label>`;
+        });
+        permHtml+='</div></div>';
+    });
+    permHtml+='</div>';
+    const safeIdx=isEdit?Number(idx):null;
+    const safeId=String(data.id||'');
+    const html=`<h3 style="color:var(--primary);margin-bottom:12px;">${title}</h3><div class="form-grid-2col"><div class="form-group"><label>User ID *</label><input type="text" id="modal-user-id" value="${escapeHtml(safeId)}" ${isEdit?'readonly':''}></div><div class="form-group"><label>Full Name</label><input type="text" id="modal-user-name" value="${escapeHtml(data.name||'')}"></div><div class="form-group"><label>Password ${isEdit?'(leave blank to keep current)':'*'}</label><input type="password" id="modal-user-pass" value="" placeholder="Set password" autocomplete="new-password"></div><div class="form-group"><label>Role</label><select id="modal-user-role"><option value="user" ${data.role==='user'?'selected':''}>User</option><option value="master" ${data.role==='master'?'selected':''}>Master (Full Access)</option></select></div></div><div style="margin-top:10px;"><label style="font-weight:700;font-size:0.85rem;color:var(--text-light);">Tab Permissions (for Users)</label>${permHtml}</div><div id="user-edit-status" style="display:none;margin-top:10px;padding:8px;border-radius:6px;font-size:.8rem;"></div><div style="margin-top:16px;text-align:right;"><button type="button" class="btn btn-clear" id="user-edit-cancel">Cancel</button><button type="button" class="btn btn-quoted" id="user-edit-save">💾 Save User</button></div>`;
+    document.getElementById('modal-title').textContent=title;
+    const previewBody=document.getElementById('previewBody');
+    previewBody.innerHTML=html;
+    const roleEl=previewBody.querySelector('#modal-user-role');
+    if(roleEl) roleEl.addEventListener('change',toggleUserPerms);
+    const cancelEl=previewBody.querySelector('#user-edit-cancel');
+    if(cancelEl) cancelEl.addEventListener('click',()=>closeModal('previewModal'));
+    const saveEl=previewBody.querySelector('#user-edit-save');
+    if(saveEl){
+        saveEl.dataset.userIndex=safeIdx===null?'':String(safeIdx);
+        saveEl.dataset.originalId=safeId;
+        saveEl.addEventListener('click',function(){
+            const currentIdx=this.dataset.userIndex===''?null:Number(this.dataset.userIndex);
+            const original=this.dataset.originalId||'';
+            saveUser(currentIdx,original);
+        });
+    }
+    openModal('previewModal');
 }
 function toggleUserPerms(){ const role=document.getElementById('modal-user-role').value; document.querySelectorAll('#previewBody .user-perm-cb').forEach(cb=>{cb.checked=role==='master';cb.disabled=role==='master';cb.closest('label').classList.toggle('disabled',role==='master');}); }
-async function saveUser(idx){
+async function saveUser(idx,originalId=''){
     if (!requireMasterAccess('manage users')) return;
-    const id=document.getElementById('modal-user-id').value.trim(); const name=document.getElementById('modal-user-name').value.trim(); const pass=document.getElementById('modal-user-pass').value; const role=document.getElementById('modal-user-role').value;
-    if(!id) return alert('User ID is required.');
-    if(idx===null && !pass) return alert('New users must have a password.');
-    let passwordHash=idx!==null?db.users[idx].passwordHash:null;
-    let passwordHashV2=idx!==null?db.users[idx].passwordHashV2:null;
-    let passwordSalt=idx!==null?db.users[idx].passwordSalt:null;
-    if(pass){ const secure=await securePasswordHash(pass); passwordHashV2=secure.hash; passwordSalt=secure.salt; passwordHash=null; }
-    if(!passwordHash && !passwordHashV2 && idx!==null && db.users[idx].password){ const secure=await securePasswordHash(db.users[idx].password); passwordHashV2=secure.hash; passwordSalt=secure.salt; }
-    if(!passwordHash && !passwordHashV2) return alert('A valid password is required.');
-    let permissions=[]; if(role!=='master'){ document.querySelectorAll('#previewBody .user-perm-cb:checked').forEach(cb=>permissions.push(cb.value)); if(permissions.length===0 && !confirm('User has no permissions assigned. Continue?')) return; } else permissions='all';
-    const userData={id,name,passwordHash:passwordHash||null,passwordHashV2:passwordHashV2||null,passwordSalt:passwordSalt||null,role,permissions};
-    if(idx!==null&&idx>=0&&idx<db.users.length){ if(db.users[idx].id==='Shaikh Shahid'&&role!=='master') return alert('The Master user must remain Master.'); db.users[idx]={...db.users[idx],...userData}; }
-    else { if(db.users.find(u=>u.id===id)) return alert('User ID already exists.'); db.users.push(userData); }
-    saveDB(); closeModal('previewModal'); renderUserTable(); alert('User saved successfully!');
+    try {
+        if(!Array.isArray(db.users)) db.users=[];
+        const idEl=document.getElementById('modal-user-id');
+        const nameEl=document.getElementById('modal-user-name');
+        const passEl=document.getElementById('modal-user-pass');
+        const roleEl=document.getElementById('modal-user-role');
+        if(!idEl||!nameEl||!passEl||!roleEl) return alert('User editor is not ready. Please reopen Edit User.');
+        const id=idEl.value.trim();
+        const name=nameEl.value.trim();
+        const pass=passEl.value;
+        const role=roleEl.value;
+        if(!id) return alert('User ID is required.');
+
+        const isEdit=idx!==null && idx!==undefined && idx!=='';
+        let recordIndex=-1;
+        if(isEdit){
+            const original=String(originalId||'').trim();
+            recordIndex=db.users.findIndex(u=>String(u?.id||'').trim().toLowerCase()===original.toLowerCase());
+            if(recordIndex<0){
+                const n=Number(idx);
+                if(Number.isInteger(n) && n>=0 && n<db.users.length) recordIndex=n;
+            }
+            if(recordIndex<0) return alert('The user record could not be found. Please close and reopen Edit User.');
+        }
+        if(!isEdit && !pass) return alert('New users must have a password.');
+
+        const existing=isEdit?db.users[recordIndex]:null;
+        const existingId=String(existing?.id||originalId||id);
+        // User ID is intentionally immutable while editing.
+        if(isEdit && id.toLowerCase()!==existingId.toLowerCase()) return alert('User ID cannot be changed while editing an existing user.');
+
+        let passwordHash=existing?.passwordHash||null;
+        let passwordHashV2=existing?.passwordHashV2||null;
+        let passwordSalt=existing?.passwordSalt||null;
+        if(pass){
+            const secure=await securePasswordHash(pass);
+            passwordHashV2=secure.hash;
+            passwordSalt=secure.salt;
+            passwordHash=null;
+        } else if(!passwordHash && !passwordHashV2 && existing?.password){
+            const secure=await securePasswordHash(existing.password);
+            passwordHashV2=secure.hash;
+            passwordSalt=secure.salt;
+        }
+        if(!passwordHash && !passwordHashV2) return alert('A valid password is required.');
+
+        let permissions=[];
+        if(role!=='master'){
+            document.querySelectorAll('#previewBody .user-perm-cb').forEach(cb=>{ if(cb.checked) permissions.push(String(cb.value)); });
+
+            // Preserve any legacy/technical permission keys that are not part
+            // of the live user-facing tab matrix. This prevents an edit/save
+            // operation from silently deleting older permissions or future
+            // non-navigation access keys.
+            const managedIds=getDynamicUserPermissionIds();
+            const existingPermissions=Array.isArray(existing?.permissions) ? existing.permissions : [];
+            existingPermissions.forEach(permission=>{
+                const key=String(permission||'');
+                if(key && !managedIds.has(key)) permissions.push(key);
+            });
+
+            permissions=[...new Set(permissions)];
+            if(permissions.length===0 && !confirm('User has no permissions assigned. Continue?')) return;
+        } else {
+            permissions='all';
+        }
+
+        const userData={
+            ...(existing||{}),
+            id:existingId||id,
+            name:name||existing?.name||id,
+            passwordHash:passwordHash||null,
+            passwordHashV2:passwordHashV2||null,
+            passwordSalt:passwordSalt||null,
+            role,
+            permissions
+        };
+        if(isEdit){
+            if(existingId.toLowerCase()==='shaikh shahid' && role!=='master') return alert('The Master user must remain Master.');
+            db.users[recordIndex]=userData;
+        } else {
+            if(db.users.some(u=>String(u?.id||'').trim().toLowerCase()===id.toLowerCase())) return alert('User ID already exists.');
+            db.users.push(userData);
+        }
+
+        if(!saveDB()) return;
+        // Refresh the active session immediately if the edited user is the
+        // currently logged-in user, so permission changes take effect now.
+        const session=checkLogin();
+        if(session && String(session.id||'').toLowerCase()===String(userData.id||'').toLowerCase()){
+            sessionStorage.setItem(AUTH_CONFIG.sessionKey,JSON.stringify(normalizeUser(userData)));
+            sessionStorage.setItem(AUTH_CONFIG.lastActivityKey,String(Date.now()));
+        }
+        closeModal('previewModal');
+        renderUserTable();
+        applyPermissions();
+        alert('User saved successfully!');
+    } catch(err){
+        console.error('Edit/Save User failed:',err);
+        alert('Unable to save user. Please check the selected permissions and try again.');
+    }
 }
 function deleteUser(idx){ if(!requireMasterAccess('delete users')) return; if(idx<0||idx>=db.users.length)return alert('User not found.'); const user=db.users[idx]; if(user.id==='Shaikh Shahid')return alert('Cannot delete the Master user.'); if(!confirm(`Delete user "${user.id}"?`))return; db.users.splice(idx,1); saveDB(); renderUserTable(); }
 
+
+
+/* ===== BEGIN AMENDMENT: USER DATA BACKUP & RESTORE ===== */
+(function(){
+    'use strict';
+
+    const USER_BACKUP_SCHEMA = 'SHAHID-ERP-USER-DATA-BACKUP-V1';
+    const USER_BACKUP_JSON = 'SHAHID_ERP_USER_BACKUP.json';
+    const USER_BACKUP_HANDLES = Object.create(null);
+
+    function currentBackupUser(){
+        return (typeof checkLogin === 'function') ? checkLogin() : null;
+    }
+
+    function setUserBackupStatus(message, ok){
+        const el=document.getElementById('user-backup-status');
+        if(!el) return;
+        el.textContent=message;
+        el.className='backup-status ' + (ok ? 'success' : 'error');
+    }
+
+    function isMasterBackupUser(user){
+        return !!user && (user.role === 'master' || user.permissions === '*' || user.permissions === 'all');
+    }
+
+    function userBackupKey(user){
+        return String(user?.id || '').trim().toLowerCase();
+    }
+
+    function ensureUserBackupStore(){
+        if(!db.userBackupFolders || typeof db.userBackupFolders !== 'object' || Array.isArray(db.userBackupFolders)){
+            db.userBackupFolders = {};
+        }
+        return db.userBackupFolders;
+    }
+
+    function getUserBackupPath(user){
+        const store=ensureUserBackupStore();
+        return String(store[userBackupKey(user)] || '').trim();
+    }
+
+    function setUserBackupPath(user,path){
+        const store=ensureUserBackupStore();
+        store[userBackupKey(user)] = String(path || '').trim();
+        saveDB();
+    }
+
+    function getUserBackupScope(user){
+        return isMasterBackupUser(user) ? 'MASTER — Complete ERP data (excluding authentication/session metadata)' : 'DSR USER — Shipment List, BL Draft and Invoice data only';
+    }
+
+    function clone(value){
+        return JSON.parse(JSON.stringify(value));
+    }
+
+    function buildUserBackupPayload(user){
+        if(!user) throw new Error('Please login again.');
+        const timestamp=new Date().toISOString();
+        if(isMasterBackupUser(user)){
+            const data=clone(db);
+            // Never use a user-data backup to restore credentials or live session state.
+            delete data.users;
+            delete data.userBackupFolders;
+            delete data.backupFolderPath;
+            delete data.lastBackup;
+            delete data.googleDriveFolderPath;
+            delete data.lastGoogleDriveBackup;
+            delete data.navState;
+            return {
+                schema: USER_BACKUP_SCHEMA,
+                version: 1,
+                userId: user.id,
+                role: 'master',
+                scope: 'MASTER_FULL_ERP_DATA',
+                timestamp,
+                data
+            };
+        }
+
+        return {
+            schema: USER_BACKUP_SCHEMA,
+            version: 1,
+            userId: user.id,
+            role: 'dsr_user',
+            scope: 'DSR_DATA_ONLY',
+            timestamp,
+            data: {
+                shipments: clone(Array.isArray(db.shipments) ? db.shipments : []),
+                bldrafts: clone(Array.isArray(db.bldrafts) ? db.bldrafts : []),
+                invoices: clone(Array.isArray(db.invoices) ? db.invoices : [])
+            }
+        };
+    }
+
+    async function writeUserBackup(payload,user,path,handle){
+        const json=JSON.stringify(payload,null,2);
+        if(window.electronAPI && typeof window.electronAPI.writeBackupFile==='function'){
+            const result=await window.electronAPI.writeBackupFile(path, USER_BACKUP_JSON, json);
+            if(!result || result.success!==true) throw new Error(result?.error || 'Local backup write failed.');
+            return true;
+        }
+        if(!handle) throw new Error('Browser backup folder authorization is required. Click Select Folder.');
+        if(typeof handle.queryPermission==='function'){
+            const permission=await handle.queryPermission({mode:'readwrite'});
+            if(permission!=='granted') throw new Error('Backup folder permission is not available. Click Select Folder again.');
+        }
+        const fileHandle=await handle.getFileHandle(USER_BACKUP_JSON,{create:true});
+        const writable=await fileHandle.createWritable({keepExistingData:false});
+        await writable.write(json);
+        await writable.close();
+        return true;
+    }
+
+    async function readUserBackup(user,path,handle){
+        let text;
+        if(window.electronAPI && typeof window.electronAPI.readBackupFile==='function'){
+            const result=await window.electronAPI.readBackupFile(path, USER_BACKUP_JSON);
+            if(!result || result.success!==true) throw new Error(result?.error || 'Backup file could not be read.');
+            if(typeof result.data === 'string') {
+                text = result.data;
+            } else if(result.data && (Array.isArray(result.data) || ArrayBuffer.isView(result.data))) {
+                text = new TextDecoder().decode(new Uint8Array(result.data));
+            } else {
+                text = result.content || result.text || '';
+            }
+            if(!text) throw new Error('Backup file is empty.');
+        }else{
+            if(!handle) throw new Error('Browser backup folder authorization is required. Click Select Folder.');
+            if(typeof handle.queryPermission==='function'){
+                const permission=await handle.queryPermission({mode:'readwrite'});
+                if(permission!=='granted') throw new Error('Backup folder permission is not available. Click Select Folder again.');
+            }
+            const fileHandle=await handle.getFileHandle(USER_BACKUP_JSON,{create:false});
+            const file=await fileHandle.getFile();
+            text=await file.text();
+        }
+        const payload=JSON.parse(text);
+        if(payload?.schema!==USER_BACKUP_SCHEMA || Number(payload.version)!==1){
+            throw new Error('Invalid SHAHID ERP user backup format.');
+        }
+        if(String(payload.userId||'').trim().toLowerCase()!==userBackupKey(user)){
+            throw new Error('This backup belongs to a different user and cannot be restored here.');
+        }
+        if(!payload.data || typeof payload.data!=='object' || Array.isArray(payload.data)){
+            throw new Error('Backup data is invalid.');
+        }
+        return payload;
+    }
+
+    async function selectUserDataBackupFolder(){
+        const user=currentBackupUser();
+        if(!user || !hasTabAccess('data-backup',user)){
+            alert('You do not have permission to use Data Backup & Restore.');
+            return false;
+        }
+        try{
+            if(window.electronAPI && typeof window.electronAPI.selectBackupFolder==='function'){
+                const path=await window.electronAPI.selectBackupFolder();
+                if(!path) return false;
+                if(typeof window.electronAPI.checkBackupFolder==='function'){
+                    const check=await window.electronAPI.checkBackupFolder(path);
+                    if(!check || check.success!==true || check.writable!==true) throw new Error(check?.error || 'Selected folder is not writable.');
+                }
+                setUserBackupPath(user,path);
+                renderUserDataBackupPanel();
+                setUserBackupStatus(`📁 Folder authorized: ${path}`,true);
+                return true;
+            }
+            if(!window.showDirectoryPicker) throw new Error('Your browser does not support local folder selection. Please use Chrome/Edge or the EXE version.');
+            const handle=await window.showDirectoryPicker({mode:'readwrite'});
+            if(typeof handle.requestPermission==='function'){
+                const permission=await handle.requestPermission({mode:'readwrite'});
+                if(permission!=='granted') throw new Error('Backup folder permission was not granted.');
+            }
+            USER_BACKUP_HANDLES[userBackupKey(user)]=handle;
+            setUserBackupPath(user,handle.name);
+            renderUserDataBackupPanel();
+            setUserBackupStatus(`📁 Folder authorized: ${handle.name}`,true);
+            return true;
+        }catch(error){
+            if(error?.name==='AbortError') return false;
+            console.error('User backup folder selection failed:',error);
+            setUserBackupStatus(`❌ Folder selection failed: ${error.message}`,false);
+            return false;
+        }
+    }
+
+    async function backupCurrentUserData(){
+        const user=currentBackupUser();
+        if(!user || !hasTabAccess('data-backup',user)){
+            alert('You do not have permission to use Data Backup & Restore.'); return false;
+        }
+        const path=getUserBackupPath(user);
+        const handle=USER_BACKUP_HANDLES[userBackupKey(user)] || null;
+        if(!path && !handle){ alert('Please select your local backup folder first.'); return false; }
+        try{
+            setUserBackupStatus('⏳ Creating user-scoped backup...',true);
+            const payload=buildUserBackupPayload(user);
+            await writeUserBackup(payload,user,path,handle);
+            const now=new Date().toISOString();
+            if(!db.userBackupMeta || typeof db.userBackupMeta!=='object') db.userBackupMeta={};
+            db.userBackupMeta[userBackupKey(user)]={lastBackup:now,scope:payload.scope};
+            saveDB();
+            renderUserDataBackupPanel();
+            setUserBackupStatus(`✅ Backup completed: ${new Date(now).toLocaleString('en-IN')}`,true);
+            return true;
+        }catch(error){
+            console.error('User backup failed:',error);
+            setUserBackupStatus(`❌ Backup failed: ${error.message}`,false);
+            return false;
+        }
+    }
+
+    async function restoreCurrentUserData(){
+        const user=currentBackupUser();
+        if(!user || !hasTabAccess('data-backup',user)){
+            alert('You do not have permission to use Data Backup & Restore.'); return false;
+        }
+        const path=getUserBackupPath(user);
+        const handle=USER_BACKUP_HANDLES[userBackupKey(user)] || null;
+        if(!path && !handle){ alert('Please select your local backup folder first.'); return false; }
+        if(!confirm('Restore this user-scoped backup into the current ERP data? Existing records will be merged; unrelated data will remain unchanged.')) return false;
+        try{
+            setUserBackupStatus('⏳ Validating backup...',true);
+            const payload=await readUserBackup(user,path,handle);
+            if(payload.role==='master' && !isMasterBackupUser(user)) throw new Error('Only MASTER can restore a MASTER backup.');
+            if(payload.scope==='DSR_DATA_ONLY' && isMasterBackupUser(user)){
+                // MASTER may restore a DSR backup, but only its three permitted datasets.
+            }
+            const incoming=payload.data;
+            if(!isMasterBackupUser(user)){
+                if(typeof window.shahidMasterMergeDatabase!=='function') throw new Error('Canonical merge engine is unavailable.');
+                const merged=window.shahidMasterMergeDatabase(db,{shipments:incoming.shipments||[],bldrafts:incoming.bldrafts||[],invoices:incoming.invoices||[]});
+                db.shipments=merged.shipments||db.shipments||[];
+                db.bldrafts=merged.bldrafts||db.bldrafts||[];
+                db.invoices=merged.invoices||db.invoices||[];
+            }else{
+                if(typeof window.shahidMasterMergeDatabase!=='function') throw new Error('Canonical merge engine is unavailable.');
+                const merged=window.shahidMasterMergeDatabase(db,incoming);
+                Object.keys(incoming).forEach(key=>{ if(Object.prototype.hasOwnProperty.call(merged,key)) db[key]=merged[key]; });
+            }
+            if(saveDB()!==true) throw new Error('ERP database could not be saved after restore.');
+            const now=new Date().toISOString();
+            if(!db.userBackupMeta || typeof db.userBackupMeta!=='object') db.userBackupMeta={};
+            db.userBackupMeta[userBackupKey(user)]={...(db.userBackupMeta[userBackupKey(user)]||{}),lastRestore:now};
+            saveDB();
+            setUserBackupStatus(`✅ Restore completed: ${new Date(now).toLocaleString('en-IN')}`,true);
+            if(typeof renderShipments==='function') renderShipments();
+            if(typeof renderBLDrafts==='function') renderBLDrafts();
+            if(typeof renderInvoicesV11==='function') renderInvoicesV11();
+            return true;
+        }catch(error){
+            console.error('User backup restore failed:',error);
+            setUserBackupStatus(`❌ Restore failed: ${error.message}`,false);
+            return false;
+        }
+    }
+
+    function renderUserDataBackupPanel(){
+        const user=currentBackupUser();
+        if(!user) return;
+        const path=getUserBackupPath(user);
+        const meta=(db.userBackupMeta && db.userBackupMeta[userBackupKey(user)]) || {};
+        const input=document.getElementById('user-backup-folder-path-input');
+        const display=document.getElementById('user-backup-folder-path');
+        const scope=document.getElementById('user-backup-scope');
+        const last=document.getElementById('user-backup-last');
+        if(input) input.value=path;
+        if(display) display.textContent=path ? `📁 ${path}` : 'No folder selected.';
+        if(scope) scope.textContent=getUserBackupScope(user);
+        if(last){
+            const b=meta.lastBackup ? new Date(meta.lastBackup).toLocaleString('en-IN') : 'Never';
+            const r=meta.lastRestore ? new Date(meta.lastRestore).toLocaleString('en-IN') : 'Never';
+            last.textContent=`Last backup: ${b} • Last restore: ${r}`;
+        }
+    }
+
+    window.selectUserDataBackupFolder=selectUserDataBackupFolder;
+    window.backupCurrentUserData=backupCurrentUserData;
+    window.restoreCurrentUserData=restoreCurrentUserData;
+    window.renderUserDataBackupPanel=renderUserDataBackupPanel;
+
+    document.addEventListener('DOMContentLoaded',function(){
+        setTimeout(function(){
+            const user=currentBackupUser();
+            if(user && hasTabAccess('data-backup',user)) renderUserDataBackupPanel();
+        },0);
+    });
+})();
+/* ===== END AMENDMENT: USER DATA BACKUP & RESTORE ===== */
 
 /* ===== END JS/43-master-pol.js ===== */
 
@@ -13042,76 +13850,31 @@ async function initSQLite() {
     if (window.__ERP_SQLITE_READY && window.SQL) return window.SQL;
     if (window.__ERP_SQLITE_PROMISE) return window.__ERP_SQLITE_PROMISE;
     window.__ERP_SQLITE_PROMISE = (async () => {
-        const CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
-        let initFn = window.initSqlJs;
-        if (!initFn) {
-            // The HTML already loads sql-wasm.js. Do not inject the script a second time.
-            await new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = CDN + 'sql-wasm.js';
-                script.onload = resolve;
-                script.onerror = () => reject(new Error('SQLite JavaScript library failed to load.'));
-                document.head.appendChild(script);
-            });
-            initFn = window.initSqlJs;
+        if (!window.SHAHIDOfflineSQLite || typeof window.SHAHIDOfflineSQLite.Database !== 'function') {
+            throw new Error('SQLite offline engine is unavailable inside the bundled ERP runtime.');
         }
-        if (typeof initFn !== 'function') throw new Error('SQLite JavaScript library is unavailable.');
-        const sql = await initFn({ locateFile: file => CDN + file });
-        window.SQL = sql;
+        // Amendment 7: use the self-contained local SQLite engine. This avoids
+        // sql-wasm/WASM fetches, CDN dependencies and file:// CORS restrictions.
+        window.SQL = { Database: window.SHAHIDOfflineSQLite.Database };
         window.__ERP_SQLITE_READY = true;
-        return sql;
+        return window.SQL;
     })().catch(err => { window.__ERP_SQLITE_PROMISE = null; throw err; });
     return window.__ERP_SQLITE_PROMISE;
 }
 
-
 /* ==================== COMPLETE SQLITE BACKUP ==================== */
 async function buildCompleteSQLiteDatabase() {
     await initSQLite();
-    if (!window.SQL) throw new Error('SQLite library is unavailable.');
-
-    const dbInstance = new window.SQL.Database();
-
-    // COMPLETE STATE TABLE:
-    // Every top-level property of the live ERP `db` object is stored as JSON.
-    // This makes SQLite a complete application backup, equivalent in scope to JSON.
-    dbInstance.exec(`
-        CREATE TABLE IF NOT EXISTS erp_state (
-            key TEXT PRIMARY KEY,
-            value_json TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS erp_backup_meta (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        );
-    `);
-
-    const insertState = dbInstance.prepare(
-        'INSERT OR REPLACE INTO erp_state (key, value_json) VALUES (?, ?)'
-    );
-
-    Object.keys(db || {}).forEach(key => {
-        let value;
-        try {
-            value = JSON.stringify(db[key]);
-        } catch (e) {
-            console.warn('Skipping non-serializable ERP state key:', key, e);
-            return;
-        }
-        insertState.run([key, value]);
-    });
-    insertState.free();
-
-    const meta = dbInstance.prepare(
-        'INSERT OR REPLACE INTO erp_backup_meta (key, value) VALUES (?, ?)'
-    );
-    meta.run(['backupVersion', 'SHAHID-ERP-COMPLETE-SQLITE-V2']);
-    meta.run(['backupTimestamp', new Date().toISOString()]);
-    meta.run(['application', 'SHAHID ERP']);
-    meta.run(['stateKeys', String(Object.keys(db || {}).length)]);
-    meta.free();
-
-    return dbInstance;
+    if (!window.SHAHIDOfflineSQLite || typeof window.SHAHIDOfflineSQLite.build !== 'function') {
+        throw new Error('Offline SQLite builder is unavailable.');
+    }
+    // Keep the existing public contract (.export() / .close()) so every
+    // existing backup/export path continues to work unchanged.
+    const bytes = window.SHAHIDOfflineSQLite.build(db || {});
+    return {
+        export: () => new Uint8Array(bytes),
+        close: () => {}
+    };
 }
 
 async function exportToSQLite() {
@@ -13173,11 +13936,12 @@ async function exportSQLiteToFolder(folderHandle) {
 
 
 async function importFromSQLite(input) {
-    if(!input || !input.files || !input.files[0]){
+    const file = (typeof File !== 'undefined' && input instanceof File)
+        ? input
+        : (input && input.files && input.files[0] ? input.files[0] : null);
+    if(!file){
         return null;
     }
-
-    const file = input.files[0];
 
     try {
         await initSQLite();
@@ -13325,7 +14089,7 @@ async function importFromSQLite(input) {
         alert('SQLite Import/Merge failed: ' + (err?.message || String(err)));
         return null;
     }finally{
-        input.value = '';
+        try{ if(input && 'value' in Object(input) && !(typeof File !== 'undefined' && input instanceof File)) input.value = ''; }catch(_){}
     }
 }
 
@@ -13397,7 +14161,7 @@ function performGlobalSearch() {
             `${rec.quoteNumber||''} ${rec.quoteNo||''} ${rec.client||''} ${rec.customer||''} ${rec.pol||''} ${rec.pod||''} ${rec.carrier||''} ${rec.shipper||''} ${rec.code||''} ${rec.jobNo||''} ${rec.jobBkg||''} ${rec.bookingNo||''} ${rec.bookingNumber||''} ${rec.invoiceNo||''} ${rec.invoiceNumber||''} ${rec.blNumber||''} ${rec.carrierName||''} ${rec.containerNo||''} ${rec.containerNumber||''} ${rec.container||''} ${Array.isArray(rec.containers) ? rec.containers.map(c => c?.containerNo || c?.number || c?.no || '').join(' ') : ''}`.toLowerCase();
         return text.includes(term);
     }
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         db.drafts[mode].forEach((rec, idx) => {
             if (isMatch(rec, term)) {
                 matches.push({
@@ -13411,8 +14175,8 @@ function performGlobalSearch() {
             }
         });
     });
-    ['sea', 'air', 'lcl'].forEach(mode => {
-        db.rates[mode].forEach((rec, idx) => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
+        (Array.isArray(db.rates?.[mode]) ? db.rates[mode] : []).forEach((rec, idx) => {
             if (isMatch(rec, term)) {
                 matches.push({
                     category: 'Quote',
@@ -13528,64 +14292,31 @@ document.addEventListener('click', function(e) {
 });
 
 
-// ==================== SEA RATE REQUEST — VALIDITY MONTH-END ENFORCEMENT ====================
-// Amendment: SEA Rate Request (With Shipper + Without Shipper) must always use
-// the last calendar day of the current month as VALIDITY.
-// This amendment is intentionally isolated to the two SEA Rate Request fields.
-(function enforceSeaRateRequestValidityMonthEnd(){
-    const FIELD_IDS = ['rr-validity-sea1', 'rr-validity-sea2'];
+// ==================== RATE REQUEST VALIDITY — DEFAULT + MANUAL DATE ====================
+(function initializeRateRequestValidityDefaults(){
+    const FIELD_IDS = ['rr-validity-sea1', 'rr-validity-sea2', 'rr-validity-air'];
 
-    function currentMonthEnd(){
-        const now = new Date();
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        const yyyy = lastDay.getFullYear();
-        const mm = String(lastDay.getMonth() + 1).padStart(2, '0');
-        const dd = String(lastDay.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-    }
-
-    function apply(){
-        const monthEnd = currentMonthEnd();
+    function applyDefaultIfEmpty(){
+        const defaultValidity = getRateRequestDefaultValidityDate();
         FIELD_IDS.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.value = monthEnd;
+            if (!el || String(el.value || '').trim()) return;
+            el.value = formatRateRequestDate(defaultValidity);
+            const suffix = id.replace('rr-validity-', '');
+            const picker = document.getElementById(`rr-validity-${suffix}-picker`);
+            if (picker) picker.value = defaultValidity;
         });
     }
 
-    function bind(){
-        apply();
-        FIELD_IDS.forEach(id => {
-            const el = document.getElementById(id);
-            if (!el || el.dataset.monthEndValidityBound === '1') return;
-            el.dataset.monthEndValidityBound = '1';
-            el.addEventListener('change', apply);
-            el.addEventListener('input', apply);
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bind, { once: true });
-    } else {
-        bind();
-    }
-
-    // Rate Request form fields are present in the page, but some render/reset
-    // operations can recreate them. Re-bind only when a field is replaced.
-    const observer = new MutationObserver(() => {
-        const missingBinding = FIELD_IDS.some(id => {
-            const el = document.getElementById(id);
-            return el && el.dataset.monthEndValidityBound !== '1';
-        });
-        if (missingBinding) bind();
-    });
-
-    const startObserver = () => {
-        if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    const init = () => {
+        applyDefaultIfEmpty();
+        if (typeof syncAllRateRequestValidityPickers === 'function') syncAllRateRequestValidityPickers();
     };
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', startObserver, { once: true });
+        document.addEventListener('DOMContentLoaded', init, { once:true });
     } else {
-        startObserver();
+        init();
     }
 })();
 
@@ -13698,7 +14429,7 @@ function inRange(v, from, to) {
 // Quotes from all modes
 function quoteRows() {
     const all = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         (db.rates?.[mode] || []).forEach(q => {
             all.push({ ...q, __mode: mode.toUpperCase() });
         });
@@ -13922,7 +14653,7 @@ function openInvoiceFromQuote(prefillRef) {
 
     // Build quote list
     const quotes = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         (db.rates?.[mode] || []).forEach(q => quotes.push({ ...q, _mode: mode }));
     });
     const options = quotes.map(q =>
@@ -15607,8 +16338,12 @@ function init() {
     }
     overlay.classList.add('hidden');
     applyTheme(db.theme);
+    applyPermissions();
+    updateLoggedInUserBadge();
     restoreNavState();
-    const lastTab = db.navState.lastTab || 'sea';
+    const requestedLastTab = db.navState.lastTab || 'sea';
+    const lastTab = hasTabAccess(requestedLastTab) ? requestedLastTab :
+        (isMasterUser(user) ? 'sea' : SHAHID_RBAC.dsrTabs[0]);
     switchToTab(lastTab);
     populateDropdowns();
     renderDatabase();
@@ -15646,7 +16381,7 @@ if (!localStorage.getItem('sea_default_migrated') && typeof migrateDefaultSeaCha
 }
 	
     // Multi-carrier renderer is the single source of truth for initial quote grids.
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         if (typeof window.buildChargesGrid === 'function') window.buildChargesGrid(mode);
         setValidityDefault(mode);
     });
@@ -15784,64 +16519,184 @@ document.addEventListener('change', function(e) {
     if (e.target.id === 'us-duty-currency') setExchangeRate('us-duty-exrate', 'us-duty-currency');
 });
 
+function _dutyEsc(value) {
+    return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function _dutyFormatUSD(n) {
+    return '$ ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function _dutyFormatInput(n) {
+    return Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2, useGrouping: false });
+}
+
+function _dutyDefaultPct() {
+    const d = (typeof db !== 'undefined' && db.defaults) ? db.defaults : {};
+    return Number.isFinite(parseFloat(d.inDuty)) ? parseFloat(d.inDuty) : 0;
+}
+
+function addDutyProduct(data = {}) {
+    const body = document.getElementById('duty-products-body');
+    if (!body) return;
+    const index = body.querySelectorAll('tr[data-duty-row]').length + 1;
+    const dutyPct = data.dutyPct !== undefined ? data.dutyPct : _dutyDefaultPct();
+    const row = document.createElement('tr');
+    row.setAttribute('data-duty-row', '1');
+    row.style.borderBottom = '1px solid var(--border)';
+    row.innerHTML = `
+        <td style="padding:8px;text-align:center;"><input type="checkbox" class="duty-select" aria-label="Select product ${index}"></td>
+        <td class="duty-row-no" style="padding:8px;text-align:center;font-weight:700;">${index}</td>
+        <td style="padding:8px;"><input class="duty-product-desc" type="text" placeholder="Product description" value="${_dutyEsc(data.description || '')}" oninput="calcDuty()" style="width:100%;min-width:150px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);"></td>
+        <td style="padding:8px;"><input class="duty-hs-code" type="text" placeholder="HS Code" value="${_dutyEsc(data.hsCode || '')}" oninput="calcDuty()" style="width:100%;min-width:115px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);"></td>
+        <td style="padding:8px;"><input class="duty-cargo" type="number" min="0" step="0.01" value="${_dutyFormatInput(data.cargoValue || 0)}" oninput="calcDuty()" style="width:100%;min-width:110px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;text-align:right;background:var(--card-bg);color:var(--text);"></td>
+        <td style="padding:8px;"><input class="duty-rate" type="number" min="0" step="0.01" value="${_dutyFormatInput(dutyPct)}" oninput="calcDuty()" style="width:100%;min-width:80px;padding:7px 8px;border:1px solid var(--border);border-radius:6px;text-align:right;background:var(--card-bg);color:var(--text);"></td>
+        <td class="duty-allocated-freight" style="padding:8px;text-align:right;font-weight:600;">$ 0.00</td>
+        <td class="duty-assessable" style="padding:8px;text-align:right;font-weight:600;">$ 0.00</td>
+        <td class="duty-bcd" style="padding:8px;text-align:right;font-weight:700;">$ 0.00</td>
+        <td class="duty-sws" style="padding:8px;text-align:right;font-weight:700;">$ 0.00</td>
+        <td class="duty-gst" style="padding:8px;text-align:right;font-weight:700;">$ 0.00</td>
+        <td class="duty-total" style="padding:8px;text-align:right;font-weight:800;">$ 0.00</td>
+        <td style="padding:8px;text-align:center;"><button type="button" class="btn btn-danger btn-sm" onclick="removeDutyProduct(this)" title="Remove product">🗑</button></td>`;
+    body.appendChild(row);
+    calcDuty();
+}
+
+function removeDutyProduct(button) {
+    const row = button && button.closest ? button.closest('tr[data-duty-row]') : null;
+    if (row) row.remove();
+    const body = document.getElementById('duty-products-body');
+    if (body && !body.querySelector('tr[data-duty-row]')) addDutyProduct();
+    else {
+        body.querySelectorAll('.duty-row-no').forEach((el, i) => el.textContent = i + 1);
+        calcDuty();
+    }
+}
+
+function removeSelectedDutyProducts() {
+    const body = document.getElementById('duty-products-body');
+    if (!body) return;
+    body.querySelectorAll('tr[data-duty-row]').forEach(row => {
+        const cb = row.querySelector('.duty-select');
+        if (cb && cb.checked) row.remove();
+    });
+    if (!body.querySelector('tr[data-duty-row]')) addDutyProduct();
+    else {
+        body.querySelectorAll('.duty-row-no').forEach((el, i) => el.textContent = i + 1);
+        calcDuty();
+    }
+}
+
+function resetDutyProducts() {
+    const body = document.getElementById('duty-products-body');
+    if (!body) return;
+    body.innerHTML = '';
+    const freight = document.getElementById('duty-freight');
+    if (freight) freight.value = 0;
+    addDutyProduct();
+    calcDuty();
+}
+
+function ensureDutyProducts() {
+    const body = document.getElementById('duty-products-body');
+    if (body && !body.querySelector('tr[data-duty-row]')) addDutyProduct();
+}
+
 function calcDuty() {
-    const val = parseFloat(document.getElementById('duty-value').value) || 0;
-    const freightInsUsd = parseFloat(document.getElementById('duty-freight').value) || 0;
-    const ex = parseFloat(document.getElementById('duty-exrate').value) || 0;
-    const dutyPct = parseFloat(document.getElementById('duty-pct').value) || 0;
-    const swsPct = parseFloat(document.getElementById('duty-service').value) || 0;
-    const gstPct = parseFloat(document.getElementById('duty-gst').value) || 0;
+    ensureDutyProducts();
+    const ex = parseFloat(document.getElementById('duty-exrate')?.value) || 0;
+    const freightInsUsd = parseFloat(document.getElementById('duty-freight')?.value) || 0;
+    const swsPct = parseFloat(document.getElementById('duty-service')?.value) || 0;
+    const gstPct = parseFloat(document.getElementById('duty-gst')?.value) || 0;
+    const currency = document.getElementById('duty-currency')?.value || 'USD';
+    const body = document.getElementById('duty-products-body');
+    if (!body) return;
 
-    const cargoInr = val * ex;
-    const freightInsInr = freightInsUsd * ex;
+    const rows = [...body.querySelectorAll('tr[data-duty-row]')];
+    const products = rows.map(row => ({
+        row,
+        cargo: Math.max(0, parseFloat(row.querySelector('.duty-cargo')?.value) || 0),
+        dutyPct: Math.max(0, parseFloat(row.querySelector('.duty-rate')?.value) || 0)
+    }));
+    const totalCargoInput = products.reduce((sum, p) => sum + p.cargo, 0);
 
-    // Duty is calculated on the complete assessable value:
-    // Cargo Value + Freight & Insurance.
-    const completeValueInr = cargoInr + freightInsInr;
-    const duty = completeValueInr * (dutyPct / 100);
+    let totalCargoInr = 0;
+    let totalFreightInr = 0;
+    let totalAssessableInr = 0;
+    let totalDutyInr = 0;
+    let totalSwsInr = 0;
+    let totalGstInr = 0;
 
-    // SWS is calculated on Duty Amount only.
-    const sws = duty * (swsPct / 100);
-    const totalGst = gstPct / 100 * (cargoInr + freightInsInr + duty + sws);
-    const totalPayable = duty + sws + totalGst;
+    products.forEach(p => {
+        // Preserve the existing calculator's logic exactly, applied per product:
+        // assessable value = cargo value + allocated freight & insurance;
+        // duty = assessable value × product duty %;
+        // SWS = duty × SWS %;
+        // GST = (assessable value + duty + SWS) × GST %.
+        const share = totalCargoInput > 0 ? p.cargo / totalCargoInput : 0;
+        const allocatedFreightUsd = freightInsUsd * share;
+        const cargoInr = p.cargo * ex;
+        const freightInr = allocatedFreightUsd * ex;
+        const assessableInr = cargoInr + freightInr;
+        const dutyInr = assessableInr * (p.dutyPct / 100);
+        const swsInr = dutyInr * (swsPct / 100);
+        const gstInr = gstPct / 100 * (assessableInr + dutyInr + swsInr);
+        const totalInr = dutyInr + swsInr + gstInr;
 
-    const valUsd = val;
-    const freightInsUsdDisplay = freightInsUsd;
-    const dutyUsd = duty / ex;
-    const swsUsd = sws / ex;
-    const totalGstUsd = totalGst / ex;
-    const totalPayableUsd = totalPayable / ex;
+        p.row.querySelector('.duty-allocated-freight').textContent = _dutyFormatUSD(allocatedFreightUsd);
+        p.row.querySelector('.duty-assessable').textContent = _dutyFormatUSD(assessableInr / (ex || 1));
+        p.row.querySelector('.duty-bcd').textContent = _dutyFormatUSD(dutyInr / (ex || 1));
+        p.row.querySelector('.duty-sws').textContent = _dutyFormatUSD(swsInr / (ex || 1));
+        p.row.querySelector('.duty-gst').textContent = _dutyFormatUSD(gstInr / (ex || 1));
+        p.row.querySelector('.duty-total').textContent = _dutyFormatUSD(totalInr / (ex || 1));
 
-    const formatUSD = (n) => '$ ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        totalCargoInr += cargoInr;
+        totalFreightInr += freightInr;
+        totalAssessableInr += assessableInr;
+        totalDutyInr += dutyInr;
+        totalSwsInr += swsInr;
+        totalGstInr += gstInr;
+    });
 
-    document.getElementById('duty-inr').textContent = formatINR(cargoInr);
-    document.getElementById('duty-usd').textContent = formatUSD(valUsd);
-    document.getElementById('duty-frt-inr').textContent = formatINR(freightInsInr);
-    document.getElementById('duty-frt-usd').textContent = formatUSD(freightInsUsdDisplay);
-    document.getElementById('duty-amt').textContent = formatINR(duty);
-    document.getElementById('duty-amt-usd').textContent = formatUSD(dutyUsd);
-    document.getElementById('duty-service-amt').textContent = formatINR(sws);
-    document.getElementById('duty-service-usd').textContent = formatUSD(swsUsd);
-    document.getElementById('duty-gst-amt').textContent = formatINR(totalGst);
-    document.getElementById('duty-gst-usd').textContent = formatUSD(totalGstUsd);
-    document.getElementById('duty-total').textContent = formatINR(totalPayable);
-    document.getElementById('duty-total-usd').textContent = formatUSD(totalPayableUsd);
+    const totalPayableInr = totalDutyInr + totalSwsInr + totalGstInr;
+    const exSafe = ex || 1;
+    const totalCargoUsd = totalCargoInr / exSafe;
+    const totalAssessableUsd = totalAssessableInr / exSafe;
+    const totalDutyUsd = totalDutyInr / exSafe;
+    const totalSwsUsd = totalSwsInr / exSafe;
+    const totalGstUsd = totalGstInr / exSafe;
+    const totalPayableUsd = totalPayableInr / exSafe;
 
-    // Total GST Payable is not required in the IN Duty Calculator display.
-    // Hide only that existing row; keep GST on Duty and Total Payable unchanged.
-    const totalGstCell = document.getElementById('duty-total-gst');
-    if (totalGstCell && totalGstCell.closest('tr')) {
-        totalGstCell.closest('tr').style.display = 'none';
+    const totalFoot = document.getElementById('duty-products-total');
+    if (totalFoot) {
+        totalFoot.innerHTML = `<tr style="background:#dcfce7;font-weight:800;color:var(--text);"><td></td><td></td><td style="padding:10px;">Total</td><td></td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(totalCargoUsd)}</td><td></td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(freightInsUsd)}</td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(totalAssessableUsd)}</td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(totalDutyUsd)}</td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(totalSwsUsd)}</td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(totalGstUsd)}</td><td style="padding:10px;text-align:right;">${_dutyFormatUSD(totalPayableUsd)}</td><td></td></tr>`;
     }
 
-    // Update labels with percentages
-    document.querySelector('#duty-amt').closest('tr').querySelector('td:first-child').innerHTML =
-        `<span style="background:#dbeafe;color:#1e3a8a;padding:2px 8px;border-radius:4px;font-size:0.7rem;">DUT</span> Duty Amount (${dutyPct}%)`;
-    document.querySelector('#duty-service-amt').closest('tr').querySelector('td:first-child').innerHTML =
-        `<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;font-size:0.7rem;">SWS</span> SWS Amount (${swsPct}%)`;
-    document.querySelector('#duty-gst-amt').closest('tr').querySelector('td:first-child').innerHTML =
-        `<span style="background:#dbeafe;color:#1e3a8a;padding:2px 8px;border-radius:4px;font-size:0.7rem;">GST</span> GST on Duty (${gstPct}%)`;
+    const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    setText('duty-inr', formatINR(totalCargoInr));
+    setText('duty-usd', _dutyFormatUSD(totalCargoUsd));
+    setText('duty-frt-inr', formatINR(totalFreightInr));
+    setText('duty-frt-usd', _dutyFormatUSD(freightInsUsd));
+    setText('duty-assessable-inr', formatINR(totalAssessableInr));
+    setText('duty-assessable-usd', _dutyFormatUSD(totalAssessableUsd));
+    setText('duty-amt', formatINR(totalDutyInr));
+    setText('duty-amt-usd', _dutyFormatUSD(totalDutyUsd));
+    setText('duty-service-amt', formatINR(totalSwsInr));
+    setText('duty-service-usd', _dutyFormatUSD(totalSwsUsd));
+    setText('duty-gst-amt', formatINR(totalGstInr));
+    setText('duty-gst-usd', _dutyFormatUSD(totalGstUsd));
+    setText('duty-total', formatINR(totalPayableInr));
+    setText('duty-total-usd', _dutyFormatUSD(totalPayableUsd));
+    setText('duty-assessable-label', '📋 Total Assessable Value');
+    setText('duty-amt-label', `DUT Basic Customs Duty (${products.length ? products.map(p => p.dutyPct).join(' / ') : 0}%)`);
+    setText('duty-service-label', `SWS (${swsPct}%)`);
+    setText('duty-gst-label', `GST (${gstPct}%)`);
+    const head = document.getElementById('duty-cargo-head');
+    if (head) head.textContent = `Cargo Value (${currency || 'USD'})`;
+    const hiddenDutyPct = document.getElementById('duty-pct');
+    if (hiddenDutyPct && products[0]) hiddenDutyPct.value = products[0].dutyPct;
 }
+
 
 function calcProduct() {
     const pricePerUnit = parseFloat(document.getElementById('prod-price').value) || 0;
@@ -19088,6 +19943,22 @@ function duplicateBLContainerRow(button) {
     addBLContainerRow(containerData);
 }
 
+function trackBLContainerLdb(button) {
+    const row = button?.closest('.bl-container-row');
+    if (!row) return;
+    const containerNo = row.querySelector('.bl-cont-no')?.value?.trim() || '';
+    if (!containerNo) {
+        alert('Please enter a container number before tracking.');
+        return;
+    }
+    const url = getLdbTrackingUrl(containerNo);
+    if (!url) {
+        alert('Unable to create LDB tracking link for this container.');
+        return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 function addBLContainerRow(containerData) {
     const container = document.getElementById('bl-container-rows');
     if (!container) return;
@@ -19107,6 +19978,7 @@ function addBLContainerRow(containerData) {
         <input type="number" class="bl-cont-net-weight" value="${containerData?.netWeight || ''}" placeholder="Net Wt (KGS)" step="0.01" oninput="updateBLTotals()" />
         <input type="number" class="bl-cont-volume" value="${containerData?.volume || ''}" placeholder="Volume (CBM)" step="0.01" oninput="updateBLTotals()" />
         <input type="text" class="bl-cont-packages" value="${containerData?.packages || ''}" placeholder="Packages" />
+        <button type="button" class="btn btn-sm btn-info bl-cont-ldb-track" title="Track this container on LDB" onclick="trackBLContainerLdb(this)">🔗 LDB Tracking</button>
         <button type="button" class="btn btn-sm btn-preview bl-cont-duplicate" title="Duplicate container with all data" onclick="duplicateBLContainerRow(this)">⧉</button>
         <button type="button" class="btn btn-sm btn-clear" title="Remove container" onclick="this.closest('.bl-container-row').remove(); updateBLTotals();">×</button>
     `;
@@ -19336,7 +20208,7 @@ function buildBLPreviewHTML(b) {
         <table class="bl-table"><thead><tr>
           <th style="width:15%">📦 MARKS & NOS</th><th style="width:14%">📦 NO. OF PACKAGES</th><th style="width:35%">▤ DESCRIPTION OF PACKAGES AND GOODS</th><th style="width:20%">⚖ GROSS WEIGHT (KGS)</th><th style="width:16%">📦 MEASUREMENT (CBM)</th>
         </tr></thead><tbody><tr>
-          <td>${val(b.marks)}</td><td>${val(b.packagesCount)}</td><td style="white-space:pre-wrap">${val(b.goodsDesc)}</td><td class="right">${num(b.grossWeight)}</td><td class="right">${num(b.measurement)}</td>
+          <td style="white-space:pre-wrap">${val(b.marks)}</td><td>${val(b.packagesCount)}</td><td style="white-space:pre-wrap">${val(b.goodsDesc)}</td><td class="right">${num(b.grossWeight)}</td><td class="right">${num(b.measurement)}</td>
         </tr></tbody><tfoot><tr><td colspan="3" class="right">TOTALS</td><td class="right">${num(b.totalGrossWeight || b.grossWeight)}</td><td class="right">${num(b.totalVolume || b.measurement)}</td></tr></tfoot></table>
       </div>
 
@@ -20521,6 +21393,7 @@ function showBackupFormatChoice(handle) {
     const existing = document.getElementById('backup-format-choice-modal');
     if (existing) existing.remove();
 
+    const currentFormat = String(db?.backupFormat || 'json').toLowerCase() === 'sqlite' ? 'sqlite' : 'json';
     const modal = document.createElement('div');
     modal.id = 'backup-format-choice-modal';
     modal.style.cssText = `
@@ -20531,22 +21404,31 @@ function showBackupFormatChoice(handle) {
     `;
 
     modal.innerHTML = `
-        <div style="width:min(430px,92vw);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 70px rgba(0,0,0,.35)">
+        <div style="width:min(470px,92vw);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 70px rgba(0,0,0,.35)">
             <h3 style="margin:0 0 8px">💾 Backup Format</h3>
-            <p style="margin:0 0 18px;color:#64748b">
+            <p style="margin:0 0 16px;color:#64748b">
                 Folder selected: <strong>${escapeHtml(handle.name)}</strong><br>
-                Select the format for automatic backup.
+                Select <strong>one</strong> backup format. The filename is fixed as <strong>SHAHID_ERP</strong>.
             </p>
-            <button id="backup-format-json" type="button"
-                style="width:100%;padding:13px;margin-bottom:10px;border:0;border-radius:9px;background:#0f172a;color:#fff;font-weight:700;cursor:pointer">
-                📄 JSON
-            </button>
-            <button id="backup-format-sqlite" type="button"
-                style="width:100%;padding:13px;margin-bottom:10px;border:0;border-radius:9px;background:#166534;color:#fff;font-weight:700;cursor:pointer">
-                🗄️ SQLite
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+                <button id="backup-format-json" type="button"
+                    style="padding:14px;border:2px solid ${currentFormat==='json'?'#166534':'#cbd5e1'};border-radius:10px;background:${currentFormat==='json'?'#f0fdf4':'#fff'};color:#0f172a;font-weight:700;cursor:pointer">
+                    📄 JSON<br><small style="font-weight:500">SHAHID_ERP.json</small>
+                </button>
+                <button id="backup-format-sqlite" type="button"
+                    style="padding:14px;border:2px solid ${currentFormat==='sqlite'?'#166534':'#cbd5e1'};border-radius:10px;background:${currentFormat==='sqlite'?'#f0fdf4':'#fff'};color:#0f172a;font-weight:700;cursor:pointer">
+                    🗄️ SQLite<br><small style="font-weight:500">SHAHID_ERP.sqlite</small>
+                </button>
+            </div>
+            <div style="padding:10px 12px;border-radius:9px;background:#f8fafc;color:#475569;font-size:12px;line-height:1.5;margin-bottom:12px">
+                <strong>SQLite:</strong> recommended when multiple users use the same shared backup folder/database. Each sync imports, merges and exports the current ERP state.
+            </div>
+            <button id="backup-format-apply" type="button"
+                style="width:100%;padding:13px;border:0;border-radius:9px;background:#166534;color:#fff;font-weight:700;cursor:pointer">
+                ✅ Use Selected Format
             </button>
             <button id="backup-format-cancel" type="button"
-                style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;cursor:pointer">
+                style="width:100%;padding:10px;margin-top:8px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;cursor:pointer">
                 Cancel
             </button>
             <div id="backup-format-status" style="margin-top:10px;font-size:12px;color:#dc2626"></div>
@@ -20555,38 +21437,57 @@ function showBackupFormatChoice(handle) {
 
     document.body.appendChild(modal);
 
-    const choose = async (format) => {
+    let selectedFormat = currentFormat;
+    const jsonBtn = document.getElementById('backup-format-json');
+    const sqliteBtn = document.getElementById('backup-format-sqlite');
+    const statusEl = document.getElementById('backup-format-status');
+
+    const refreshSelection = () => {
+        if (!jsonBtn || !sqliteBtn) return;
+        const jsonSelected = selectedFormat === 'json';
+        jsonBtn.style.border = `2px solid ${jsonSelected ? '#166534' : '#cbd5e1'}`;
+        jsonBtn.style.background = jsonSelected ? '#f0fdf4' : '#fff';
+        sqliteBtn.style.border = `2px solid ${!jsonSelected ? '#166534' : '#cbd5e1'}`;
+        sqliteBtn.style.background = !jsonSelected ? '#f0fdf4' : '#fff';
+    };
+
+    jsonBtn.onclick = () => { selectedFormat = 'json'; refreshSelection(); };
+    sqliteBtn.onclick = () => { selectedFormat = 'sqlite'; refreshSelection(); };
+
+    document.getElementById('backup-format-apply').onclick = async () => {
         try {
-            db.backupFormat = format;
+            db.backupFormat = selectedFormat;
             saveDB();
             modal.remove();
 
             const backupStatus = document.getElementById('backup-status');
+            const fileName = selectedFormat === 'sqlite' ? 'SHAHID_ERP.sqlite' : 'SHAHID_ERP.json';
             if (backupStatus) {
-                backupStatus.textContent = `📁 ${handle.name} authorized — ${format.toUpperCase()} backup selected.`;
+                backupStatus.textContent = selectedFormat === 'sqlite'
+                    ? `📁 ${handle.name} authorized — SQLite shared backup enabled — ${fileName}`
+                    : `📁 ${handle.name} authorized — JSON backup enabled — ${fileName}`;
                 backupStatus.className = 'backup-status success';
             }
 
-            await Promise.resolve(startAutoBackup());
-            await autoBackup();
+            await Promise.resolve(window.startAutoBackup ? window.startAutoBackup() : startAutoBackup());
+            await Promise.resolve(window.autoBackup ? window.autoBackup() : autoBackup());
         } catch (error) {
-            console.error('Backup format initialization failed:', error);
+            console.error('Backup initialization failed:', error);
             const backupStatus = document.getElementById('backup-status');
             if (backupStatus) {
                 backupStatus.textContent = `❌ Backup initialization failed: ${error.message}`;
                 backupStatus.className = 'backup-status error';
             }
+            if (statusEl) statusEl.textContent = error.message;
         }
     };
 
-    document.getElementById('backup-format-json').onclick = () => choose('json');
-    document.getElementById('backup-format-sqlite').onclick = () => choose('sqlite');
     document.getElementById('backup-format-cancel').onclick = () => {
         modal.remove();
-        const statusEl = document.getElementById('backup-status');
-        if (statusEl) {
-            statusEl.textContent = '⚠️ Folder selected. Please select JSON or SQLite backup format.';
-            statusEl.className = 'backup-status error';
+        const status = document.getElementById('backup-status');
+        if (status) {
+            status.textContent = '⚠️ Folder selected. Backup format was not changed.';
+            status.className = 'backup-status error';
         }
     };
 }
@@ -20649,7 +21550,7 @@ async function autoBackupToFolder() {
             return await window.SHAHID_RUN_IMPORT_MERGE_EXPORT_NOW();
         }
 
-        const fileName = `AutoBackup_${new Date().toISOString().split('T')[0]}.json`;
+        const fileName = 'SHAHID_ERP.json';
         const backupData = { timestamp: new Date().toISOString(), data: db };
         const jsonStr = JSON.stringify(backupData, null, 2);
 
@@ -20687,7 +21588,7 @@ async function fallbackBackupDownload() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `AutoBackup_${new Date().toISOString().split('T')[0]}.json`;
+        a.download = 'SHAHID_ERP.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -20793,6 +21694,76 @@ function getFolderHandle() {
 
 // RATES REQUEST //
 
+function parseRateRequestDisplayDate(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const m = raw.match(/^(\d{1,2})\/([A-Za-z]{3})\/(\d{4})$/);
+    if (!m) return raw;
+    const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const mon = months[m[2].charAt(0).toUpperCase()+m[2].slice(1).toLowerCase()];
+    const day = Number(m[1]), year = Number(m[3]);
+    if (mon === undefined || day < 1 || day > 31) return raw;
+    const d = new Date(Date.UTC(year, mon, day));
+    if (d.getUTCFullYear() !== year || d.getUTCMonth() !== mon || d.getUTCDate() !== day) return raw;
+    return `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+function formatRateRequestDate(value) {
+    const iso = parseRateRequestDisplayDate(value);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return String(value || '').trim();
+    const [y,m,d] = iso.split('-').map(Number);
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${String(d).padStart(2,'0')}/${months[m-1]}/${y}`;
+}
+
+function formatRateRequestValidityField(el) {
+    if (!el) return '';
+    const formatted = formatRateRequestDate(el.value);
+    if (formatted) {
+        el.value = formatted;
+        const m = String(el.id || '').match(/^rr-validity-(sea1|sea2|air)$/);
+        if (m) {
+            const picker = document.getElementById(`rr-validity-${m[1]}-picker`);
+            if (picker) picker.value = parseRateRequestDisplayDate(formatted);
+        }
+    }
+    return formatted;
+}
+
+function formatAllRateRequestValidityFields() {
+    ['rr-validity-sea1','rr-validity-sea2','rr-validity-air'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.value) formatRateRequestValidityField(el);
+    });
+    syncAllRateRequestValidityPickers();
+}
+
+function getRateRequestValidityValue(id) {
+    const el = document.getElementById(id);
+    return el ? parseRateRequestDisplayDate(el.value) : '';
+}
+
+function syncRateRequestValidityPicker(suffix, picker) {
+    if (!picker) return;
+    const text = document.getElementById(`rr-validity-${suffix}`);
+    if (!text) return;
+    if (picker.value) {
+        text.value = formatRateRequestDate(picker.value);
+        text.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+
+function syncAllRateRequestValidityPickers() {
+    ['sea1','sea2','air'].forEach(suffix => {
+        const text = document.getElementById(`rr-validity-${suffix}`);
+        const picker = document.getElementById(`rr-validity-${suffix}-picker`);
+        if (!text || !picker) return;
+        const iso = parseRateRequestDisplayDate(text.value);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) picker.value = iso;
+    });
+}
+
 function populateRateRequestDropdowns() {
     const master = getMasterDropdownLists();
     const hidden = db.hiddenItems || {};
@@ -20816,18 +21787,20 @@ function populateRateRequestDropdowns() {
     });
     const company = db.companyName || 'GATEWAY EXIM';
     ['rr-forwarder-sea1','rr-forwarder-sea2'].forEach(id => { const el=document.getElementById(id); if(el) el.value=company; });
-    // Set the default only when VALIDITY is empty.
+    // Set the DEFAULT VALIDITY only when the field is empty.
+    // Default follows the 30th / 14th validity-cycle schedule.
     // A manually selected date must never be overwritten during re-render,
     // format switching, or dropdown population.
-    const endOfMonth = getEndOfMonthDate();
+    const defaultValidity = getRateRequestDefaultValidityDate();
     ['rr-validity-sea1','rr-validity-sea2'].forEach(id => {
         const el = document.getElementById(id);
-        if (el && !el.value) el.value = endOfMonth;
+        if (el && !el.value) el.value = defaultValidity;
     });
     ['rr-commodity-sea1','rr-commodity-sea2','rr-commodity-air'].forEach(id => { const el=document.getElementById(id); if(el && !el.value) el.value=''; });
     ['rr-inventory-sea1','rr-inventory-sea2'].forEach(id => { const el=document.getElementById(id); if(el && !el.value) el.value='20 GP & 40 HC'; });
     ['rr-freeTime-sea1','rr-freeTime-sea2'].forEach(id => { const el=document.getElementById(id); if(el && !el.value) el.value='14 Days'; });
     const clearance=document.getElementById('rr-clearance-air'); if(clearance && !clearance.value) clearance.value='INQUIRY';
+    formatAllRateRequestValidityFields();
 }
 
 // Switch between formats
@@ -20873,7 +21846,7 @@ function getRateRequestData(format) {
         data.inventory = getSel('rr-inventory-sea1');
         data.weight = getVal('rr-weight-sea1');
         data.term = getSel('rr-term-sea1');
-        data.validity = getVal('rr-validity-sea1');
+        data.validity = getRateRequestValidityValue('rr-validity-sea1');
         data.freeTime = getSel('rr-freeTime-sea1');
 		data.remarks = getVal('rr-remarks-sea1');
     } else if (format === 'seaWithoutShipper') {
@@ -20884,7 +21857,7 @@ function getRateRequestData(format) {
         data.inventory = getSel('rr-inventory-sea2');
         data.weight = getVal('rr-weight-sea2');
         data.term = getSel('rr-term-sea2');
-        data.validity = getVal('rr-validity-sea2');
+        data.validity = getRateRequestValidityValue('rr-validity-sea2');
         data.freeTime = getSel('rr-freeTime-sea2');
 		data.remarks = getVal('rr-remarks-sea2');
     } else if (format === 'air') {
@@ -20895,7 +21868,7 @@ function getRateRequestData(format) {
         data.commodity = getVal('rr-commodity-air');
         data.inventory = getVal('rr-inventory-air');
         data.weight = getVal('rr-weight-air');
-        data.validity = getVal('rr-validity-air');
+        data.validity = getRateRequestValidityValue('rr-validity-air');
         data.freeTime = getVal('rr-freeTime-air');
         data.packaging = getVal('rr-packaging-air');
         data.pallet = getSel('rr-pallet-air');
@@ -21037,7 +22010,18 @@ function clearRateRequestForm(format) {
             inventoryEl.value = '20 GP & 40 HC';
         }
 
-        document.getElementById(`rr-validity-${suffix}`).value = getEndOfMonthDate();
+        // Set the validity-cycle default only when the field is empty.
+        // Once the user manually selects a validity date, preserve that exact date
+        // across format switches/re-population instead of overwriting it.
+        const validityEl = document.getElementById(`rr-validity-${suffix}`);
+        const validityPicker = document.getElementById(`rr-validity-${suffix}-picker`);
+        if (validityEl && !String(validityEl.value || '').trim()) {
+            const defaultValidity = getRateRequestDefaultValidityDate();
+            validityEl.value = formatRateRequestDate(defaultValidity);
+            if (validityPicker) validityPicker.value = defaultValidity;
+        } else if (validityEl && validityPicker) {
+            validityPicker.value = parseRateRequestDisplayDate(validityEl.value);
+        }
         document.getElementById(`rr-weight-${suffix}`).value = 25500;
         document.getElementById(`rr-forwarder-${suffix}`).value = db.companyName || 'GATEWAY EXIM';
         document.getElementById(`rr-term-${suffix}`).value = 'PREPAID';
@@ -21050,7 +22034,14 @@ function clearRateRequestForm(format) {
         document.getElementById('rr-pallet-air').value = 'PALLETIZED';
         document.getElementById('rr-temp-air').value = 'NORMAL';
         const airValidity = document.getElementById('rr-validity-air');
-        if (airValidity && !airValidity.value) airValidity.value = getEndOfMonthDate();
+        const airValidityPicker = document.getElementById('rr-validity-air-picker');
+        if (airValidity && !String(airValidity.value || '').trim()) {
+            const defaultValidity = getRateRequestDefaultValidityDate();
+            airValidity.value = formatRateRequestDate(defaultValidity);
+            if (airValidityPicker) airValidityPicker.value = defaultValidity;
+        } else if (airValidity && airValidityPicker) {
+            airValidityPicker.value = parseRateRequestDisplayDate(airValidity.value);
+        }
         // remarks already cleared
     }
 }
@@ -21059,7 +22050,52 @@ function clearRateRequestForm(format) {
 function getEndOfMonthDate() {
     const now = new Date();
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return lastDay.toISOString().split('T')[0];
+    return `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2,'0')}-${String(lastDay.getDate()).padStart(2,'0')}`;
+}
+
+// Rate Request VALIDITY DEFAULT rule — fixed validity-cycle schedule.
+// Business cycle: VALIDITY dates are the 30th and the 14th of the following month.
+// The corresponding default becomes active on the 12th / 25th cut-offs:
+//   12th–24th  -> 30th of the current month
+//   25th–11th  -> 14th of the following month
+// Examples required by the user:
+//   12/Sep -> 30/Sep
+//   24/Sep -> 30/Sep
+//   25/Sep -> 14/Oct
+//   11/Oct -> 14/Oct
+//   12/Oct -> 30/Oct
+//   25/Oct -> 14/Nov
+// This is ONLY the initial/default date. Manual user selections are preserved.
+function getRateRequestDefaultValidityDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const day = now.getDate();
+
+    // First cycle cutoff: from the 12th through the 24th, the validity is
+    // the 30th of the current month (when a 30th exists).
+    if (day >= 12 && day <= 24) {
+        const daysInCurrentMonth = new Date(year, month + 1, 0).getDate();
+        if (daysInCurrentMonth >= 30) {
+            return `${year}-${String(month + 1).padStart(2,'0')}-30`;
+        }
+        // Defensive handling for February: no 30th exists, so use the
+        // next cycle's 14th rather than generating an invalid date.
+        const nextMonth = new Date(year, month + 1, 14);
+        return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2,'0')}-14`;
+    }
+
+    // Second cycle cutoff: from the 25th through the end of the month,
+    // and from the 1st through the 11th of the next month, the validity
+    // is the 14th of the next month.
+    if (day >= 25) {
+        const nextMonth = new Date(year, month + 1, 14);
+        return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2,'0')}-14`;
+    }
+
+    // day 1–11: the active cycle is still the 14th of the current month.
+    // If today is the 1st–11th and that 14th has not passed, use it.
+    return `${year}-${String(month + 1).padStart(2,'0')}-14`;
 }
 
 // Rate Request VALIDITY manual-date handler.
@@ -21070,6 +22106,21 @@ function setRateRequestMonthEnd(el) {
     return String(el.value || '').trim();
 }
 
+
+function formatEmailQuotationDate(value) {
+    if (!value) return '-';
+    const raw = String(value).trim();
+    let d;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+        const [y,m,day] = raw.split('-').map(Number);
+        d = new Date(y, m - 1, day);
+    } else {
+        d = new Date(raw);
+    }
+    if (isNaN(d.getTime())) return raw;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${d.getFullYear()}-${months[d.getMonth()]}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 function buildRateRequestPreviewHTML(data) {
     const format = data.format;
@@ -21100,7 +22151,7 @@ function buildRateRequestPreviewHTML(data) {
             ['INVENTORY', data.inventory || '-'],
             ['COMMODITY', data.commodity || '-'],
             ['GROSS WEIGHT', data.weight ? data.weight + ' Kgs' : '-'],
-            ['VALIDITY', data.validity || '-'],
+            ['VALIDITY', formatEmailQuotationDate(data.validity)],
             ['FREIGHT TERM', data.term || '-'],
             ['DEST. FREE TIME', data.freeTime || '-']
         ]);
@@ -21195,7 +22246,7 @@ function buildRateRequestCompactEmailHTML(data) {
             ['INVENTORY', data.inventory || '-'],
             ['COMMODITY', data.commodity || '-'],
             ['GROSS WEIGHT', data.weight ? data.weight + ' Kgs' : '-'],
-            ['VALIDITY', data.validity || '-'],
+            ['VALIDITY', formatEmailQuotationDate(data.validity)],
             ['FREIGHT TERM', data.term || '-'],
             ['DEST. FREE TIME', data.freeTime || '-']
         ]);
@@ -21207,7 +22258,7 @@ function buildRateRequestCompactEmailHTML(data) {
             ['INVENTORY', data.inventory || '-'],
             ['COMMODITY', data.commodity || '-'],
             ['GROSS WEIGHT', data.weight ? data.weight + ' Kgs' : '-'],
-            ['VALIDITY', data.validity || '-'],
+            ['VALIDITY', formatEmailQuotationDate(data.validity)],
             ['FREIGHT TERM', data.term || '-'],
             ['DEST. FREE TIME', data.freeTime || '-']
         ]);
@@ -21840,7 +22891,7 @@ function renderEnhancedRates() {
 
     // ===== Collect all quotes =====
     let allQuotes = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         (db.rates[mode] || []).forEach((quote, idx) => {
             allQuotes.push({
                 ...quote,
@@ -22260,7 +23311,7 @@ function getRateQuotesExportRows() {
     const quickFilter = document.getElementById('rates-quick-filter')?.value || sessionStorage.getItem('ratesQuickFilter') || '';
 
     const rows = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         (db.rates?.[mode] || []).forEach(q => {
             const row = { ...q, _mode: mode.toUpperCase(), _modeRaw: mode };
             if (searchText) {
@@ -22296,7 +23347,7 @@ function getDraftsExportRows() {
     const quickFilter = document.getElementById('drafts-quick-filter')?.value || sessionStorage.getItem('draftsQuickFilter') || '';
 
     const rows = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         (db.drafts?.[mode] || []).forEach(d => {
             const row = { ...d, _mode: mode, _modeLabel: mode.toUpperCase() };
             if (searchText) {
@@ -22461,7 +23512,7 @@ function renderEnhancedDrafts() {
     const quickFilter = document.getElementById('drafts-quick-filter')?.value || sessionStorage.getItem('draftsQuickFilter') || '';
 
     let allDrafts = [];
-    ['sea', 'air', 'lcl'].forEach(mode => {
+    ['sea', 'air', 'lcl', 'sea-import'].forEach(mode => {
         (db.drafts[mode] || []).forEach((draft, idx) => {
             allDrafts.push({
                 ...draft,
@@ -23593,14 +24644,36 @@ function updateLocalChargeToolbar(kind, mode, total) {
 }
 
 function switchLocalTab(mode) {
+    mode = String(mode || 'sea').toLowerCase();
     currentLocalTab = mode;
 
-    // Update sub-tab buttons
+    // Update Local Charges sub-tab buttons, including the embedded Routing tab.
     document.querySelectorAll('.local-sub-tabs .master-tab').forEach(t => t.classList.remove('active'));
     const activeBtn = document.querySelector(`.local-sub-tabs .master-tab[data-local="${mode}"]`);
     if (activeBtn) activeBtn.classList.add('active');
 
-    // Update content panels
+    const routingPanel = document.getElementById('routing');
+
+    // Routing is now opened from inside Local Charges. Keep the Local Charges
+    // parent tab active and only switch the visible content area. The existing
+    // Routing panel/functionality remains unchanged.
+    if (mode === 'routing') {
+        const user = typeof checkLogin === 'function' ? checkLogin() : null;
+        if (typeof hasTabAccess === 'function' && user && !hasTabAccess('routing', user)) {
+            alert('You do not have permission to open Routing.');
+            const fallback = document.querySelector('.local-sub-tabs .master-tab[data-local="sea"]');
+            if (fallback) fallback.click();
+            return;
+        }
+        document.querySelectorAll('.local-content-panel').forEach(p => p.classList.remove('active'));
+        if (routingPanel) routingPanel.classList.add('active');
+        if (typeof routingRender === 'function') routingRender();
+        return;
+    }
+
+    // Leaving Routing: hide the existing Routing panel and show the selected
+    // Local Charges content without changing any Routing data/functionality.
+    if (routingPanel) routingPanel.classList.remove('active');
     document.querySelectorAll('.local-content-panel').forEach(p => p.classList.remove('active'));
     const targetPanel = document.getElementById(`local-${mode}-content`);
     if (targetPanel) targetPanel.classList.add('active');
@@ -23890,9 +24963,12 @@ const buy = parseRateInput(
         if (!grid) return;
         const names = getCarrierNames(mode);
         updateCarrierHeaders(mode, names);
-        const categories = chargeCategories[mode];
+        // Guard against startup/restore calls arriving before a mode's charge
+        // categories are initialized. Object.entries(undefined) was causing
+        // a fatal TypeError during ERP startup/rebuild.
+        const categories = chargeCategories?.[mode] || {};
         let orderedCategories = {};
-        Object.entries(categories).forEach(([cat, charges]) => { orderedCategories[cat] = [...charges]; });
+        Object.entries(categories).forEach(([cat, charges]) => { orderedCategories[cat] = Array.isArray(charges) ? [...charges] : []; });
         if (customOrder) {
             orderedCategories = {};
             Object.entries(customOrder).forEach(([cat, charges]) => { orderedCategories[cat] = [...charges]; });
@@ -24073,7 +25149,9 @@ const buy = parseRateInput(
         if (mode === 'sea' && ownCfs) {
             // Preserve the existing CFS toggle behaviour by removing the CFS category from the display later.
         }
-        let order = JSON.parse(JSON.stringify(chargeCategories[mode]));
+        // Keep charge-order rebuild safe if a mode is temporarily unavailable
+        // during initialization or restore.
+        let order = JSON.parse(JSON.stringify(chargeCategories?.[mode] || {}));
         if (mode === 'sea' && ownCfs) delete order['CFS / Transport Charges'];
         Object.keys(order).forEach(cat => { if (!order[cat]?.length) delete order[cat]; });
         chargesOrder[mode] = order;
@@ -24170,7 +25248,7 @@ const buy = parseRateInput(
             set('rr-commodity-sea1', rec.commodity || '');
             set('rr-inventory-sea1', rec.inventory || '');
             set('rr-weight-sea1', rec.weight || ''); set('rr-term-sea1', rec.term || 'PREPAID');
-            set('rr-validity-sea1', rec.validity || ''); set('rr-freeTime-sea1', rec.freeTime || '14 Days');
+            set('rr-validity-sea1', formatRateRequestDate(rec.validity || '')); set('rr-freeTime-sea1', rec.freeTime || '14 Days');
             set('rr-remarks-sea1', rec.remarks || '');
         } else if (format === 'seaWithoutShipper') {
             set('rr-forwarder-sea2', rec.forwarder || db.companyName || 'GATEWAY EXIM');
@@ -24178,12 +25256,12 @@ const buy = parseRateInput(
             set('rr-commodity-sea2', rec.commodity || '');
             set('rr-inventory-sea2', rec.inventory || '');
             set('rr-weight-sea2', rec.weight || ''); set('rr-term-sea2', rec.term || 'PREPAID');
-            set('rr-validity-sea2', rec.validity || ''); set('rr-freeTime-sea2', rec.freeTime || '14 Days');
+            set('rr-validity-sea2', formatRateRequestDate(rec.validity || '')); set('rr-freeTime-sea2', rec.freeTime || '14 Days');
             set('rr-remarks-sea2', rec.remarks || '');
         } else {
             set('rr-shipper-air', rec.shipper); set('rr-pol-air', rec.pol); set('rr-pod-air', rec.pod);
             set('rr-clearance-air', rec.clearance || 'INQUIRY'); set('rr-commodity-air', rec.commodity || '');
-            set('rr-inventory-air', rec.inventory || '20 GP & 40 HC'); set('rr-validity-air', rec.validity || getEndOfMonthDate()); set('rr-freeTime-air', rec.freeTime || '14 Days');
+            set('rr-inventory-air', rec.inventory || '20 GP & 40 HC'); set('rr-validity-air', formatRateRequestDate(rec.validity || getRateRequestDefaultValidityDate())); set('rr-freeTime-air', rec.freeTime || '14 Days');
             set('rr-weight-air', rec.weight || ''); set('rr-packaging-air', rec.packaging || '');
             set('rr-pallet-air', rec.pallet || 'PALLETIZED'); set('rr-dimension-air', rec.dimension || '');
             set('rr-temp-air', rec.temp || 'NORMAL'); set('rr-remarks-air', rec.remarks || '');
@@ -24453,10 +25531,12 @@ function mcNormalizeOutput(data,mode){
     if(data.carrier) return [{carrier:data.carrier,charges:data.charges||{}}];
     return [];
 }
-function mcBuildCustomerShipmentHTML(data, mode, carriers, compact=false) {
+function mcBuildCustomerShipmentHTML(data, mode, carriers, compact=false, emailDateFormat=false) {
     const esc = (v) => mcEsc(v == null || v === '' ? '-' : String(v));
     const validityDisplay = data.validityDate
-        ? new Date(data.validityDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+        ? (emailDateFormat
+            ? (() => { const d=new Date(data.validityDate); if (isNaN(d.getTime())) return String(data.validityDate); const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return `${d.getFullYear()}-${m[d.getMonth()]}-${String(d.getDate()).padStart(2,'0')}`; })()
+            : new Date(data.validityDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }))
         : '—';
     const transitDisplay = data.transit ? `${esc(data.transit)} Days` : '—';
     const isSeaContainerMode = mode === 'sea' && data.comparisonMode === 'container' && Array.isArray(data.comparisonContainers);
@@ -25263,13 +26343,13 @@ function mcStandardRemarks(mode, baseFont, headingSize, tdPadding, tableWidth='1
 /* SHAHID_FINAL_SIZE_CONSTANTS */
 /* V20 — LEGACY SPECIAL REMARK */
 // Preview Special Remark: red header, pale-red body, uppercase content, separate table.
-function buildPreviewHTML(data,mode,maxWidth='100%',compact=false){
+function buildPreviewHTML(data,mode,maxWidth='100%',compact=false,emailDateFormat=false){
     // CANONICAL QUOTATION VIEW:
     // Preview / Print / PDF intentionally use the same table geometry as Copy Compact.
     // Only the outer company/title header differs in non-compact Preview.
     const modeLabel={sea:'SEA FREIGHT',air:'AIR FREIGHT',lcl:'LCL FREIGHT'}[mode]||'FREIGHT';
     const carriers=mcOutputCarriers(data,mode);
-    const detail=mcBuildCustomerShipmentHTML(data,mode,carriers,compact);
+    const detail=mcBuildCustomerShipmentHTML(data,mode,carriers,compact,emailDateFormat);
     const baseFont='15px';
     const headingSize='17px';
     const titleFont='16px';
@@ -25318,7 +26398,7 @@ function buildCompactEmailHTML(data, mode) {
     // Dedicated Compact output: preserve the approved Preview table content and
     // Compact-specific typography without altering Preview/PDF rendering.
     const carrierCount = shahidCarrierList(data).length;
-    const html = buildPreviewHTML(data, mode, SHAHID_SIZE.quote, true);
+    const html = buildPreviewHTML(data, mode, SHAHID_SIZE.quote, true, true);
     const finalHtml = normalizeQuotationOutputHTML(html, mode);
     return `<div class="quote-output compact-output" data-carrier-count="${carrierCount}" style="width:100%;max-width:${SHAHID_SIZE.quote};min-width:0;margin:0 auto;box-sizing:border-box;font-family:'Aptos','Segoe UI',Arial,sans-serif;">${finalHtml}</div>`;
 }
@@ -25730,14 +26810,18 @@ window.upsertCarrierCharges=upsertCarrierCharges;
 
     // ---------- 25: canonical quote engine facade ----------
     const engine={
-        version:'8.0',
+        version:'8.1',
         modes:MODES.slice(),
         names(mode){
             const ids=[`${mode}-carrier`,`${mode}-carrier-2`,`${mode}-carrier-3`];
             return ids.map(id=>String(document.getElementById(id)?.value||'').trim()).filter(Boolean);
         },
         collect(mode){
-            const fn=window.__multiGetFormData || window.getFormData;
+            // IMPORTANT: use the captured canonical collector, not window.getFormData.
+            // window.getFormData is replaced below with the facade itself; resolving
+            // it dynamically here created a recursive call chain and caused:
+            // "Maximum call stack size exceeded".
+            const fn=window.__ERP_CANONICAL_GET_FORM_DATA;
             if(typeof fn!=='function') throw new Error('Quote data collector is unavailable.');
             return fn(mode);
         },
@@ -25774,11 +26858,13 @@ window.upsertCarrierCharges=upsertCarrierCharges;
     // Public APIs now point to the same canonical functions. Capture the
     // existing renderer BEFORE replacing the public reference to avoid recursion.
     window.getQuoteEngine=()=>window.ERPQuoteEngine;
+    const canonicalGetFormData = window.__ERP_CANONICAL_GET_FORM_DATA || window.getFormData;
+    window.__ERP_CANONICAL_GET_FORM_DATA = canonicalGetFormData;
     const canonicalPreview = window.__ERP_CANONICAL_PREVIEW || window.buildPreviewHTML;
     window.__ERP_CANONICAL_PREVIEW = canonicalPreview;
     window.getFormData=function(mode){ return window.ERPQuoteEngine.collect(mode); };
-    window.buildPreviewHTML=function(data,mode,maxWidth='100%',compact=false){
-        if(typeof canonicalPreview==='function') return canonicalPreview(data,mode,maxWidth,compact);
+    window.buildPreviewHTML=function(data,mode,maxWidth='100%',compact=false,emailDateFormat=false){
+        if(typeof canonicalPreview==='function') return canonicalPreview(data,mode,maxWidth,compact,emailDateFormat);
         throw new Error('Quote preview renderer is unavailable.');
     };
 
@@ -28996,6 +30082,12 @@ function shahidPreviewShell(innerHtml, mode='quote') {
     window.__findFinalSeaLocalCharges = seaLocal;
     window.__findFinalSeaDefaultCharges = seaDefault;
     window.__findFinalSeaTHC = seaTHC;
+    // Read-only exports for the Routing Decision Center. These call the exact
+    // same final SEA charge sources used by SEA Quote; they do not alter data.
+    window.__finalSeaLocal = seaLocal;
+    window.__finalSeaDefault = seaDefault;
+    window.__finalSeaTHC = seaTHC;
+
 })();
 
 
@@ -29576,7 +30668,10 @@ window.invoiceActionWhatsApp=function(){
     if (window.__shahidBackupBusy) return false;
 
     const folderPath = String(db?.backupFolderPath || '').trim();
-    if (!folderPath) {
+    const format = String(db?.backupFormat || 'json').toLowerCase() === 'sqlite' ? 'sqlite' : 'json';
+    const fileName = format === 'sqlite' ? 'SHAHID_ERP.sqlite' : 'SHAHID_ERP.json';
+
+    if (!folderPath && !(backupFolderHandle || window.backupFolderHandle)) {
       clearAutoBackupTimer();
       setAutoStatus('⏸️ Auto backup paused — select LOCAL backup folder');
       setStatus('⚠️ Local backup folder not selected. Click BROWSE FOLDER.', false);
@@ -29585,46 +30680,81 @@ window.invoiceActionWhatsApp=function(){
 
     window.__shahidBackupBusy = true;
     try {
-      const check = await verifyNativeFolder(folderPath);
-      if (!check || check.success !== true || check.writable !== true) {
-        clearAutoBackupTimer();
-        setAutoStatus('⏸️ Auto backup paused — folder authorization required');
-        setStatus('⚠️ Backup folder permission is not available. Click BROWSE FOLDER to re-authorize access.', false);
-        return false;
+      // SQLite is the shared-database mode. It reads the existing shared
+      // database, merges it with the current ERP state, then writes the
+      // complete merged database back to the same fixed filename.
+      if (format === 'sqlite') {
+        if (typeof window.SHAHID_RUN_IMPORT_MERGE_EXPORT_NOW !== 'function') {
+          throw new Error('SQLite shared-sync engine is unavailable.');
+        }
+        const ok = await window.SHAHID_RUN_IMPORT_MERGE_EXPORT_NOW();
+        if (!ok) throw new Error('SQLite shared backup/sync failed.');
+        setAutoStatus('✅ Running (every 1 min) – SQLite shared sync – SHAHID_ERP.sqlite');
+        return true;
       }
 
-      const format = String(db?.backupFormat || 'json').toLowerCase();
+      // JSON backup — single complete application snapshot.
+      const timestamp = new Date().toISOString();
+      const jsonPayload = {
+        schema: 'SHAHID-ERP-COMPLETE-APPLICATION-BACKUP-V3',
+        timestamp,
+        backupType: 'FULL_APPLICATION_SNAPSHOT',
+        backupFormat: 'json',
+        data: JSON.parse(JSON.stringify(db))
+      };
+      const jsonText = JSON.stringify(jsonPayload, null, 2);
 
-      if (format === 'sqlite' && typeof window.SHAHID_RUN_IMPORT_MERGE_EXPORT_NOW === 'function') {
-        return await window.SHAHID_RUN_IMPORT_MERGE_EXPORT_NOW();
+      // EXE/native mode.
+      if (folderPath && window.electronAPI && typeof window.electronAPI.writeBackupFile === 'function') {
+        const check = await verifyNativeFolder(folderPath);
+        if (!check || check.success !== true || check.writable !== true) {
+          clearAutoBackupTimer();
+          setAutoStatus('⏸️ Auto backup paused — folder authorization required');
+          setStatus('⚠️ Backup folder permission is not available. Click BROWSE FOLDER to re-authorize access.', false);
+          return false;
+        }
+
+        const result = await window.electronAPI.writeBackupFile(folderPath, fileName, jsonText);
+        if (!result || result.success !== true) {
+          throw new Error(result?.error || 'Complete JSON backup write failed.');
+        }
+
+        db.lastBackup = timestamp;
+        saveDB();
+        setStatus(`✅ JSON BACKUP COMPLETE — ${fileName} — ${new Date().toLocaleString('en-IN')} — ${folderPath}`, true);
+        setAutoStatus('✅ Running (every 1 min) – JSON backup – SHAHID_ERP.json');
+        return true;
       }
 
-      if (typeof window.electronAPI.writeBackupFile !== 'function') {
-        throw new Error('Native backup write bridge is unavailable.');
+      // Browser/File System Access mode.
+      const folderHandle = backupFolderHandle || window.backupFolderHandle;
+      if (!folderHandle) {
+        throw new Error('Backup folder is not authorized in this browser.');
+      }
+      if (typeof folderHandle.queryPermission === 'function') {
+        const permission = await folderHandle.queryPermission({mode:'readwrite'});
+        if (permission !== 'granted') {
+          throw new Error('Backup folder permission is not granted. Click BROWSE FOLDER to re-authorize access.');
+        }
+      }
+      const fileHandle = await folderHandle.getFileHandle(fileName, {create:true});
+      const writable = await fileHandle.createWritable({keepExistingData:false});
+      try {
+        await writable.write(jsonText);
+      } finally {
+        await writable.close();
       }
 
-      const fileName = `AutoBackup_${new Date().toISOString().split('T')[0]}.json`;
-      const backupData = { timestamp: new Date().toISOString(), data: db };
-      const result = await window.electronAPI.writeBackupFile(
-        folderPath,
-        fileName,
-        JSON.stringify(backupData, null, 2)
-      );
-
-      if (!result || result.success !== true) {
-        throw new Error(result?.error || 'Backup file write failed.');
-      }
-
-      db.lastBackup = new Date().toISOString();
+      db.lastBackup = timestamp;
       saveDB();
-      setStatus(`✅ Last backup: ${new Date().toLocaleString('en-IN')} — ${folderPath}\\${fileName}`, true);
-      setAutoStatus(`✅ Running (every 1 min) – ${format.toUpperCase()} backup`);
+      setStatus(`✅ JSON BACKUP COMPLETE — ${fileName} — ${new Date().toLocaleString('en-IN')} — ${folderHandle.name}`, true);
+      setAutoStatus('✅ Running (every 1 min) – JSON backup – SHAHID_ERP.json');
       return true;
     } catch (error) {
-      console.error('Native backup failed:', error);
+      console.error(`${format.toUpperCase()} backup failed:`, error);
       clearAutoBackupTimer();
       setAutoStatus('⏸️ Auto backup paused — backup error requires attention');
-      setStatus(`❌ Backup failed: ${error.message}`, false);
+      setStatus(`❌ ${format.toUpperCase()} backup failed: ${error.message}`, false);
       return false;
     } finally {
       window.__shahidBackupBusy = false;
@@ -29659,9 +30789,9 @@ window.invoiceActionWhatsApp=function(){
     window.autoBackupInterval = setInterval(run, 60000);
     try { autoBackupInterval = window.autoBackupInterval; } catch (_) {}
 
-    const format = String(db?.backupFormat || 'json').toUpperCase();
-    setAutoStatus(`✅ Running (every 1 min) – ${format} backup`);
-    setStatus(`📁 ${folderPath} authorized — automatic ${format} backup enabled.`, true);
+    const activeFormat = String(db?.backupFormat || 'json').toLowerCase() === 'sqlite' ? 'SQLite shared sync – SHAHID_ERP.sqlite' : 'JSON backup – SHAHID_ERP.json';
+    setAutoStatus(`✅ Running (every 1 min) – ${activeFormat}`);
+    setStatus(`📁 ${folderPath} authorized — automatic ${activeFormat} enabled.`, true);
     return true;
   };
 
@@ -31432,3 +32562,1144 @@ function renderAirWeightRecordsEmbedded() {
  */
 
 /* ===== END JS/50-master-exchange-rates.js ===== */
+
+
+/* ============================================================================
+   SHAHID ERP — SEA IMPORT QUOTE 2.0
+   Clean standalone implementation.
+   ============================================================================ */
+(function installStandaloneSeaImport(){
+    if (window.__SEA_IMPORT_STANDALONE_V2__) return;
+    window.__SEA_IMPORT_STANDALONE_V2__ = true;
+    const MODE='sea-import', STORE='seaImport';
+    function ensureStore(){
+        if(!db.drafts) db.drafts={}; if(!db.rates) db.rates={};
+        if(!Array.isArray(db.drafts[STORE])) db.drafts[STORE]=[];
+        if(!Array.isArray(db.rates[STORE])) db.rates[STORE]=[];
+        if(!Array.isArray(defaultCharges[MODE])) defaultCharges[MODE]=[];
+        if(!chargeCategories[MODE]){
+            const base=JSON.parse(JSON.stringify(chargeCategories.sea||{}));
+            base['Carrier Charges']=[...(base['Carrier Charges']||[]),'Shipping Line'];
+            base['CFS / Transport Charges']=[...(base['CFS / Transport Charges']||[]),'EMPTY LOADING CHARGES'];
+            chargeCategories[MODE]=base;
+        }
+        if(!chargesOrder[MODE]) chargesOrder[MODE]=JSON.parse(JSON.stringify(chargeCategories[MODE]));
+        if(typeof hasUnsavedChanges[MODE]!=='boolean') hasUnsavedChanges[MODE]=false;
+    }
+    const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    function populate(){
+        ensureStore(); const {pol=[],pod=[],containers=[],incoterms=[],carriers=[]}=getMasterDropdownLists();
+        const hc=db.hiddenItems?.carriers||[], hp=db.hiddenItems?.pol||[], hd=db.hiddenItems?.pod||[], hi=db.hiddenItems?.incoterms||[], hco=db.hiddenItems?.containers||[];
+        const vc=['ALL',...carriers.filter(x=>!hc.includes(x))], vp=pol.filter(x=>!hp.includes(x)), vd=pod.filter(x=>!hd.includes(x)), vi=incoterms.filter(x=>!hi.includes(x)), vco=containers.filter(x=>!hco.includes(x));
+        const fill=(id,a)=>{const el=document.getElementById(id);if(el)el.innerHTML=(a||[]).map(x=>`<option value="${esc(x)}">`).join('');};
+        // IMPORT SEA: POL is overseas (master POD list), POD is Indian (master POL list).
+        fill('sea-import-pol-list',vd); fill('sea-import-pod-list',vp); fill('sea-import-carrier-list',vc); fill('sea-import-incoterm-list',vi); fill('sea-import-container-list',vco);
+        const c=document.getElementById('sea-import-commodity-list');if(c)c.innerHTML='<option value="NON HAZ"><option value="HAZ">';
+    }
+    function names(){return [0,1,2].map(i=>String(document.getElementById(i===0?'sea-import-carrier':`sea-import-carrier-${i+1}`)?.value||'').trim().toUpperCase()).filter(Boolean);}
+    function importComparisonMode(){return document.getElementById('sea-import-comparison-mode')?.value==='container'?'container':'carrier';}
+    function importContainers(){return [0,1,2].map(i=>String(document.getElementById(i===0?'sea-import-container':`sea-import-container-${i+1}`)?.value||'').trim());}
+    function mark(){hasUnsavedChanges[MODE]=true;}
+    function headers(){
+        const vals=names(), containers=importContainers(), containerMode=importComparisonMode()==='container';
+        [1,2,3].forEach((n,i)=>{
+            const el=document.querySelector(`[data-carrier-header="sea-import-${n}"]`);
+            if(!el)return;
+            const label=containerMode?(containers[i]||`Container ${n}`):(vals[i]||`Carrier ${n}`);
+            el.querySelector('strong')?.replaceChildren(document.createTextNode(label));
+            el.querySelector('small')?.replaceChildren(document.createTextNode(containerMode?'CONTAINER RATE':'SELL AMT | BUY AMT | MARGIN %'));
+            el.classList.toggle('carrier-empty',containerMode?!containers[i]:!vals[i]);
+        });
+    }
+    function updateComparisonUI(){
+        const containerMode=importComparisonMode()==='container';
+        const c2=document.getElementById('sea-import-carrier-2'), c3=document.getElementById('sea-import-carrier-3');
+        const k2=document.getElementById('sea-import-container-2'), k3=document.getElementById('sea-import-container-3');
+        if(c2)c2.disabled=containerMode;
+        if(c3)c3.disabled=containerMode;
+        if(k2)k2.disabled=!containerMode;
+        if(k3)k3.disabled=!containerMode;
+        [[c2,!containerMode],[c3,!containerMode],[k2,containerMode],[k3,containerMode]].forEach(([el,active])=>{
+            if(!el)return;
+            el.classList.toggle('comparison-active',!!active);
+            el.classList.toggle('comparison-locked',!active);
+            el.setAttribute('aria-disabled',active?'false':'true');
+        });
+        headers();
+    }
+    function blankGrid(){
+        ensureStore();
+        chargesOrder[MODE]=JSON.parse(JSON.stringify(chargeCategories[MODE]));
+        if(window.buildChargesGrid)window.buildChargesGrid(MODE,[{},{},{}],chargesOrder[MODE],{arrays:[{},{},{}]});
+        headers();
+        updateComparisonUI();
+    }
+    function onRoute(){mark();blankGrid();}
+    function onCarrier(){if(importComparisonMode()!=='carrier')return;mark();blankGrid();}
+    function onMulti(){if(importComparisonMode()!=='carrier')return;mark();headers();blankGrid();}
+    function onContainer(){if(importComparisonMode()!=='container')return;mark();blankGrid();}
+    function onCompare(){mark();updateComparisonUI();blankGrid();}
+    function onCompareContainer(){if(importComparisonMode()!=='container')return;mark();blankGrid();}
+    function noPull(){return [];}
+    function calcFS(){['20','40'].forEach(row=>{let total=0;['oft','subc','haz','ow','other','other2','other3','trk','ddp'].forEach(k=>total+=Number(document.getElementById(`sea-import-fs-${k}-${row}`)?.value)||0);const e=document.getElementById(`sea-import-fs-total-${row}`);if(e)e.textContent=total.toFixed(2);});}
+    function fsUnit(){mark();calcFS();}
+    function ownCfs(){mark();blankGrid();}
+    function collect(){
+        ensureStore();const d={mode:'SEA_IMPORT',quoteType:'SEA_IMPORT',isImport:true,direction:'IMPORT',quoteDirection:'IMPORT',timestamp:new Date().toISOString(),lastModified:new Date().toISOString(),autoDate:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),sales:getLoggedInUserName()||db.defaultUser||'N/A'};
+        ['client','pol','pod','incoterm','commodity','weight','transit','validityDate','container'].forEach(f=>{const e=document.getElementById(`sea-import-${f}`);if(e&&e.value)d[f]=e.value;});d.carriers=names();d.carrier=d.carriers[0]||'';d.comparisonMode=importComparisonMode();d.comparisonContainers=importContainers();d.remarks=document.getElementById('sea-import-remarks')?.value||'';
+        const g=window.__multiCollectGridData?window.__multiCollectGridData(MODE):{names:d.carriers,arrays:[{},{},{}]};d.carrierRates=g.names.map((n,i)=>({carrier:n||'',charges:g.arrays[i]||{}})).filter(x=>x.carrier);d.charges=d.carrierRates[0]?.charges||{};d.chargesOrder=chargesOrder[MODE]||JSON.parse(JSON.stringify(chargeCategories[MODE]));d.freightSurcharges={'20':{},'40':{}};['20','40'].forEach(r=>['oft','subc','haz','ow','other','other2','other3','trk','ddp'].forEach(k=>d.freightSurcharges[r][k]=Number(document.getElementById(`sea-import-fs-${k}-${r}`)?.value)||0));let sell=0,buy=0;Object.values(d.charges).forEach(v=>{sell+=toINR(v.amount,v.currency);buy+=toINR(v.buyAmount,v.buyCurrency);});d.totalSellINR=sell;d.totalBuyINR=buy;d.marginINR=sell-buy;d.marginPct=sell?(d.marginINR/sell)*100:0;return d;
+    }
+    function quoteNo(){ensureStore();const n=new Date(),base=`RQ-SI-${String(n.getFullYear()).slice(-2)}${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}-${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}`;const all=[...db.rates[STORE],...db.drafts[STORE]];let i=1,q=base;while(all.some(r=>r.quoteNumber===q)){i++;q=`${base}-${String(i).padStart(2,'0')}`;}return q;}
+    function save(target,status){ensureStore();const d=collect();if(!d.client&&!Object.keys(d.charges).length)return alert('Fill Client Name or at least one charge.');if(d.marginINR<0&&(d.totalSellINR||d.totalBuyINR)&&!confirm('⚠️ WARNING: This quote has a negative margin (loss). Do you want to proceed?'))return;d.status=status;d.quoteNumber=quoteNo();db[target][STORE].push(d);saveDB();autoBackup();hasUnsavedChanges[MODE]=false;const q=document.getElementById('sea-import-qn-value');if(q)q.textContent=d.quoteNumber;document.getElementById('sea-import-qn-box')?.classList.add('show');if(target==='rates'&&typeof renderRecords==='function')renderRecords('rates');alert(target==='rates'?`Quotation finalized!\nQuote No: ${d.quoteNumber}`:'Saved as Draft.');}
+    function clear(){
+        ensureStore();
+        const p=document.getElementById(MODE);
+        if(p)p.querySelectorAll('input,select,textarea').forEach(e=>{
+            if(e.tagName==='SELECT') e.selectedIndex=0;
+            else e.value='';
+        });
+        // SEA IMPORT uses the same Validity Date default behaviour as SEA Quote:
+        // last calendar day of the current month.
+        if(typeof setValidityDefault==='function') setValidityDefault(MODE);
+        chargesOrder[MODE]=JSON.parse(JSON.stringify(chargeCategories[MODE]));
+        blankGrid();
+        calcFS();
+        document.getElementById('sea-import-qn-box')?.classList.remove('show');
+        hasUnsavedChanges[MODE]=false;
+    }
+    function saveLocal(){ensureStore();const pol=document.getElementById('sea-import-pol')?.value||'',container=document.getElementById('sea-import-container')?.value||'',ns=names();if(!pol||!ns[0])return alert('Please select Carrier 1 and POL first.');const gd=window.__multiCollectGridData(MODE);let saved=0;ns.forEach((carrier,i)=>{const charges=gd.arrays[i]||{};if(!Object.values(charges).some(c=>c.amount||c.buyAmount))return;const arr=db.carrierChargesSeaLcl||[];const idx=arr.findIndex(r=>r.mode===MODE&&r.carrier===carrier&&r.pol===pol&&(r.container||'')===container);const entry={mode:MODE,carrier,pol,container,commodity:document.getElementById('sea-import-commodity')?.value||'',charges,updated:new Date().toISOString()};if(idx>=0)arr[idx]=entry;else arr.push(entry);saved++;});saveDB();alert(`Local charges saved for ${saved} carrier(s).`);}
+    function saveFreight(){const d=collect(),f=d.charges?.FREIGHT;if(!d.pol||!d.pod||!d.carrier)return alert('Please select Carrier 1, POL, and POD first.');if(!f?.buyAmount)return alert('Please enter Freight buy amount first.');const arr=db.rateSheet||[];const exists=arr.some(r=>r.carrierName===d.carrier&&r.freightType==='SEA_IMPORT'&&r.pol===d.pol&&r.pod===d.pod&&r.containerType===(d.container||'')&&Number(r.freightAmount)===Number(f.buyAmount)&&r.currency===f.buyCurrency);if(!exists)arr.push({id:'RS-SI-'+Date.now(),carrierName:d.carrier,freightType:'SEA_IMPORT',pol:d.pol,pod:d.pod,containerType:d.container||'',currency:f.buyCurrency||'USD',freightAmount:Number(f.buyAmount),transitTime:d.transit?`${d.transit} days`:'',validFrom:new Date().toISOString().split('T')[0],validTo:d.validityDate||'',commodity:d.commodity||'',remarks:'Manually saved from SEA Import quote',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),source:'sea-import'});saveDB();alert('SEA Import freight rate saved.');}
+    function preview(){const d=collect();if(!d.client&&!Object.keys(d.charges).length)return alert('Please fill the form with at least a Client Name and charges before previewing.');d.quoteNumber=document.getElementById('sea-import-qn-value')?.textContent||'DRAFT';_previewData={data:d,mode:'sea'};const body=document.getElementById('previewBody');if(!body)return;body.innerHTML=`<div class="quotation-preview-actions" style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-info" type="button" onclick="copyPreviewTables()">📋 Copy Tables (Compact)</button><button class="btn" type="button" onclick="copyPreviewText()" style="background:#25D366;color:white;border:none;padding:6px 12px;border-radius:4px;font-weight:bold;cursor:pointer;">📄 WhatsApp</button></div>${buildPreviewHTML(d,'sea','100%',false)}`;document.getElementById('modal-title').textContent='Sea Import Quotation Preview';body.style.background='white';openModal('previewModal');scheduleQuotationPreviewFit();}
+    function pdf(){const d=collect();if(!d.client&&!Object.keys(d.charges).length)return alert('Please fill the form with at least a Client Name and charges before generating PDF.');d.quoteNumber=document.getElementById('sea-import-qn-value')?.textContent||'DRAFT';generatePDFFromHTML(d,'sea');}
+    function email(){const d=collect();if(!d.client&&!Object.keys(d.charges).length)return alert('Please fill the form with at least a Client Name and charges before emailing.');_previewData={data:d,mode:'sea'};if(typeof window.emailQuote==='function')return window.emailQuote('sea');}
+    function copy(){const d=collect();_previewData={data:d,mode:'sea'};if(typeof window.copyEmailCompact==='function')return window.copyEmailCompact();}
+    function open(){
+        ensureStore();
+        document.querySelectorAll('.tab-btn-vertical').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+        document.querySelector('.tab-btn-vertical[data-tab="sea-import"]')?.classList.add('active');
+        document.getElementById(MODE)?.classList.add('active');
+        db.navState.lastTab=MODE;
+        saveDB();
+        populate();
+        // Keep SEA IMPORT Validity Date identical to SEA Quote behaviour.
+        if(typeof setValidityDefault==='function') setValidityDefault(MODE);
+        // Same draggable/manual charge grid as SEA Quote, but intentionally blank
+        // because SEA IMPORT must never auto-pull charges.
+        chargesOrder[MODE]=JSON.parse(JSON.stringify(chargeCategories[MODE]));
+        const cm=document.getElementById('sea-import-comparison-mode');
+        if(cm) cm.value='carrier';
+        blankGrid();
+        updateComparisonUI();
+        calcFS();
+    }
+    window.openSeaImportQuote=open;window.seaImportOpen=open;window.seaImportPopulate=populate;window.seaImportOnPolChange=onRoute;window.seaImportOnPodChange=onRoute;window.seaImportOnCarrierChange=onCarrierChange;window.seaImportOnMultiCarrierChange=onMulti;window.seaImportOnContainerChange=onContainer;window.seaImportOnComparisonChange=onCompare;window.seaImportOnComparisonContainerChange=onCompareContainer;window.seaImportNoAutoPull=noPull;window.seaImportOnFSUnitChange=fsUnit;window.seaImportCalcFSTotal=calcFS;window.seaImportOnOwnCfsToggle=ownCfs;window.seaImportSaveDraft=()=>save('drafts','DRAFT');window.seaImportSaveQuote=()=>save('rates','QUOTED');window.seaImportClear=clear;window.seaImportSaveLocalCharges=saveLocal;window.seaImportSaveFreightRate=saveFreight;window.seaImportPreview=preview;window.seaImportPDF=pdf;window.seaImportEmail=email;window.seaImportCopy=copy;
+    const baseSwitch=window.switchToTab;window.switchToTab=function(target){if(String(target).toLowerCase()==='sea-import')return open();return baseSwitch.apply(this,arguments);};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ensureStore();populate();blankGrid();},{once:true});else{ensureStore();setTimeout(()=>{populate();blankGrid();},0);}
+})();
+/* ===== END CLEAN SEA IMPORT QUOTE 2.0 ===== */
+
+/* ===== COMPLETE FINANCE & ACCOUNTING BRIDGE ===== */
+(function(){
+'use strict';
+const F='finance';
+function ensureFinance(){
+  if(!db.finance||typeof db.finance!=='object')db.finance={};
+  ['receipts','payments','vendorBills','jobCosts','accruals','creditNotes','debitNotes','bankTransactions','customers','vendors','audit'].forEach(k=>{if(!Array.isArray(db.finance[k]))db.finance[k]=[];});
+  if(!db.finance.settings||typeof db.finance.settings!=='object')db.finance.settings={baseCurrency:'INR',gstin:'',financialYear:'',defaultTerms:30};
+}
+function fx(v,c){const n=Number(v)||0, cur=String(c||'INR').toUpperCase(); if(cur==='INR')return n; const r=Number(db.exchangeRates?.[cur]||1); return n*r;}
+function money(v,c='INR'){return `${String(c).toUpperCase()} ${Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
+function esc(v){return typeof escapeHtml==='function'?escapeHtml(String(v??'')):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function dateNow(){return new Date().toISOString().slice(0,10)}
+function id(prefix){return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,7).toUpperCase()}`}
+function audit(action,entity,ref,detail){ensureFinance();db.finance.audit.push({id:id('AUD'),date:new Date().toISOString(),user:db.defaultUser||'Admin',action,entity,ref,detail:detail||''});}
+function invoices(){return Array.isArray(db.invoices)?db.invoices:[]}
+function invoiceAmount(x){return Number(x.amount??x.total??0)||0}
+function invoiceReceived(x){return Number(x.received??x.paid??0)||0}
+function invoiceOutstanding(x){let credit=0; db.finance.creditNotes.filter(n=>n.invoiceNo===(x.invoiceNo||x.id)).forEach(n=>credit+=Number(n.amount)||0); let debit=0; db.finance.debitNotes.filter(n=>n.invoiceNo===(x.invoiceNo||x.id)).forEach(n=>debit+=Number(n.amount)||0); return Math.max(0,invoiceAmount(x)+debit-invoiceReceived(x)-credit)}
+function customerNames(){const s=new Set(); invoices().forEach(x=>s.add(x.customer||x.client||'')); db.finance.customers.forEach(x=>s.add(x.name||'')); return [...s].filter(Boolean).sort();}
+function vendorNames(){const s=new Set(db.finance.vendors.map(x=>x.name).filter(Boolean)); db.finance.vendorBills.forEach(x=>s.add(x.vendor||'')); db.finance.payments.forEach(x=>s.add(x.vendor||'')); return [...s].filter(Boolean).sort();}
+function jobNoOf(x){return x.jobNo||x.job||x.shipmentNo||x.shipment||x.quoteRef||''}
+function dueDays(x){const d=x.dueDate||x.due||x.invoiceDueDate||'';if(!d)return null;const t=new Date();const u=new Date(d);return Math.ceil((Date.UTC(u.getFullYear(),u.getMonth(),u.getDate())-Date.UTC(t.getFullYear(),t.getMonth(),t.getDate()))/86400000)}
+function render(){ensureFinance();const body=document.getElementById('finance-body');if(!body)return;financeTab(window._financeTab||'dashboard');}
+function financeTab(tab){ensureFinance();window._financeTab=tab;document.querySelectorAll('.finance-tab').forEach(b=>b.classList.toggle('active',b.dataset.ft===tab));const body=document.getElementById('finance-body');if(!body)return;const map={dashboard:renderDashboard,invoices:renderInvoices,receivables:renderReceivables,customerledger:renderCustomerLedger,payables:renderPayables,vendorledger:renderVendorLedger,transactions:renderTransactions,jobcost:renderJobCost,bank:renderBank,notes:renderNotes,masters:renderMasters,reports:renderReports,audit:renderAudit};(map[tab]||renderDashboard)(body);}
+window.financeTab=financeTab;window.financeRefresh=()=>{saveDB();financeTab(window._financeTab||'dashboard')};window.financeExportJSON=function(){ensureFinance();const blob=new Blob([JSON.stringify(db.finance,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`SHAHID_FINANCE_${dateNow()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+function renderDashboard(b){const inv=invoices(),sales=inv.reduce((s,x)=>s+fx(invoiceAmount(x),x.currency),0),rec=inv.reduce((s,x)=>s+fx(invoiceOutstanding(x),x.currency),0),pay=db.finance.vendorBills.reduce((s,x)=>s+fx(Number(x.total??x.amount)||0,x.currency),0),paid=db.finance.payments.reduce((s,x)=>s+fx(Number(x.amount)||0,x.currency),0),received=db.finance.receipts.reduce((s,x)=>s+fx(Number(x.amount)||0,x.currency),0),cost=db.finance.jobCosts.reduce((s,x)=>s+fx(Number(x.amount)||0,x.currency),0),accr=db.finance.accruals.filter(x=>String(x.status).toUpperCase()!=='REVERSED').reduce((s,x)=>s+fx(Number(x.amount)||0,x.currency),0),credit=db.finance.creditNotes.reduce((s,x)=>s+fx(Number(x.amount)||0,x.currency),0),debit=db.finance.debitNotes.reduce((s,x)=>s+fx(Number(x.amount)||0,x.currency),0);const overdue=inv.reduce((s,x)=>s+(invoiceOutstanding(x)>0&&dueDays(x)!==null&&dueDays(x)<0?fx(invoiceOutstanding(x),x.currency):0),0);const gp=sales-credit+debit-cost-accr;
+ b.innerHTML=`<div class="finance-kpis"><div class="finance-kpi"><span>🧾 SALES INVOICED</span><strong>${money(sales)}</strong></div><div class="finance-kpi"><span>💵 RECEIVABLE</span><strong>${money(rec)}</strong></div><div class="finance-kpi"><span>⏰ OVERDUE</span><strong>${money(overdue)}</strong></div><div class="finance-kpi"><span>💰 PAYABLE</span><strong>${money(pay)}</strong></div><div class="finance-kpi"><span>🟢 RECEIVED</span><strong>${money(received)}</strong></div><div class="finance-kpi"><span>🔵 PAID TO VENDORS</span><strong>${money(paid)}</strong></div><div class="finance-kpi"><span>🧮 JOB COST</span><strong>${money(cost)}</strong></div><div class="finance-kpi"><span>📊 EST. GP</span><strong>${money(gp)}</strong></div></div><div class="finance-grid"><div class="finance-card"><h3>⚠️ Collection Attention</h3>${overdueRows(10)}</div><div class="finance-card"><h3>💳 Vendor Payment Attention</h3>${payableRows(10)}</div></div><div class="finance-card"><h3>🔐 Credit Control Exceptions</h3>${creditControlRows()}</div><div class="finance-card"><h3>🔗 Finance Bridge Status</h3><div class="finance-mini">Sales invoices: ${inv.length} • Receipts: ${db.finance.receipts.length} • Vendor bills: ${db.finance.vendorBills.length} • Job costs: ${db.finance.jobCosts.length} • Accruals: ${db.finance.accruals.length} • Credit notes: ${db.finance.creditNotes.length} • Debit notes: ${db.finance.debitNotes.length} • Bank transactions: ${db.finance.bankTransactions.length}</div></div>`}
+function creditControlRows(){const rows=db.finance.customers.map(c=>{const out=invoices().filter(x=>(x.customer||x.client||'')===c.name).reduce((a,x)=>a+fx(invoiceOutstanding(x),x.currency),0);const lim=Number(c.creditLimit)||0;return {c,out,lim,over:lim>0&&out>lim}}).filter(x=>x.over);if(!rows.length)return '<div class=\"finance-mini\">No customer is above the configured credit limit.</div>';return '<div class=\"finance-table-wrap\"><table class=\"finance-table\"><thead><tr><th>Customer</th><th>Limit</th><th>Outstanding</th><th>Excess</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.c.name)+'</td><td>'+money(x.lim)+'</td><td>'+money(x.out)+'</td><td class=\"finance-overdue\">'+money(x.out-x.lim)+'</td></tr>').join('')+'</tbody></table></div>'}
+
+function overdueRows(limit){const rows=invoices().filter(x=>invoiceOutstanding(x)>0&&dueDays(x)!==null&&dueDays(x)<0).sort((a,b)=>dueDays(a)-dueDays(b)).slice(0,limit);if(!rows.length)return '<div class="finance-mini">No overdue invoices.</div>';return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Invoice</th><th>Customer</th><th>Outstanding</th><th>Days</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.invoiceNo||x.id)}</td><td>${esc(x.customer||x.client||'-')}</td><td>${money(invoiceOutstanding(x),x.currency)}</td><td class="finance-overdue">${Math.abs(dueDays(x))}</td></tr>`).join('')}</tbody></table></div>`}
+function payableRows(limit){const rows=db.finance.vendorBills.filter(x=>String(x.status||'OPEN').toUpperCase()!=='PAID').slice(0,limit);if(!rows.length)return '<div class="finance-mini">No open vendor bills.</div>';return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Vendor</th><th>Bill</th><th>Amount</th><th>Due</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.vendor||'-')}</td><td>${esc(x.billNo||x.id)}</td><td>${money(x.total??x.amount,x.currency)}</td><td>${esc(x.dueDate||'-')}</td></tr>`).join('')}</tbody></table></div>`}
+function filterBar(){return `<div class="finance-filter"><input id="fin-search" placeholder="🔍 Search customer / vendor / invoice / job..." oninput="financeRenderCurrent()"><select id="fin-currency"><option value="">All Currency</option><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>AED</option><option>SGD</option></select><button class="btn btn-preview" onclick="financeRenderCurrent()">Filter</button></div>`}
+window.financeRenderCurrent=()=>financeTab(window._financeTab||'dashboard');
+function renderInvoices(b){b.innerHTML=`${filterBar()}<div class="finance-card"><h3>🧾 Sales Invoice Financial Register</h3><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Invoice</th><th>Customer</th><th>Job</th><th>Currency</th><th>Invoice</th><th>Received</th><th>CN</th><th>DN</th><th>Outstanding</th><th>Due</th><th>Status</th></tr></thead><tbody>${invoices().map(x=>{const o=invoiceOutstanding(x),d=dueDays(x),q=(x.invoiceNo||x.id||'')+' '+(x.customer||x.client||'')+' '+jobNoOf(x);return `<tr data-fin-search="${esc(q.toLowerCase())}"><td>${esc(x.invoiceNo||x.id)}</td><td>${esc(x.customer||x.client||'-')}</td><td>${esc(jobNoOf(x)||'-')}</td><td>${esc(x.currency||'INR')}</td><td>${money(invoiceAmount(x),x.currency)}</td><td>${money(invoiceReceived(x),x.currency)}</td><td>${money(db.finance.creditNotes.filter(n=>n.invoiceNo===(x.invoiceNo||x.id)).reduce((s,n)=>s+Number(n.amount||0),0),x.currency)}</td><td>${money(db.finance.debitNotes.filter(n=>n.invoiceNo===(x.invoiceNo||x.id)).reduce((s,n)=>s+Number(n.amount||0),0),x.currency)}</td><td>${money(o,x.currency)}</td><td>${esc(x.dueDate||'-')}</td><td><span class="finance-badge">${esc(x.status||'ISSUED')}</span></td></tr>`}).join('')||'<tr><td colspan="11">No invoices.</td></tr>'}</tbody></table></div></div>`;financeFilterTable();}
+function renderReceivables(b){const rows=invoices().filter(x=>invoiceOutstanding(x)>0);const age={current:0,a30:0,a60:0,a90:0,a120:0};rows.forEach(x=>{const d=dueDays(x);const a=d===null||d>=0?'current':d>=-30?'a30':d>=-60?'a60':d>=-90?'a90':d>=-120?'a120':'a120';age[a]+=fx(invoiceOutstanding(x),x.currency)});b.innerHTML=`<div class="finance-kpis"><div class="finance-kpi"><span>CURRENT</span><strong>${money(age.current)}</strong></div><div class="finance-kpi"><span>1–30</span><strong>${money(age.a30)}</strong></div><div class="finance-kpi"><span>31–60</span><strong>${money(age.a60)}</strong></div><div class="finance-kpi"><span>61–90</span><strong>${money(age.a90)}</strong></div><div class="finance-kpi"><span>90+</span><strong>${money(age.a120)}</strong></div></div><div class="finance-card"><h3>💵 Receivable Ageing</h3>${overdueRows(999)}</div>`}
+window.financeSelectCustomerLedger=function(){financeTab('customerledger')};
+function renderCustomerLedger(b){const names=customerNames();b.innerHTML=`<div class="finance-card"><h3>📒 Customer Ledger</h3><div class="finance-filter"><select id="fin-customer" onchange="financeSelectCustomerLedger()"><option value="">Select Customer</option>${names.map(n=>`<option>${esc(n)}</option>`).join('')}</select></div>${customerLedgerTable(document.getElementById('fin-customer')?.value||'')}</div>`}
+function customerLedgerTable(name){if(!name)return '<div class="finance-mini">Select a customer to view opening/transaction/closing ledger.</div>';const rows=[];invoices().filter(x=>(x.customer||x.client||'')===name).forEach(x=>rows.push({date:x.invoiceDate||x.date||'',ref:x.invoiceNo||x.id,part:'Sales Invoice',debit:invoiceAmount(x),credit:0,currency:x.currency}));db.finance.receipts.filter(x=>(x.customer||'')===name).forEach(x=>rows.push({date:x.date,ref:x.receiptNo||x.id,part:'Receipt',debit:0,credit:Number(x.amount)||0,currency:x.currency}));db.finance.creditNotes.filter(x=>(x.customer||'')===name).forEach(x=>rows.push({date:x.date,ref:x.noteNo||x.id,part:'Credit Note',debit:0,credit:Number(x.amount)||0,currency:x.currency}));db.finance.debitNotes.filter(x=>(x.customer||'')===name).forEach(x=>rows.push({date:x.date,ref:x.noteNo||x.id,part:'Debit Note',debit:Number(x.amount)||0,credit:0,currency:x.currency}));rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));let bal=0;return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date</th><th>Ref</th><th>Particular</th><th>Debit</th><th>Credit</th><th>Balance (INR)</th></tr></thead><tbody>${rows.map(r=>{bal+=fx(r.debit,r.currency)-fx(r.credit,r.currency);return `<tr><td>${esc(r.date)}</td><td>${esc(r.ref)}</td><td>${esc(r.part)}</td><td>${money(r.debit,r.currency)}</td><td>${money(r.credit,r.currency)}</td><td>${money(bal)}</td></tr>`}).join('')||'<tr><td colspan="6">No ledger entries.</td></tr>'}</tbody></table></div>`}
+function renderPayables(b){b.innerHTML=`<div class="finance-card"><h3>💰 Vendor Payables</h3><div class="finance-actions"><button class="btn btn-success" onclick="financeOpenVendorBill()">＋ Add Vendor Bill</button></div><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Vendor</th><th>Bill No.</th><th>Job</th><th>Invoice Date</th><th>Due</th><th>Currency</th><th>Amount</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>${db.finance.vendorBills.map(x=>{const paid=db.finance.payments.filter(p=>p.vendorBillNo===(x.billNo||x.id)).reduce((s,p)=>s+Number(p.amount||0),0),out=Math.max(0,Number(x.total ?? x.amount ?? 0)-paid);return `<tr><td>${esc(x.vendor)}</td><td>${esc(x.billNo||x.id)}</td><td>${esc(x.jobNo||'-')}</td><td>${esc(x.billDate||'-')}</td><td>${esc(x.dueDate||'-')}</td><td>${esc(x.currency||'INR')}</td><td>${money(x.total??x.amount,x.currency)}</td><td>${money(paid,x.currency)}</td><td>${money(out,x.currency)}</td><td>${esc(out<=0?'PAID':x.status||'OPEN')}</td></tr>`}).join('')||'<tr><td colspan="10">No vendor bills.</td></tr>'}</tbody></table></div></div>`}
+window.financeOpenVendorBill=function(){const v=prompt('Vendor name');if(!v)return;const amt=Number(prompt('Bill amount')||0);if(!amt)return;const bill={id:id('VB'),billNo:id('VBL'),vendor:v,jobNo:prompt('Job No. (optional)')||'',billDate:dateNow(),dueDate:prompt('Due date YYYY-MM-DD')||dateNow(),currency:(prompt('Currency','INR')||'INR').toUpperCase(),amount:amt,total:amt,status:'OPEN'};ensureFinance();db.finance.vendorBills.push(bill);audit('CREATE','Vendor Bill',bill.billNo,`Amount ${money(amt,bill.currency)}`);saveDB();financeTab('payables')};
+window.financeSelectVendorLedger=function(){financeTab('vendorledger')};
+function renderVendorLedger(b){const names=vendorNames();b.innerHTML=`<div class="finance-card"><h3>📒 Vendor Ledger</h3><div class="finance-filter"><select id="fin-vendor" onchange="financeSelectVendorLedger()"><option value="">Select Vendor</option>${names.map(n=>`<option>${esc(n)}</option>`).join('')}</select></div>${vendorLedgerTable(document.getElementById('fin-vendor')?.value||'')}</div>`}
+function vendorLedgerTable(name){if(!name)return '<div class="finance-mini">Select a vendor.</div>';const rows=[];db.finance.vendorBills.filter(x=>x.vendor===name).forEach(x=>rows.push({date:x.billDate,ref:x.billNo||x.id,part:'Vendor Bill',debit:0,credit:Number(x.total??x.amount)||0,currency:x.currency}));db.finance.payments.filter(x=>x.vendor===name).forEach(x=>rows.push({date:x.date,ref:x.paymentNo||x.id,part:'Payment',debit:Number(x.amount)||0,credit:0,currency:x.currency}));rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));let bal=0;return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date</th><th>Ref</th><th>Particular</th><th>Debit</th><th>Credit</th><th>Balance (INR)</th></tr></thead><tbody>${rows.map(r=>{bal+=fx(r.credit,r.currency)-fx(r.debit,r.currency);return `<tr><td>${esc(r.date)}</td><td>${esc(r.ref)}</td><td>${esc(r.part)}</td><td>${money(r.debit,r.currency)}</td><td>${money(r.credit,r.currency)}</td><td>${money(bal)}</td></tr>`}).join('')||'<tr><td colspan="6">No ledger entries.</td></tr>'}</tbody></table></div>`}
+function renderTransactions(b){b.innerHTML=`<div class="finance-grid"><div class="finance-card"><h3>🟢 Customer Receipt</h3><div class="finance-form"><div><label>Customer</label><input id="fr-customer"></div><div><label>Amount</label><input id="fr-amount" type="number"></div><div><label>Currency</label><select id="fr-currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div><label>Invoice No.</label><input id="fr-invoice"></div><div><label>Payment Mode</label><select id="fr-mode"><option>Bank Transfer</option><option>NEFT</option><option>RTGS</option><option>IMPS</option><option>UPI</option><option>Cheque</option><option>Cash</option></select></div><div><label>Reference</label><input id="fr-ref"></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddReceipt()">Save Receipt</button></div></div><div class="finance-card"><h3>🔵 Vendor Payment</h3><div class="finance-form"><div><label>Vendor</label><input id="fp-vendor"></div><div><label>Amount</label><input id="fp-amount" type="number"></div><div><label>Currency</label><select id="fp-currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div><label>Vendor Bill No.</label><input id="fp-bill"></div><div><label>Payment Mode</label><select id="fp-mode"><option>Bank Transfer</option><option>NEFT</option><option>RTGS</option><option>IMPS</option><option>UPI</option><option>Cheque</option><option>Cash</option></select></div><div><label>Reference</label><input id="fp-ref"></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddPayment()">Save Payment</button></div></div></div><div class="finance-card"><h3>💸 Recent Transactions</h3>${transactionTable()}</div>`}
+function transactionTable(){const a=[...db.finance.receipts.map(x=>({...x,type:'RECEIPT',ref:x.receiptNo||x.id,party:x.customer})),...db.finance.payments.map(x=>({...x,type:'PAYMENT',ref:x.paymentNo||x.id,party:x.vendor}))].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,100);return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th>Ref</th><th>Currency</th><th>Amount</th><th>Mode</th></tr></thead><tbody>${a.map(x=>`<tr><td>${esc(x.date)}</td><td>${x.type}</td><td>${esc(x.party||'-')}</td><td>${esc(x.ref)}</td><td>${esc(x.currency||'INR')}</td><td>${money(x.amount,x.currency)}</td><td>${esc(x.paymentMode||'-')}</td></tr>`).join('')||'<tr><td colspan="7">No transactions.</td></tr>'}</tbody></table></div>`}
+window.financeAddReceipt=function(){ensureFinance();const x={id:id('REC'),receiptNo:id('REC'),date:dateNow(),customer:document.getElementById('fr-customer')?.value.trim(),amount:Number(document.getElementById('fr-amount')?.value)||0,currency:document.getElementById('fr-currency')?.value||'INR',invoiceNo:document.getElementById('fr-invoice')?.value.trim(),paymentMode:document.getElementById('fr-mode')?.value||'',reference:document.getElementById('fr-ref')?.value.trim()};if(!x.customer||!x.amount)return alert('Customer and amount are required.');db.finance.receipts.push(x);const inv=invoices().find(i=>(i.invoiceNo||i.id)===x.invoiceNo);if(inv)inv.received=invoiceReceived(inv)+x.amount; audit('CREATE','Receipt',x.receiptNo,`Customer ${x.customer}`);saveDB();financeTab('transactions');};
+window.financeAddPayment=function(){ensureFinance();const x={id:id('PAY'),paymentNo:id('PAY'),date:dateNow(),vendor:document.getElementById('fp-vendor')?.value.trim(),amount:Number(document.getElementById('fp-amount')?.value)||0,currency:document.getElementById('fp-currency')?.value||'INR',vendorBillNo:document.getElementById('fp-bill')?.value.trim(),paymentMode:document.getElementById('fp-mode')?.value||'',reference:document.getElementById('fp-ref')?.value.trim()};if(!x.vendor||!x.amount)return alert('Vendor and amount are required.');db.finance.payments.push(x);audit('CREATE','Payment',x.paymentNo,`Vendor ${x.vendor}`);saveDB();financeTab('transactions');};
+function renderJobCost(b){b.innerHTML=`<div class="finance-grid"><div class="finance-card"><h3>🧮 Add Job Cost</h3><div class="finance-form"><div><label>Job No.</label><input id="jc-job"></div><div><label>Vendor</label><input id="jc-vendor"></div><div><label>Cost Head</label><input id="jc-head" placeholder="Freight / THC / CFS / Transport..."></div><div><label>Amount</label><input id="jc-amount" type="number"></div><div><label>Currency</label><select id="jc-currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div><label>Vendor Invoice</label><input id="jc-invoice"></div><div class="full"><label>Remarks</label><textarea id="jc-remarks"></textarea></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddJobCost()">Save Cost</button></div></div><div class="finance-card"><h3>⏳ Add Accrual</h3><div class="finance-form"><div><label>Job No.</label><input id="ac-job"></div><div><label>Vendor</label><input id="ac-vendor"></div><div><label>Cost Head</label><input id="ac-head"></div><div><label>Amount</label><input id="ac-amount" type="number"></div><div><label>Currency</label><select id="ac-currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div><label>Expected Date</label><input id="ac-date" type="date"></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddAccrual()">Save Accrual</button></div></div></div><div class="finance-card"><h3>📊 Job Profitability Bridge</h3>${jobProfitTable()}</div>`}
+function jobProfitTable(){const jobs=new Set();invoices().forEach(x=>{if(jobNoOf(x))jobs.add(jobNoOf(x))});db.finance.jobCosts.forEach(x=>{if(x.jobNo)jobs.add(x.jobNo)});db.finance.accruals.forEach(x=>{if(x.jobNo)jobs.add(x.jobNo)});return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Job</th><th>Sales (INR)</th><th>Actual Cost</th><th>Accrual</th><th>Credit</th><th>Debit</th><th>Estimated GP</th><th>Margin %</th></tr></thead><tbody>${[...jobs].map(job=>{const sales=invoices().filter(x=>jobNoOf(x)===job).reduce((s,x)=>s+fx(invoiceAmount(x),x.currency),0),cost=db.finance.jobCosts.filter(x=>x.jobNo===job).reduce((s,x)=>s+fx(x.amount,x.currency),0),ac=db.finance.accruals.filter(x=>x.jobNo===job&&String(x.status).toUpperCase()!=='REVERSED').reduce((s,x)=>s+fx(x.amount,x.currency),0),cn=db.finance.creditNotes.filter(x=>x.jobNo===job).reduce((s,x)=>s+fx(x.amount,x.currency),0),dn=db.finance.debitNotes.filter(x=>x.jobNo===job).reduce((s,x)=>s+fx(x.amount,x.currency),0),gp=sales+dn-cn-cost-ac;return `<tr><td>${esc(job)}</td><td>${money(sales)}</td><td>${money(cost)}</td><td>${money(ac)}</td><td>${money(cn)}</td><td>${money(dn)}</td><td>${money(gp)}</td><td>${sales?((gp/sales)*100).toFixed(2):'0.00'}%</td></tr>`}).join('')||'<tr><td colspan="8">No job financial records yet.</td></tr>'}</tbody></table></div>`}
+window.financeAddJobCost=function(){const x={id:id('CST'),date:dateNow(),jobNo:document.getElementById('jc-job')?.value.trim(),vendor:document.getElementById('jc-vendor')?.value.trim(),costHead:document.getElementById('jc-head')?.value.trim(),amount:Number(document.getElementById('jc-amount')?.value)||0,currency:document.getElementById('jc-currency')?.value||'INR',vendorInvoice:document.getElementById('jc-invoice')?.value.trim(),remarks:document.getElementById('jc-remarks')?.value||''};if(!x.jobNo||!x.amount)return alert('Job No. and amount are required.');db.finance.jobCosts.push(x);audit('CREATE','Job Cost',x.id,`Job ${x.jobNo}`);saveDB();financeTab('jobcost')};
+window.financeAddAccrual=function(){const x={id:id('ACR'),date:dateNow(),expectedDate:document.getElementById('ac-date')?.value||'',jobNo:document.getElementById('ac-job')?.value.trim(),vendor:document.getElementById('ac-vendor')?.value.trim(),costHead:document.getElementById('ac-head')?.value.trim(),amount:Number(document.getElementById('ac-amount')?.value)||0,currency:document.getElementById('ac-currency')?.value||'INR',status:'OPEN'};if(!x.jobNo||!x.amount)return alert('Job No. and amount are required.');db.finance.accruals.push(x);audit('CREATE','Accrual',x.id,`Job ${x.jobNo}`);saveDB();financeTab('jobcost')};
+function renderBank(b){b.innerHTML=`<div class="finance-card"><h3>🏦 Bank / Cash Transaction</h3><div class="finance-form"><div><label>Account</label><input id="bn-account" placeholder="HDFC Bank / Cash"></div><div><label>Date</label><input id="bn-date" type="date" value="${dateNow()}"></div><div><label>Type</label><select id="bn-type"><option>Receipt</option><option>Payment</option><option>Transfer</option><option>Bank Charge</option><option>Adjustment</option></select></div><div><label>Amount</label><input id="bn-amount" type="number"></div><div><label>Currency</label><select id="bn-currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div><label>Reference</label><input id="bn-ref"></div><div class="full"><label>Remarks</label><textarea id="bn-remarks"></textarea></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddBank()">Save Transaction</button></div></div><div class="finance-card"><h3>🏦 Bank / Cash Register</h3><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Currency</th><th>Amount</th><th>Reference</th></tr></thead><tbody>${db.finance.bankTransactions.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.account)}</td><td>${esc(x.type)}</td><td>${esc(x.currency)}</td><td>${money(x.amount,x.currency)}</td><td>${esc(x.reference||'-')}</td></tr>`).join('')||'<tr><td colspan="6">No bank/cash transactions.</td></tr>'}</tbody></table></div></div>`}
+window.financeAddBank=function(){const x={id:id('BNK'),date:document.getElementById('bn-date')?.value||dateNow(),account:document.getElementById('bn-account')?.value.trim(),type:document.getElementById('bn-type')?.value,amount:Number(document.getElementById('bn-amount')?.value)||0,currency:document.getElementById('bn-currency')?.value||'INR',reference:document.getElementById('bn-ref')?.value.trim(),remarks:document.getElementById('bn-remarks')?.value||''};if(!x.account||!x.amount)return alert('Account and amount are required.');db.finance.bankTransactions.push(x);audit('CREATE','Bank Transaction',x.id,x.account);saveDB();financeTab('bank')};
+function renderNotes(b){b.innerHTML=`<div class="finance-grid"><div class="finance-card"><h3>🟢 Credit Note</h3>${noteForm('credit')}</div><div class="finance-card"><h3>🔴 Debit Note</h3>${noteForm('debit')}</div></div><div class="finance-card"><h3>🧾 Notes Register</h3><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Type</th><th>Note No.</th><th>Customer</th><th>Invoice</th><th>Job</th><th>Amount</th><th>Reason</th></tr></thead><tbody>${[...db.finance.creditNotes.map(x=>({...x,type:'CREDIT'})),...db.finance.debitNotes.map(x=>({...x,type:'DEBIT'}))].sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(x=>`<tr><td>${x.type}</td><td>${esc(x.noteNo||x.id)}</td><td>${esc(x.customer||'-')}</td><td>${esc(x.invoiceNo||'-')}</td><td>${esc(x.jobNo||'-')}</td><td>${money(x.amount,x.currency)}</td><td>${esc(x.reason||'-')}</td></tr>`).join('')||'<tr><td colspan="7">No notes.</td></tr>'}</tbody></table></div></div>`}
+function noteForm(type){return `<div class="finance-form"><div><label>Customer</label><input id="${type}-customer"></div><div><label>Invoice No.</label><input id="${type}-invoice"></div><div><label>Job No.</label><input id="${type}-job"></div><div><label>Amount</label><input id="${type}-amount" type="number"></div><div><label>Currency</label><select id="${type}-currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option></select></div><div class="full"><label>Reason</label><textarea id="${type}-reason"></textarea></div></div><div class="finance-actions"><button class="btn ${type==='credit'?'btn-success':'btn-clear'}" onclick="financeAddNote('${type}')">Save ${type==='credit'?'Credit':'Debit'} Note</button></div>`}
+window.financeAddNote=function(type){const x={id:id(type==='credit'?'CN':'DN'),noteNo:id(type==='credit'?'CN':'DN'),date:dateNow(),customer:document.getElementById(`${type}-customer`)?.value.trim(),invoiceNo:document.getElementById(`${type}-invoice`)?.value.trim(),jobNo:document.getElementById(`${type}-job`)?.value.trim(),amount:Number(document.getElementById(`${type}-amount`)?.value)||0,currency:document.getElementById(`${type}-currency`)?.value||'INR',reason:document.getElementById(`${type}-reason`)?.value||''};if(!x.customer||!x.amount)return alert('Customer and amount are required.');db.finance[type==='credit'?'creditNotes':'debitNotes'].push(x);audit('CREATE',type==='credit'?'Credit Note':'Debit Note',x.noteNo,x.reason);saveDB();financeTab('notes')};
+function renderMasters(b){const cs=db.finance.customers,vs=db.finance.vendors;b.innerHTML=`<div class="finance-grid"><div class="finance-card"><h3>🏢 Customer Master / Credit Control</h3><div class="finance-form"><div><label>Customer Name</label><input id="fm-customer"></div><div><label>GSTIN</label><input id="fm-gstin"></div><div><label>Credit Limit</label><input id="fm-limit" type="number"></div><div><label>Credit Days</label><input id="fm-days" type="number" value="30"></div><div><label>Sales Owner</label><input id="fm-owner"></div><div><label>Payment Terms</label><input id="fm-terms"></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddCustomer()">Save Customer</button></div><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Customer</th><th>GSTIN</th><th>Limit</th><th>Days</th><th>Owner</th></tr></thead><tbody>${cs.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.gstin||'-')}</td><td>${money(x.creditLimit||0)}</td><td>${esc(x.creditDays||0)}</td><td>${esc(x.owner||'-')}</td></tr>`).join('')||'<tr><td colspan="5">No finance customer master records.</td></tr>'}</tbody></table></div></div><div class="finance-card"><h3>🏭 Vendor Master</h3><div class="finance-form"><div><label>Vendor Name</label><input id="fm-vendor"></div><div><label>GSTIN</label><input id="fm-vgstin"></div><div><label>Payment Days</label><input id="fm-vdays" type="number" value="30"></div><div><label>Vendor Type</label><input id="fm-vtype" placeholder="Carrier / CFS / CHA / Transporter"></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeAddVendor()">Save Vendor</button></div><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Vendor</th><th>GSTIN</th><th>Days</th><th>Type</th></tr></thead><tbody>${vs.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.gstin||'-')}</td><td>${esc(x.paymentDays||0)}</td><td>${esc(x.type||'-')}</td></tr>`).join('')||'<tr><td colspan="4">No vendor master records.</td></tr>'}</tbody></table></div></div></div><div class="finance-card"><h3>🇮🇳 GST / Finance Settings</h3><div class="finance-form"><div><label>Base Currency</label><select id="fm-base"><option ${db.finance.settings.baseCurrency==='INR'?'selected':''}>INR</option><option ${db.finance.settings.baseCurrency==='USD'?'selected':''}>USD</option></select></div><div><label>Company GSTIN</label><input id="fm-company-gstin" value="${esc(db.finance.settings.gstin||'')}"></div><div><label>Financial Year</label><input id="fm-fy" value="${esc(db.finance.settings.financialYear||'')}"></div><div><label>Default Credit Days</label><input id="fm-default-days" type="number" value="${Number(db.finance.settings.defaultTerms)||30}"></div></div><div class="finance-actions"><button class="btn btn-success" onclick="financeSaveSettings()">Save Finance Settings</button></div><div class="finance-mini">GST fields are stored for invoice/report integration. Existing invoice records are preserved; no tax values are overwritten automatically.</div></div><div class="finance-card"><h3>🧮 GST Calculator</h3><div class="finance-form"><div><label>Taxable Value</label><input id="gst-taxable" type="number"></div><div><label>GST Rate %</label><input id="gst-rate" type="number" value="18"></div><div><label>Supply Type</label><select id="gst-type"><option value="intra">Intra-State (CGST + SGST)</option><option value="inter">Inter-State (IGST)</option></select></div><div><label>Place / State Note</label><input id="gst-place" placeholder="Optional"></div></div><div class="finance-actions"><button class="btn btn-preview" onclick="financeCalcGST()">Calculate GST</button></div><div id="gst-result" class="finance-mini">Enter taxable value and GST rate.</div></div>`}
+window.financeAddCustomer=function(){const x={id:id('CUS'),name:document.getElementById('fm-customer')?.value.trim(),gstin:document.getElementById('fm-gstin')?.value.trim(),creditLimit:Number(document.getElementById('fm-limit')?.value)||0,creditDays:Number(document.getElementById('fm-days')?.value)||30,owner:document.getElementById('fm-owner')?.value.trim(),terms:document.getElementById('fm-terms')?.value.trim()};if(!x.name)return alert('Customer name is required.');const old=db.finance.customers.findIndex(a=>a.name.toLowerCase()===x.name.toLowerCase());if(old>=0){x.id=db.finance.customers[old].id;db.finance.customers[old]=x}else db.finance.customers.push(x);audit('SAVE','Customer Master',x.name,'Finance customer/credit control');saveDB();financeTab('masters')};
+window.financeAddVendor=function(){const x={id:id('VND'),name:document.getElementById('fm-vendor')?.value.trim(),gstin:document.getElementById('fm-vgstin')?.value.trim(),paymentDays:Number(document.getElementById('fm-vdays')?.value)||30,type:document.getElementById('fm-vtype')?.value.trim()};if(!x.name)return alert('Vendor name is required.');const old=db.finance.vendors.findIndex(a=>a.name.toLowerCase()===x.name.toLowerCase());if(old>=0){x.id=db.finance.vendors[old].id;db.finance.vendors[old]=x}else db.finance.vendors.push(x);audit('SAVE','Vendor Master',x.name,'Finance vendor master');saveDB();financeTab('masters')};
+window.financeSaveSettings=function(){db.finance.settings.baseCurrency=document.getElementById('fm-base')?.value||'INR';db.finance.settings.gstin=document.getElementById('fm-company-gstin')?.value.trim()||'';db.finance.settings.financialYear=document.getElementById('fm-fy')?.value.trim()||'';db.finance.settings.defaultTerms=Number(document.getElementById('fm-default-days')?.value)||30;audit('SAVE','Finance Settings','SETTINGS','Updated finance/GST settings');saveDB();financeTab('masters')};
+window.financeCalcGST=function(){const taxable=Number(document.getElementById('gst-taxable')?.value)||0,rate=Number(document.getElementById('gst-rate')?.value)||0,type=document.getElementById('gst-type')?.value||'intra';if(taxable<0||rate<0)return alert('Taxable value and GST rate cannot be negative.');const totalTax=taxable*rate/100;const cgst=type==='intra'?totalTax/2:0,sgst=type==='intra'?totalTax/2:0,igst=type==='inter'?totalTax:0;const out=document.getElementById('gst-result');if(out)out.innerHTML=`Taxable: <strong>${money(taxable)}</strong> • CGST: <strong>${money(cgst)}</strong> • SGST: <strong>${money(sgst)}</strong> • IGST: <strong>${money(igst)}</strong> • Total: <strong>${money(taxable+totalTax)}</strong>`};
+function renderReports(b){const sales=invoices().reduce((s,x)=>s+fx(invoiceAmount(x),x.currency),0),rec=invoices().reduce((s,x)=>s+fx(invoiceOutstanding(x),x.currency),0),cost=db.finance.jobCosts.reduce((s,x)=>s+fx(x.amount,x.currency),0),pay=db.finance.vendorBills.reduce((s,x)=>s+fx(x.total??x.amount,x.currency),0),cash=db.finance.bankTransactions.reduce((s,x)=>s+(String(x.type).toLowerCase()==='receipt'?fx(x.amount,x.currency):-fx(x.amount,x.currency)),0);b.innerHTML=`<div class="finance-kpis"><div class="finance-kpi"><span>SALES REGISTER</span><strong>${money(sales)}</strong></div><div class="finance-kpi"><span>RECEIVABLE</span><strong>${money(rec)}</strong></div><div class="finance-kpi"><span>PAYABLE</span><strong>${money(pay)}</strong></div><div class="finance-kpi"><span>JOB COST</span><strong>${money(cost)}</strong></div><div class="finance-kpi"><span>BANK/CASH NET</span><strong>${money(cash)}</strong></div></div><div class="finance-grid"><div class="finance-card"><h3>📊 Customer Outstanding Summary</h3>${customerSummary()}</div><div class="finance-card"><h3>📊 Vendor Outstanding Summary</h3>${vendorSummary()}</div></div>`}
+function customerSummary(){return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Customer</th><th>Outstanding</th><th>Overdue</th></tr></thead><tbody>${customerNames().map(n=>{const arr=invoices().filter(x=>(x.customer||x.client||'')===n);const out=arr.reduce((s,x)=>s+fx(invoiceOutstanding(x),x.currency),0),od=arr.reduce((s,x)=>s+(invoiceOutstanding(x)>0&&dueDays(x)<0?fx(invoiceOutstanding(x),x.currency):0),0);return `<tr><td>${esc(n)}</td><td>${money(out)}</td><td>${money(od)}</td></tr>`}).join('')||'<tr><td colspan="3">No customers.</td></tr>'}</tbody></table></div>`}
+function vendorSummary(){return `<div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Vendor</th><th>Bills</th><th>Paid</th><th>Outstanding</th></tr></thead><tbody>${vendorNames().map(n=>{const arr=db.finance.vendorBills.filter(x=>x.vendor===n);const bills=arr.reduce((s,x)=>s+fx(x.total??x.amount,x.currency),0),paid=db.finance.payments.filter(x=>x.vendor===n).reduce((s,x)=>s+fx(x.amount,x.currency),0);return `<tr><td>${esc(n)}</td><td>${money(bills)}</td><td>${money(paid)}</td><td>${money(Math.max(0,bills-paid))}</td></tr>`}).join('')||'<tr><td colspan="4">No vendors.</td></tr>'}</tbody></table></div>`}
+function renderAudit(b){b.innerHTML=`<div class="finance-card"><h3>🛡️ Finance Audit Trail</h3><div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date</th><th>User</th><th>Action</th><th>Entity</th><th>Reference</th><th>Detail</th></tr></thead><tbody>${db.finance.audit.slice().reverse().map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.user)}</td><td>${esc(x.action)}</td><td>${esc(x.entity)}</td><td>${esc(x.ref)}</td><td>${esc(x.detail)}</td></tr>`).join('')||'<tr><td colspan="6">No audit records.</td></tr>'}</tbody></table></div></div>`}
+function financeFilterTable(){const input=document.getElementById('fin-search'),cur=document.getElementById('fin-currency');const apply=()=>{const q=(input?.value||'').toLowerCase(),c=cur?.value||'';document.querySelectorAll('.finance-table tbody tr[data-fin-search]').forEach(r=>{const okq=!q||r.dataset.finSearch.includes(q);const okc=!c||r.textContent.includes(c);r.style.display=okq&&okc?'':'none'})};input?.addEventListener('input',apply);cur?.addEventListener('change',apply)}
+function initFinance(){ensureFinance();if(!document.querySelector('.nav-category[data-finance-added]')){const reports=document.querySelector('.nav-category-items#cat-reports')?.closest('.nav-category');const nav=document.querySelector('.tab-nav-vertical');if(reports&&nav&&!document.querySelector('[data-tab="finance"]')){const wrap=document.createElement('div');wrap.className='nav-category';wrap.setAttribute('data-finance-added','1');wrap.innerHTML='<div class="nav-category-header" onclick="toggleCategory(\'financeCat\')"><span>💳 FINANCE & ACCOUNTS</span><span class="arrow" id="arrow-financeCat">▼</span></div><div class="nav-category-items" id="cat-financeCat"><button class="tab-btn-vertical" data-tab="finance" type="button">💳 Finance Dashboard</button></div>';nav.insertBefore(wrap,reports);wrap.querySelector('[data-tab="finance"]').addEventListener('click',()=>switchToTab('finance'));}}}
+const oldSwitch=window.switchToTab;
+if(!window.__financeSwitchPatched){window.__financeSwitchPatched=true;window.switchToTab=function(target){if(String(target).toLowerCase()==='finance'){initFinance();oldSwitch.apply(this,arguments);setTimeout(()=>financeTab(window._financeTab||'dashboard'),0);return}return oldSwitch.apply(this,arguments)}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{initFinance();ensureFinance();saveDB();},{once:true});else{initFinance();ensureFinance();saveDB();}
+})();
+/* ===== END COMPLETE FINANCE & ACCOUNTING BRIDGE ===== */
+
+
+/* ===== ROUTING & RATE DECISION CENTER — FINAL COMBINED AMENDMENT ===== */
+/* SHAHID ERP 2.0 — Routing Master
+ * Scope: Admin -> Routing only. Stores routing/service combinations in db.routing.
+ * No existing quotation/rate calculation is modified by this module.
+ */
+(function(){
+  'use strict';
+  const STORAGE_FIELD = 'routing';
+  let previewRows = [];
+  let routeOptionCache = {pol:[], via:[], pod:[], carrier:[]};
+  let routingSelectionState = {pol:new Set(),via:new Set(),pod:new Set(),carrier:new Set()};
+
+  function ensureRoutingDb(){
+    if(!Array.isArray(db[STORAGE_FIELD])) db[STORAGE_FIELD]=[];
+    return db[STORAGE_FIELD];
+  }
+  function clean(v){ return String(v ?? '').trim(); }
+  function norm(v){ return clean(v).toUpperCase(); }
+  function esc(v){ return clean(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function unique(arr){ return [...new Set((arr||[]).map(clean).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+  function getMasters(){
+    const hidden = db.hiddenItems || {};
+    const visible = (arr,key)=>unique((Array.isArray(arr)?arr:[]).filter(x=>!(hidden[key]||[]).includes(x)));
+    routeOptionCache.pol = visible(db.pol,'pol');
+    routeOptionCache.pod = visible(db.pod,'pod');
+    routeOptionCache.carrier = visible(db.carriers,'carriers');
+    // Via ports can be any known port, including Indian or overseas ports; use combined master list.
+    routeOptionCache.via = unique([...(Array.isArray(db.pod)?db.pod:[]),...(Array.isArray(db.pol)?db.pol:[])].filter(Boolean));
+    Object.keys(routingSelectionState).forEach(k=>{const allowed=new Set(routeOptionCache[k]||[]);routingSelectionState[k]=new Set([...routingSelectionState[k]].filter(v=>allowed.has(v)));});
+  }
+  function selectedValues(type){ return [...(routingSelectionState[type]||new Set())]; }
+  function renderOptions(type, query=''){
+    const host=document.getElementById(`routing-${type}-options`); if(!host)return;
+    const q=norm(query);
+    const vals=(routeOptionCache[type]||[]).filter(v=>!q||norm(v).includes(q));
+    if(!vals.length){host.innerHTML='<div class="routing-empty-options">No matching master data.</div>';return;}
+    const selected=routingSelectionState[type]||new Set();
+    host.innerHTML=vals.map((v,i)=>`<label class="routing-option"><input type="checkbox" value="${esc(v)}" ${selected.has(v)?'checked':''} onchange="routingSelectionChanged('${type}',this)"><span>${esc(v)}</span></label>`).join('');
+  }
+  function updateCounts(){
+    const counts={pol:selectedValues('pol').length,via:selectedValues('via').length,pod:selectedValues('pod').length,carrier:selectedValues('carrier').length};
+    Object.keys(counts).forEach(k=>{const el=document.getElementById(`routing-${k}-count`);if(el)el.textContent=`${counts[k]} selected`; const sum=document.getElementById(`routing-summary-${k}`);if(sum)sum.textContent=counts[k];});
+    const routeType=document.getElementById('routing-route-type')?.value||'DIRECT';
+    const viaFactor=routeType==='DIRECT'?1:counts.via;
+    const total=counts.pol*counts.pod*counts.carrier*viaFactor;
+    const totalEl=document.getElementById('routing-summary-total'); if(totalEl)totalEl.textContent=total;
+  }
+  window.routingSelectionChanged=function(type,el){
+    const set=routingSelectionState[type]||new Set();
+    if(el?.checked)set.add(el.value);else set.delete(el?.value);
+    routingSelectionState[type]=set; updateCounts();
+  };
+  window.routingFilterOptions=function(type){
+    const q=document.getElementById(`routing-${type}-search`)?.value||'';
+    renderOptions(type,q); updateCounts();
+  };
+  window.routingRouteTypeChanged=function(){
+    const ts=document.getElementById('routing-route-type')?.value==='TRANSSHIPMENT';
+    const box=document.getElementById('routing-via-box'); if(box)box.classList.toggle('routing-via-required',ts);
+    const input=document.getElementById('routing-via-search'); if(input)input.disabled=!ts;
+    document.querySelectorAll('#routing-via-options input').forEach(x=>x.disabled=!ts);
+    updateCounts();
+  };
+  function currentBase(){
+    const routeType=document.getElementById('routing-route-type')?.value||'DIRECT';
+    return {
+      mode:document.getElementById('routing-mode')?.value||'SEA',
+      shipmentType:document.getElementById('routing-shipment-type')?.value||'EXPORT',
+      serviceName:clean(document.getElementById('routing-service-name')?.value),
+      frequency:clean(document.getElementById('routing-frequency')?.value)||'Weekly',
+      directTs:routeType,
+      defaultTransit:Number(document.getElementById('routing-default-transit')?.value||0)
+    };
+  }
+  window.routingGenerateMatrix=function(){
+    const base=currentBase();
+    const pols=selectedValues('pol'), pods=selectedValues('pod'), carriers=selectedValues('carrier');
+    const vias=selectedValues('via');
+    if(!pols.length||!pods.length||!carriers.length){alert('Please select at least one POL, POD and Carrier.');return;}
+    if(base.directTs==='TRANSSHIPMENT'&&!vias.length){alert('Please select at least one Transshipment / Via Port.');return;}
+    const viaList=base.directTs==='DIRECT'?['-']:vias;
+    const seen=new Set(); previewRows=[];
+    pols.forEach(pol=>viaList.forEach(via=>pods.forEach(pod=>carriers.forEach(carrier=>{
+      const key=[base.mode,base.shipmentType,carrier,pol,via,pod,base.serviceName].map(norm).join('|');
+      if(seen.has(key))return; seen.add(key);
+      previewRows.push({serviceId:'',mode:base.mode,shipmentType:base.shipmentType,carrier,serviceName:base.serviceName,pol,viaPort:via,pod,transitDays:base.defaultTransit||'',frequency:base.frequency,directTs:base.directTs,effectiveFrom:'',effectiveUntil:'',status:'ACTIVE',remarks:'',include:true});
+    }))));
+    routingRenderPreview();
+  };
+  function routingRenderPreview(){
+    const body=document.getElementById('routing-preview-body'); if(!body)return;
+    const count=document.getElementById('routing-preview-count'); if(count)count.textContent=`${previewRows.length} combinations`;
+    if(!previewRows.length){body.innerHTML='<tr><td colspan="13" class="v9-empty">Generate a matrix to preview routes.</td></tr>';return;}
+    body.innerHTML=previewRows.map((r,i)=>`<tr>
+      <td>${i+1}</td><td>${esc(r.pol)}</td><td>${esc(r.viaPort)}</td><td>${esc(r.pod)}</td><td>${esc(r.carrier)}</td><td>${esc(r.serviceName||'-')}</td>
+      <td><input class="routing-inline-number" type="number" min="0" value="${esc(r.transitDays)}" onchange="routingPreviewEdit(${i},'transitDays',this.value)"></td>
+      <td>${esc(r.frequency)}</td><td><span class="routing-badge ${r.directTs==='TRANSSHIPMENT'?'routing-ts':'routing-direct'}">${esc(r.directTs)}</span></td>
+      <td><input class="routing-inline-date" type="date" value="${esc(r.effectiveFrom)}" onchange="routingPreviewEdit(${i},'effectiveFrom',this.value)"></td>
+      <td><input class="routing-inline-date" type="date" value="${esc(r.effectiveUntil)}" onchange="routingPreviewEdit(${i},'effectiveUntil',this.value)"></td>
+      <td><span class="routing-badge routing-active">ACTIVE</span></td>
+      <td><input type="checkbox" ${r.include!==false?'checked':''} onchange="routingPreviewEdit(${i},'include',this.checked)"></td>
+    </tr>`).join('');
+  }
+  window.routingPreviewEdit=function(i,key,value){if(!previewRows[i])return;previewRows[i][key]=value;};
+  window.routingSelectAll=function(flag){previewRows.forEach(r=>r.include=!!flag);routingRenderPreview();};
+  function nextServiceId(){
+    const rows=ensureRoutingDb();
+    let n=1; const ids=rows.map(r=>String(r.serviceId||''));
+    while(ids.includes(`SVC-${String(n).padStart(3,'0')}`))n++;
+    return `SVC-${String(n).padStart(3,'0')}`;
+  }
+  // Business duplicate key for the Saved Routing table.
+  // Intentionally ignores Service ID, Service Name, Remarks and timestamps because
+  // those fields can differ while the displayed routing combination is the same.
+  function routingDuplicateKey(r){
+    const via=norm(r.viaPort||r.via||'-')||'-';
+    const direct=norm(r.directTs||r.routeType||'DIRECT')||'DIRECT';
+    return [
+      norm(r.mode||'SEA'),
+      norm(r.shipmentType||r.type||'EXPORT'),
+      norm(r.carrier),
+      norm(r.pol),
+      via,
+      norm(r.pod),
+      norm(r.transitDays),
+      norm(r.frequency||'Weekly'),
+      direct,
+      norm(r.effectiveFrom||r.validFrom),
+      norm(r.effectiveUntil||r.validUntil),
+      norm(r.status||'ACTIVE')
+    ].join('|');
+  }
+  function routeKey(r){return routingDuplicateKey(r);}
+  let routingSortState={key:'__row',dir:1};
+  let routingSelectedRows=new Set();
+  function compareRoutingValues(a,b,key){
+    if(key==='__row') return (Number(a.__idx)||0)-(Number(b.__idx)||0);
+    const av=a[key]??'', bv=b[key]??'';
+    if(key==='transitDays'){return (Number(av)||0)-(Number(bv)||0);}
+    if(key==='effectiveFrom'||key==='effectiveUntil'){
+      const ad=String(av||''), bd=String(bv||'');
+      if(ad<bd)return -1; if(ad>bd)return 1; return 0;
+    }
+    return String(av).localeCompare(String(bv),undefined,{numeric:true,sensitivity:'base'});
+  }
+  window.routingSortSaved=function(key){
+    if(routingSortState.key===key) routingSortState.dir*=-1; else {routingSortState={key,dir:1};}
+    routingRenderSaved();
+  };
+  function dedupeExactRoutingRecords(save=true){
+    const rows=ensureRoutingDb(), seen=new Set(), kept=[], duplicates=[];
+    rows.forEach((r,i)=>{const k=routingDuplicateKey(r);if(seen.has(k))duplicates.push(i);else{seen.add(k);kept.push(r);}});
+    if(duplicates.length){db[STORAGE_FIELD]=kept;if(save)saveDB();routingSelectedRows.clear();}
+    return duplicates.length;
+  }
+  window.routingToggleRowSelection=function(key,checked){
+    const k=String(key||'');
+    if(!k)return;
+    if(checked)routingSelectedRows.add(k);else routingSelectedRows.delete(k);
+    routingRenderSaved();
+  };
+  window.routingSelectVisibleRows=function(flag){
+    const body=document.getElementById('routing-saved-body');
+    if(!body)return;
+    body.querySelectorAll('input[data-routing-row-select]').forEach(cb=>{
+      const k=cb.getAttribute('data-routing-row-select');
+      if(flag)routingSelectedRows.add(k);else routingSelectedRows.delete(k);
+    });
+    routingRenderSaved();
+  };
+  window.routingClearSelection=function(){routingSelectedRows.clear();routingRenderSaved();};
+  window.routingDeleteSelected=function(){
+    const rows=ensureRoutingDb();
+    const selected=[...routingSelectedRows];
+    if(!selected.length){alert('Please select at least one routing row.');return;}
+    const selectedSet=new Set(selected);
+    const kept=rows.filter(r=>!selectedSet.has(routingDuplicateKey(r)));
+    const removed=rows.length-kept.length;
+    if(!removed){routingSelectedRows.clear();routingRenderSaved();return;}
+    if(!confirm(`Delete ${removed} selected routing entr${removed===1?'y':'ies'}?`))return;
+    db[STORAGE_FIELD]=kept;saveDB();routingSelectedRows.clear();routingRenderSaved();
+    alert(`Selected routing entries deleted.\nRemoved: ${removed}`);
+  };
+  window.routingRemoveDuplicates=function(){
+    const rows=ensureRoutingDb();
+    const seen=new Set(), duplicates=[];
+    rows.forEach((r,i)=>{const k=routeKey(r);if(seen.has(k))duplicates.push(i);else seen.add(k);});
+    if(!duplicates.length){alert('No exact duplicate routing entries found.');return;}
+    const ok=confirm(`Found ${duplicates.length} exact duplicate routing entr${duplicates.length===1?'y':'ies'}.\n\nThe first occurrence of each record will be kept and later identical copies will be removed.\n\nContinue?`);
+    if(!ok)return;
+    const removed=dedupeExactRoutingRecords(true); routingRenderSaved();
+    alert(`Duplicate cleanup completed.\nRemoved: ${removed}\nRemaining: ${ensureRoutingDb().length}`);
+  };
+  window.routingSaveSelected=function(){
+    const rows=ensureRoutingDb(); const selected=previewRows.filter(r=>r.include!==false);
+    if(!selected.length){alert('Please select at least one route to save.');return;}
+    const serviceId=nextServiceId(); let added=0, skipped=0;
+    const existing=new Set(rows.map(routeKey));
+    selected.forEach(r=>{
+      const rec={...r,serviceId:r.serviceId||serviceId,updatedAt:new Date().toISOString()};
+      const key=routeKey(rec);
+      if(existing.has(key)){skipped++;return;}
+      rows.push(rec);existing.add(key);added++;
+    });
+    saveDB(); routingRenderSaved();
+    alert(`Routing saved.\nNew: ${added}\nSkipped duplicates: ${skipped}`);
+  };
+  window.routingAddRow=function(){
+    document.getElementById('routing-service-name')?.focus();
+    window.scrollTo({top:document.getElementById('routing')?.offsetTop||0,behavior:'smooth'});
+  };
+  window.routingDelete=function(idx){
+    const rows=ensureRoutingDb(); if(!rows[idx])return;
+    if(!confirm('Delete this routing record?'))return;
+    rows.splice(idx,1);saveDB();routingRenderSaved();
+  };
+  window.routingToggleStatus=function(idx){
+    const rows=ensureRoutingDb(); if(!rows[idx])return;
+    rows[idx].status=norm(rows[idx].status)==='ACTIVE'?'INACTIVE':'ACTIVE';rows[idx].updatedAt=new Date().toISOString();saveDB();routingRenderSaved();
+  };
+  window.routingRenderSaved=function(){
+    const body=document.getElementById('routing-saved-body'); if(!body)return;
+    // Re-run business-level dedupe at render time so records introduced by any
+    // earlier amendment/import path cannot remain visible as duplicate rows.
+    const removedDuplicates=dedupeExactRoutingRecords(true);
+    const q=norm(document.getElementById('routing-search')?.value), mode=document.getElementById('routing-filter-mode')?.value||'', type=document.getElementById('routing-filter-type')?.value||'', status=document.getElementById('routing-filter-status')?.value||'';
+    let rows=ensureRoutingDb().map((r,i)=>({...r,__idx:i,__selectKey:routingDuplicateKey(r)})).filter(r=>{
+      const hay=[r.serviceId,r.serviceName,r.carrier,r.pol,r.viaPort,r.pod,r.mode,r.shipmentType].map(norm).join(' ');
+      return (!q||hay.includes(q))&&(!mode||norm(r.mode)===mode)&&(!type||norm(r.shipmentType)===type)&&(!status||norm(r.status)===status);
+    });
+    rows.sort((a,b)=>compareRoutingValues(a,b,routingSortState.key)*routingSortState.dir);
+    document.querySelectorAll('[data-routing-sort]').forEach(el=>{
+      const k=el.getAttribute('data-routing-sort');
+      el.textContent=routingSortState.key===k?(routingSortState.dir===1?'↑':'↓'):'';
+    });
+    const selectAll=document.getElementById('routing-select-visible');
+    if(selectAll){
+      const visibleKeys=rows.map(r=>r.__selectKey);
+      selectAll.checked=visibleKeys.length>0&&visibleKeys.every(k=>routingSelectedRows.has(k));
+      selectAll.indeterminate=visibleKeys.some(k=>routingSelectedRows.has(k))&&!selectAll.checked;
+    }
+    const selectedCountEl=document.getElementById('routing-selected-count');
+    if(selectedCountEl)selectedCountEl.textContent=`${routingSelectedRows.size} selected`;
+    const duplicateNote=document.getElementById('routing-duplicate-note');
+    if(duplicateNote)duplicateNote.textContent=removedDuplicates?`${removedDuplicates} duplicate entr${removedDuplicates===1?'y was':'ies were'} removed automatically.`:'No duplicate rows detected.';
+    if(!rows.length){body.innerHTML='<tr><td colspan="16" class="v9-empty">No routing records found.</td></tr>';return;}
+    body.innerHTML=rows.map((r,i)=>{
+      const checked=routingSelectedRows.has(r.__selectKey)?'checked':'';
+      return `<tr>
+        <td><input type="checkbox" data-routing-row-select="${esc(r.__selectKey)}" ${checked} onchange="routingToggleRowSelection(this.dataset.routingRowSelect,this.checked)" aria-label="Select routing row ${i+1}"></td>
+        <td>${i+1}</td><td>${esc(r.serviceId||'-')}</td><td>${esc(r.mode||'-')}</td><td>${esc(r.shipmentType||'-')}</td><td>${esc(r.carrier||'-')}</td><td>${esc(r.pol||'-')}</td><td>${esc(r.viaPort||'-')}</td><td>${esc(r.pod||'-')}</td><td>${esc(r.transitDays||'-')}</td><td>${esc(r.frequency||'-')}</td><td><span class="routing-badge ${norm(r.directTs)==='TRANSSHIPMENT'?'routing-ts':'routing-direct'}">${esc(r.directTs||'DIRECT')}</span></td><td>${esc(r.effectiveFrom||'-')}</td><td>${esc(r.effectiveUntil||'-')}</td><td><span class="routing-badge ${norm(r.status)==='ACTIVE'?'routing-active':'routing-inactive'}">${esc(r.status||'ACTIVE')}</span></td><td><button class="btn btn-sm btn-preview" onclick="routingToggleStatus(${r.__idx})">${norm(r.status)==='ACTIVE'?'Deactivate':'Activate'}</button> <button class="btn btn-sm btn-clear" onclick="routingDelete(${r.__idx})">🗑</button></td>
+      </tr>`;
+    }).join('');
+  };
+  function rowForExport(r){return {'Service ID':r.serviceId||'','Mode':r.mode||'','Shipment Type':r.shipmentType||'','Carrier':r.carrier||'','Service Name':r.serviceName||'','POL (India)':r.pol||'','Via Port':r.viaPort||'-','POD':r.pod||'','Transit Days':r.transitDays??'','Frequency':r.frequency||'','Direct / TS':r.directTs||'DIRECT','Effective From':r.effectiveFrom||'','Effective Until':r.effectiveUntil||'','Status':r.status||'ACTIVE','Remarks':r.remarks||''};}
+  window.routingExportExcel=function(){
+    if(typeof XLSX==='undefined'){alert('Excel library is not available.');return;}
+    const rows=ensureRoutingDb().map(rowForExport);
+    const wb=XLSX.utils.book_new(); const ws=XLSX.utils.json_to_sheet(rows); XLSX.utils.book_append_sheet(wb,ws,'SERVICE_MATRIX');
+    const master=XLSX.utils.json_to_sheet([...new Map(ensureRoutingDb().map(r=>[r.serviceId,{ 'Service ID':r.serviceId||'',Mode:r.mode||'', 'Shipment Type':r.shipmentType||'', 'Service Name':r.serviceName||'',Frequency:r.frequency||'', 'Default Transit Days':r.transitDays||'', 'Direct / TS':r.directTs||'', 'Effective From':r.effectiveFrom||'', 'Effective Until':r.effectiveUntil||'',Status:r.status||'',Remarks:r.remarks||''}])).values()]); XLSX.utils.book_append_sheet(wb,master,'SERVICE_MASTER');
+    const route=XLSX.utils.json_to_sheet(ensureRoutingDb().map(r=>({'Service ID':r.serviceId||'','Carrier':r.carrier||'','POL (India)':r.pol||'','Via Port':r.viaPort||'-','POD':r.pod||'','Transit Days':r.transitDays??'','Direct / TS':r.directTs||'DIRECT','Status':r.status||'ACTIVE'}))); XLSX.utils.book_append_sheet(wb,route,'ROUTE_PORTS');
+    XLSX.writeFile(wb,`SHAHID_ERP_ROUTING_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+  window.routingDownloadTemplate=function(){
+    if(typeof XLSX==='undefined'){alert('Excel library is not available.');return;}
+    const headers=['Service ID','Mode','Shipment Type','Carrier','Service Name','POL (India)','Via Port','POD','Transit Days','Frequency','Direct / TS','Effective From','Effective Until','Status','Remarks'];
+    const ws=XLSX.utils.aoa_to_sheet([headers]); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'SERVICE_MATRIX');
+    XLSX.writeFile(wb,'SHAHID_ERP_ROUTING_IMPORT_TEMPLATE.xlsx');
+  };
+  function readExcelRows(file){
+    return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array'});const ws=wb.Sheets[wb.SheetNames.includes('SERVICE_MATRIX')?'SERVICE_MATRIX':wb.SheetNames[0]];resolve(XLSX.utils.sheet_to_json(ws,{defval:''}));}catch(err){reject(err);}};fr.onerror=reject;fr.readAsArrayBuffer(file);});
+  }
+  window.routingImportExcel=async function(file){
+    if(!file)return;if(typeof XLSX==='undefined'){alert('Excel library is not available.');return;}
+    try{
+      const raw=await readExcelRows(file); if(!raw.length){alert('No rows found in the Excel file.');return;}
+      const required=['Carrier','POL (India)','POD']; const bad=[];
+      const rows=raw.map((x,i)=>{const r={serviceId:clean(x['Service ID']),mode:norm(x.Mode||'SEA'),shipmentType:norm(x['Shipment Type']||'EXPORT'),carrier:clean(x.Carrier),serviceName:clean(x['Service Name']),pol:clean(x['POL (India)']),viaPort:clean(x['Via Port'])||'-',pod:clean(x.POD),transitDays:clean(x['Transit Days']),frequency:clean(x.Frequency)||'Weekly',directTs:norm(x['Direct / TS']||'DIRECT'),effectiveFrom:clean(x['Effective From']),effectiveUntil:clean(x['Effective Until']),status:norm(x.Status||'ACTIVE'),remarks:clean(x.Remarks),include:true}; required.forEach(k=>{if(!clean(x[k]))bad.push(`Row ${i+2}: ${k} missing`);}); if(!['SEA','AIR','LCL'].includes(r.mode))bad.push(`Row ${i+2}: invalid Mode`);if(!['EXPORT','IMPORT'].includes(r.shipmentType))bad.push(`Row ${i+2}: invalid Shipment Type`);if(!['DIRECT','TRANSSHIPMENT'].includes(r.directTs))bad.push(`Row ${i+2}: invalid Direct / TS`);return r;});
+      if(bad.length){alert(`Import stopped.\n\n${bad.slice(0,12).join('\n')}${bad.length>12?'\n...':''}`);return;}
+      const existing=new Set(ensureRoutingDb().map(routeKey)); let newCount=0, dup=0;
+      rows.forEach(r=>{if(existing.has(routeKey(r))){dup++;}else{newCount++;}});
+      const ok=confirm(`Routing Excel Preview\n\nRows: ${rows.length}\nNew: ${newCount}\nDuplicates (will skip): ${dup}\n\nImport valid new rows?`); if(!ok)return;
+      const dbRows=ensureRoutingDb();rows.forEach(r=>{const k=routeKey(r);if(existing.has(k))return;dbRows.push({...r,updatedAt:new Date().toISOString()});existing.add(k);});saveDB();routingRenderSaved();alert(`Import completed.\nNew records: ${newCount}\nDuplicates skipped: ${dup}`);
+    }catch(e){console.error(e);alert('Routing Excel import failed: '+e.message);}
+  };
+  function init(){
+    ensureRoutingDb();
+    dedupeExactRoutingRecords(true);
+    getMasters();renderOptions('pol');renderOptions('via');renderOptions('pod');renderOptions('carrier');routingRouteTypeChanged();routingRenderSaved();
+  }
+  window.renderRouting=function(){getMasters();renderOptions('pol',document.getElementById('routing-pol-search')?.value||'');renderOptions('via',document.getElementById('routing-via-search')?.value||'');renderOptions('pod',document.getElementById('routing-pod-search')?.value||'');renderOptions('carrier',document.getElementById('routing-carrier-search')?.value||'');routingRouteTypeChanged();routingRenderSaved();updateCounts();}
+  // Expose a read-only matching helper for future Quote suggestion integration; it does not alter quote data.
+  window.getMatchingRouting=function(criteria){
+    const c=criteria||{};return ensureRoutingDb().filter(r=>
+      (!c.mode||norm(r.mode)===norm(c.mode)) && (!c.shipmentType||norm(r.shipmentType)===norm(c.shipmentType)) && (!c.carrier||norm(r.carrier)===norm(c.carrier)) && (!c.pol||norm(r.pol)===norm(c.pol)) && (!c.pod||norm(r.pod)===norm(c.pod)) && (!c.viaPort||norm(r.viaPort)===norm(c.viaPort)) && norm(r.status||'ACTIVE')==='ACTIVE'
+    ).map(r=>({...r}));
+  };
+  if(typeof window.switchToTab==='function'){
+    const original=window.switchToTab;
+    window.switchToTab=function(targetTab){const result=original.apply(this,arguments);if(targetTab==='routing')setTimeout(window.renderRouting,0);return result;};
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+
+/* ========================================================================
+   SHAHID ERP 2.0 — Routing & Carrier Suggestion Decision Center
+   Amendment scope: SEA Quote + SEA 1 Rate Request routing/rate popup only.
+   Uses existing Routing Master, Rate Sheet, Exchange Rate Master and the
+   existing SEA charge-source logic. No production/sample rates are hardcoded.
+   ======================================================================== */
+(function(){
+  'use strict';
+  const state={source:'sea', pol:'', pod:'', via:[], container:'', commodity:'NON HAZ', shipmentType:'EXPORT', selected:null, margin:15, rows:[], targetDate:'', draft:{}, sellOverrides:{}, freightManualBuy:'', freightManualCurrency:'USD', freightAdditionalBuy:0};
+  const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const norm=s=>String(s??'').trim().replace(/\s+/g,' ').toUpperCase();
+  const containerNorm=s=>{let x=norm(s).replace(/[-_]/g,' ');if(/20\s*GP/.test(x)||x==='20GP')return '20 GP';if(/40\s*GP/.test(x)||x==='40GP')return '40 GP';if(/40\s*HC/.test(x)||x==='40HC')return '40 HC';return x;};
+  const routeNorm=s=>norm(s).replace(/\s*(?:→|>|,|\/|\|)\s*/g,'>').replace(/>+/g,'>').replace(/^>|>$/g,'');
+  const money=n=>Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtINR=n=>`₹ ${money(n)}`;
+  const dbReady=()=>db||{};
+  function today(){return new Date().toISOString().slice(0,10);}
+  function parseDate(v){const d=new Date(String(v||'')+'T00:00:00');return Number.isNaN(d.getTime())?null:d;}
+  function validRateOn(r,date){const d=parseDate(date)||new Date(); const from=parseDate(r.validFrom); const to=parseDate(r.validTo); return (!from||d>=from)&&(!to||d<=to);}
+  function validRoutingOn(r,date){const d=parseDate(date)||new Date(); const from=parseDate(r.effectiveFrom ?? r.validFrom); const to=parseDate(r.effectiveUntil ?? r.validTo); return (!from||d>=from)&&(!to||d<=to);}
+  function dateText(v){if(!v)return '-'; const d=parseDate(v); return d?d.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'}):String(v);}
+  function getField(id){return document.getElementById(id)?.value||'';}
+  function sourceDetails(source){
+    if(source==='sea') return {shipmentType:'EXPORT',pol:getField('sea-pol'),pod:getField('sea-pod'),container:getField('sea-container'),commodity:getField('sea-commodity')||'NON HAZ',targetDate:getField('sea-validityDate')||today()};
+    if(source==='sea-import') return {shipmentType:'IMPORT',pol:getField('sea-import-pol'),pod:getField('sea-import-pod'),container:getField('sea-import-container'),commodity:getField('sea-import-commodity')||'NON HAZ',targetDate:getField('sea-import-validityDate')||today()};
+    if(source==='sea2') return {shipmentType:'EXPORT',pol:getField('rr-pol-sea2'),pod:getField('rr-pod-sea2'),container:'',commodity:getField('rr-commodity-sea2')||'NON HAZ',targetDate:getField('rr-validity-sea2')||today()};
+    return {shipmentType:'EXPORT',pol:getField('rr-pol-sea1'),pod:getField('rr-pod-sea1'),container:'',commodity:getField('rr-commodity-sea1')||'NON HAZ',targetDate:getField('rr-validity-sea1')||today()};
+  }
+  function routeMatches(r,c){
+    if(norm(r.mode||'SEA')!=='SEA') return false;
+    if(r.status && norm(r.status)!=='ACTIVE') return false;
+    if(c.shipmentType && norm(r.shipmentType||'EXPORT')!==norm(c.shipmentType)) return false;
+    if(norm(r.pol)!==norm(c.pol)||norm(r.pod)!==norm(c.pod)) return false;
+    const wanted=routeNorm(c.via.join('>'));
+    const rv=routeNorm(r.viaPort||'');
+    if(wanted && rv!==wanted) return false;
+    // If Via is not yet specified, show all configured direct/transshipment
+    // services for the requested POL/POD so the user can choose the actual path.
+    return validRoutingOn(r,c.targetDate);
+  }
+  function getRoutes(c){return (Array.isArray(dbReady().routing)?dbReady().routing:[]).filter(r=>routeMatches(r,c));}
+  // RATE SHEET SOURCE RULE:
+  // Carrier names are discovered from ALL matching SEA Rate Sheet records
+  // (historical + current + future), while the actual rate used/displayed
+  // by Routing & Rates comes ONLY from the future/target-valid Rate Sheet set.
+  function rateSheetMatches(r,c){
+    return norm(r.freightType||'SEA')==='SEA' &&
+      norm(r.pol)===norm(c.pol) && norm(r.pod)===norm(c.pod) &&
+      (!c.container || containerNorm(r.containerType)===containerNorm(c.container)) &&
+      (!c.commodity || !r.commodity || norm(r.commodity)===norm(c.commodity));
+  }
+  function allRateSheetCarrierNames(c){
+    const rates=Array.isArray(dbReady().rateSheet)?dbReady().rateSheet:[];
+    return [...new Set(rates.filter(r=>rateSheetMatches(r,c)).map(r=>String(r.carrierName||'').trim()).filter(Boolean))];
+  }
+  function futureRateRows(carrier,c){
+    const rates=Array.isArray(dbReady().rateSheet)?dbReady().rateSheet:[];
+    const todayDate=today();
+    const target=c.targetDate||todayDate;
+    const rows=rates.filter(r=>{
+      if(!rateSheetMatches(r,c) || norm(r.carrierName)!==norm(carrier)) return false;
+      const from=parseDate(r.validFrom);
+      const to=parseDate(r.validTo);
+      // Future/usable rate: not expired as of the requested target date,
+      // and its validity starts today or later.
+      if(to && target && to < parseDate(target)) return false;
+      if(from && from < parseDate(todayDate)) return false;
+      return true;
+    });
+    return rows.sort((a,b)=>String(a.validFrom||'').localeCompare(String(b.validFrom||'')));
+  }
+  function rateRows(carrier,c){return futureRateRows(carrier,c);}
+  function bestRate(carrier,c){return rateRows(carrier,c)[0]||null;}
+  function freightBuyState(carrier,c){
+    const rate=bestRate(carrier,c);
+    const base=rate?Number(rate.freightAmount)||0:Math.max(0,Number(state.freightManualBuy)||0);
+    const currency=norm(rate?.currency||state.freightManualCurrency||'USD')||'USD';
+    const additional=Math.max(0,Number(state.freightAdditionalBuy)||0);
+    return {rate,base,currency,additional,total:base+additional,fromRateSheet:!!rate};
+  }
+  function rateStatus(carrier,c){
+    const rows=rateRows(carrier,c);
+    if(!rows.length){
+      const all=allRateSheetCarrierNames(c).some(x=>norm(x)===norm(carrier));
+      return all?{type:'warn',text:'Future Rate Not Available'}:{type:'none',text:'No Rate'};
+    }
+    const calc=calculate(c,carrier);
+    return calc.lines.length>1?{type:'ok',text:'Complete Future Rate'}:{type:'warn',text:'Freight Only / Partial'};
+  }
+  function getFx(cur){cur=norm(cur||'INR'); if(cur==='INR')return 1; const v=Number(dbReady().exchangeRates?.[cur]); return Number.isFinite(v)&&v>0?v:null;}
+  function toINRStrict(amount,cur){const fx=getFx(cur); return fx==null?null:Number(amount||0)*fx;}
+  function chargeMap(carrier,c){
+    const out=[];
+    const finalDefault=window.__finalSeaDefault;
+    const finalLocal=window.__finalSeaLocal;
+    const finalTHC=window.__finalSeaTHC;
+    const defaults=typeof finalDefault==='function' ? finalDefault(c.pol,c.commodity,c.container) : {};
+    const locals=typeof finalLocal==='function' ? finalLocal(carrier,c.pol,c.commodity,c.container) : {};
+    const merged={...(defaults||{}),...(locals||{})};
+    Object.keys(merged).forEach(k=>{
+      if(/^THC(?:_|$)/i.test(k))return;
+      const v=merged[k]||{};
+      const buy=Number(v.buyAmount); const amount=Number(v.amount);
+      const useBuy=Number.isFinite(buy)&&buy>0?buy:(Number.isFinite(amount)&&amount>0?amount:0);
+      const cur=norm(v.buyCurrency||v.currency||'INR')||'INR';
+      if(useBuy>0) out.push({name:k,amount:useBuy,currency:cur,source:locals&&locals[k]?'Carrier Local Charges':'Default Charges'});
+    });
+    if(!out.some(x=>norm(x.name)==='THC') && typeof finalTHC==='function'){
+      const t=finalTHC(carrier,c.commodity,c.container,c.pol);
+      if(t&&Number(t.amount)>0)out.push({name:'THC',amount:Number(t.amount),currency:norm(t.currency||t.buyCurrency||'INR'),source:'SEA THC'});
+    }
+    return out;
+  }
+  function calculate(c,carrier){
+    const fs=freightBuyState(carrier,c); const charges=chargeMap(carrier,c); const lines=[]; let total=0; let missingFx=false;
+    const pushLine=(x,isFreight=false)=>{
+      const amount=Number(x.amount)||0; const currency=norm(x.currency||'INR')||'INR';
+      const inr=toINRStrict(amount,currency);
+      if(inr==null){missingFx=true;return;}
+      const key=norm(x.name);
+      let sellInr=inr;
+      if(isFreight){
+        const margin=Math.max(0,Math.min(99.99,Number(state.margin)||0));
+        const manual=state.sellOverrides[key];
+        if(manual!==undefined && Number.isFinite(Number(manual))){
+          const manualInr=toINRStrict(Number(manual),currency);
+          if(manualInr!=null) sellInr=manualInr; else missingFx=true;
+        } else if(margin<100){
+          sellInr=inr/(1-margin/100);
+        }
+      } else if(state.sellOverrides[key]!==undefined){
+        const manualInr=toINRStrict(Number(state.sellOverrides[key]),currency);
+        if(manualInr!=null)sellInr=manualInr; else missingFx=true;
+      }
+      lines.push({...x,amount,currency,inr,sellInr,isFreight,sellAmount: currency==='INR'?sellInr:(getFx(currency)?sellInr/getFx(currency):null)});
+      total+=inr;
+    };
+    // Always expose Ocean Freight as a calculation line. If no valid Rate Sheet
+    // rate exists, the line starts at 0 and is completed from Manual Buy + Additional Buy.
+    pushLine({name:'Ocean Freight',amount:fs.total,currency:fs.currency,source:fs.fromRateSheet?'Admin Rate Sheet':'Manual Buy'},true);
+    charges.forEach(x=>pushLine(x,false));
+    const freight=lines.find(x=>x.isFreight);
+    const otherSell=lines.filter(x=>!x.isFreight).reduce((a,x)=>a+(Number(x.sellInr)||0),0);
+    const finalSell=missingFx||!freight?null:(Number(freight.sellInr)||0)+otherSell;
+    const marginAmount=freight?((Number(freight.sellInr)||0)-freight.inr):0;
+    const marginPct=(freight&&freight.sellInr>0)?(marginAmount/freight.sellInr)*100:0;
+    return {rate:fs.rate,freightBuy:fs,lines,total,margin:marginPct,finalSell,missingFx,freight,marginAmount};
+  }
+  function serviceRows(c){
+    const routes=getRoutes(c);
+    const routeByCarrier=new Map();
+    routes.forEach(r=>{
+      const key=norm(r.carrier);
+      if(!routeByCarrier.has(key)) routeByCarrier.set(key,r);
+    });
+    // Carrier names come ONLY from matching Rate Sheet data, including old + future.
+    // Routing Master enriches the row when a matching service exists.
+    // Transit Time is taken from the selected/future Rate Sheet record when available.
+    const carriers=allRateSheetCarrierNames(c);
+    return carriers.map(carrier=>{
+      const route=routeByCarrier.get(norm(carrier));
+      const rate=bestRate(carrier,c);
+      const rateTransit=rate?.transitTime ?? rate?.transit ?? rate?.tt ?? '';
+      const r=route?{...route}:{
+        carrier, mode:'SEA', shipmentType:c.shipmentType||'EXPORT', pol:c.pol,
+        pod:c.pod, viaPort:c.via.join('>'), serviceName:'-', transitDays:'-',
+        frequency:'-', directTs:'-', effectiveFrom:'-', effectiveUntil:'-', status:'RATE SHEET'
+      };
+      const rs=rateStatus(carrier,c);
+      return {...r,carrier,__rateStatus:rs,__rate:rate,__rateTransit:rateTransit||r.transitDays,__calc:calculate(c,carrier)};
+    }).sort((a,b)=>norm(a.carrier).localeCompare(norm(b.carrier)));
+  }
+  function render(){
+    const root=document.getElementById('routing-suggestion-popup'); if(!root)return;
+    const c={pol:state.pol,pod:state.pod,via:state.via,container:state.container,commodity:state.commodity,shipmentType:state.shipmentType,targetDate:state.targetDate};
+    state.rows=serviceRows(c); const rowKey=r=>r?(r.carrier+'|'+(r.serviceName||r.serviceId||'SERVICE')+'|'+routeNorm(r.viaPort||'')):'';
+    if(state.selected && !state.rows.some(r=>rowKey(r)===state.selected))state.selected=null;
+    if(!state.selected&&state.rows[0])state.selected=rowKey(state.rows[0]);
+    const selected=state.rows.find(r=>rowKey(r)===state.selected)||null;
+    state.draft=selected?selected.__calc: {rate:null,lines:[],total:0,margin:state.margin,finalSell:null,missingFx:false};
+    root.innerHTML=popupHTML(c,selected);
+    bindPopup(c,selected);
+  }
+  function statusBadge(s){return `<span class="routing-status ${s.type}">${s.type==='ok'?'● ':s.type==='warn'?'⚠ ':'✕ '}${esc(s.text)}</span>`;}
+  function popupHTML(c,selected){
+    const calc=selected?.__calc||{lines:[],total:0,finalSell:null,margin:state.margin,missingFx:false};
+    // Use the SAME editable input+datalist pattern and the SAME master values as SEA Quote.
+    // SEA Quote uses editable text inputs backed by datalists, not native <select> controls.
+    const masters=typeof getMasterDropdownLists==='function'?getMasterDropdownLists():{carriers:dbReady().carriers||[],pol:dbReady().pol||[],pod:dbReady().pod||[],containers:dbReady().containers||[],incoterms:dbReady().incoterms||[]};
+    const unique=(arr,current)=>[...new Set([...(Array.isArray(arr)?arr:[]),current].map(x=>String(x??'').trim()).filter(Boolean))];
+    const listOptions=(arr,current)=>unique(arr,current).map(x=>`<option value="${esc(x)}">`).join('');
+    const shipmentTypes=['EXPORT','IMPORT'];
+    const viaList=unique([...(masters.pol||[]),...(masters.pod||[])],c.via?.[0]||'');
+    const viaOptions=listOptions(viaList,'');
+    const containerList=unique(masters.containers||[],c.container);
+    const cargoList=['NON HAZ','HAZ'];
+    const serviceKey=selected?(selected.carrier+'|'+(selected.serviceName||selected.serviceId||'SERVICE')+'|'+routeNorm(selected.viaPort||'')):'';
+    const via=c.via.length?c.via:[];
+    const routePath=[c.pol,...via,c.pod].filter(Boolean);
+    const rows=state.rows;
+    const routeRows=rows.length?rows.map((r,i)=>{const key=r.carrier+'|'+(r.serviceName||r.serviceId||'SERVICE')+'|'+routeNorm(r.viaPort||'');const active=key===serviceKey;return `<tr class="${active?'selected':''}" data-route-key="${esc(key)}"><td><input type="radio" name="routing-service" ${active?'checked':''} data-route-key="${esc(key)}"></td><td><strong>${esc(r.carrier||'-')}</strong><small class="routing-muted">${esc(r.serviceName||r.serviceId||'-')}</small></td><td>${esc(r.__rateTransit||r.transitDays||'-')} ${String(r.__rateTransit||r.transitDays||'').match(/days?$/i)?'':'Days'}</td><td>${esc(r.frequency||'-')}</td><td>${esc(r.directTs||'-')}</td><td>${statusBadge(r.__rateStatus)}</td><td>${r.__rate?`${dateText(r.__rate.validFrom)} → ${dateText(r.__rate.validTo)}`:'-'}</td><td><button class="btn btn-sm btn-preview routing-view-btn" data-route-key="${esc(key)}">View</button></td></tr>`}).join(''):`<tr><td colspan="8" class="routing-empty-state">No exact routing found for this route.</td></tr>`;
+    const lineRows=calc.lines.length?calc.lines.map(x=>{
+      const sellDisplay=x.sellAmount==null?'':Number(x.sellAmount).toFixed(2);
+      const buyDisplay=x.isFreight?Number(calc.freightBuy?.total||0):Number(x.amount||0);
+      const buyInrDisplay=x.isFreight?toINRStrict(buyDisplay,x.currency):x.inr;
+      const freightNote=x.isFreight?`<small class="routing-muted">${calc.freightBuy?.fromRateSheet?'Rate Sheet '+money(calc.freightBuy.base):'Manual Buy'} + Additional ${money(calc.freightBuy?.additional||0)} = Total ${money(calc.freightBuy?.total||0)}</small>`:'';
+      return `<tr><td><strong>${esc(x.name)}</strong>${freightNote}</td><td>${money(buyDisplay)}</td><td>${esc(x.currency)}</td><td>${buyInrDisplay==null?'—':fmtINR(buyInrDisplay)}</td><td><input class="routing-sell-input" data-sell-charge="${esc(norm(x.name))}" type="number" min="0" step="0.01" value="${esc(sellDisplay)}"></td></tr>`;
+    }).join(''):`<tr><td colspan="5" class="routing-empty-state">No applicable charges found in Admin database.</td></tr>`;
+    const fs=calc.freightBuy||{base:0,additional:0,total:0,currency:'USD',fromRateSheet:false};
+    const freightCurrency=esc(fs.currency||'USD');
+    const baseBuyValue=Number(fs.base||0).toFixed(2);
+    const addBuyValue=Number(fs.additional||0).toFixed(2);
+    const freightTotalValue=Number(fs.total||0).toFixed(2);
+    const freightTotalInr=toINRStrict(Number(fs.total||0),fs.currency||'USD');
+    const routeBoxes=routePath.map((p,i)=>`<div class="routing-path-node"><span>${i===0?'POL':i===routePath.length-1?'POD':'VIA'}</span><strong>${esc(p)}</strong></div>${i<routePath.length-1?'<b class="routing-path-arrow">→</b>':''}`).join('');
+    return `<div class="routing-popup">
+      <div class="routing-popup-head"><div><h3>🧭 Routing &amp; Carrier Suggestion</h3><small>Routing, future SEA freight rates, validity, INR cost and selling preview</small></div><div class="routing-popup-head-actions"><button class="btn btn-success btn-sm" id="routing-add-new">＋ Add New Routing</button><button class="btn btn-info btn-sm" id="routing-open-master">View in Routing Master</button><button class="routing-popup-close" id="routing-close">×</button></div></div>
+      <div class="routing-popup-editbar">
+        <div><label>Shipment Type</label><input id="rp-shipment" list="rp-shipment-list" autocomplete="off" value="${esc(c.shipmentType||'EXPORT')}" placeholder="Type or select Shipment Type..."><datalist id="rp-shipment-list"><option value="EXPORT"><option value="IMPORT"></datalist></div>
+        <div><label>POL (India)</label><input id="rp-pol" list="rp-pol-list" autocomplete="off" value="${esc(c.pol||'')}" placeholder="Type POL..."><datalist id="rp-pol-list">${listOptions(masters.pol,c.pol)}</datalist></div>
+        <div class="routing-via-editor"><label>Via Port(s)</label><div class="routing-via-chips" id="rp-via-chips">${via.map((x,i)=>`<span>${esc(x)} <button type="button" data-via-index="${i}">×</button></span>`).join('')}</div><input id="rp-via-add" list="rp-via-list" autocomplete="off" placeholder="Type or select Via Port..."><datalist id="rp-via-list">${viaOptions}</datalist></div>
+        <div><label>POD</label><input id="rp-pod" list="rp-pod-list" autocomplete="off" value="${esc(c.pod||'')}" placeholder="Type POD..."><datalist id="rp-pod-list">${listOptions(masters.pod,c.pod)}</datalist></div>
+        <div><label>Container</label><input id="rp-container" list="rp-container-list" autocomplete="off" value="${esc(c.container||'')}" placeholder="Type Container..."><datalist id="rp-container-list">${listOptions(containerList,c.container)}</datalist></div>
+        <div><label>Cargo</label><input id="rp-commodity" list="rp-commodity-list" autocomplete="off" value="${esc(c.commodity||'NON HAZ')}" placeholder="Type or select Cargo..."><datalist id="rp-commodity-list">${listOptions(cargoList,c.commodity)}</datalist></div>
+        <div><label>Rate / Shipment Date</label><input id="rp-date" type="date" value="${esc(c.targetDate||today())}"></div>
+        <button class="btn btn-quoted routing-search-btn" id="routing-search">🔎 Search Routing</button><button class="btn btn-clear" id="routing-reset">↻ Reset</button>
+      </div>
+      <div class="routing-path-strip">${routeBoxes||'<span class="routing-empty-state">Enter POL and POD to search routing.</span>'}</div>
+      <div class="routing-popup-tabs"><button class="active" data-tab="routes">🧭 Route Options (${rows.length})</button><button data-tab="rates">💰 Rate Details</button><button data-tab="schedule">🚢 Transit &amp; Schedule</button><button data-tab="alternatives">🔀 Alternative Routes</button></div>
+      <div class="routing-popup-body">
+        <section class="routing-tab-panel active" data-panel="routes"><div class="routing-popup-grid wide"><div class="routing-popup-panel"><h4>Matching Routing / Services</h4><div class="inner table-scroll"><table class="routing-popup-table"><thead><tr><th>Select</th><th>Carrier / Service</th><th>Transit</th><th>Frequency</th><th>Route Type</th><th>Rate Status</th><th>Rate Validity</th><th></th></tr></thead><tbody>${routeRows}</tbody></table></div></div><div class="routing-popup-panel"><h4>Selected Route Details</h4><div class="inner">${selected?detailHTML(selected):'<div class="routing-empty-state">Select a routing service.</div>'}</div></div></div></section>
+        <section class="routing-tab-panel" data-panel="rates"><div class="routing-popup-grid"><div class="routing-popup-panel"><h4>Rate Details — Admin Database</h4><div class="inner"><div class="routing-db-note">💾 Buy rates are read live from <strong>Admin → Rate Sheet / existing SEA charge masters</strong>. Ocean Freight Buy = Rate Sheet Buy (or Manual Buy) + Additional Buy. Sell rates default to Buy and can be changed for this quotation only.</div><div class="table-scroll"><table class="routing-popup-table"><thead><tr><th>Charge</th><th>Buy Rate</th><th>Currency</th><th>Buy INR</th><th>Sell Rate (Editable)</th></tr></thead><tbody>${lineRows}</tbody></table></div>${calc.missingFx?'<div class="routing-fx-error">⚠ Exchange rate missing in Admin Exchange Rate Master. INR total cannot be calculated.</div>':''}</div></div><div class="routing-popup-panel"><h4>💰 Selling &amp; Margin</h4><div class="inner"><div class="routing-freight-buy-card"><div class="routing-section-title">🚢 SEA Freight Buy</div><div class="routing-money-row"><span>${fs.fromRateSheet?'Rate Sheet Buy Rate':'Manual Buy Rate'} (${freightCurrency})</span><input id="rp-freight-buy" type="number" min="0" step="0.01" value="${esc(baseBuyValue)}" ${fs.fromRateSheet?'readonly':''}><span>${fs.fromRateSheet?'From Rate Sheet':'Manual'}</span></div><div class="routing-money-row"><span>Additional Buy / Surcharge (${freightCurrency})</span><input id="rp-freight-additional" type="number" min="0" step="0.01" value="${esc(addBuyValue)}"><span></span></div><div class="routing-money-row"><span><strong>SEA Freight Buy Total (${freightCurrency})</strong></span><strong>${freightTotalValue}</strong><span></span></div><div class="routing-money-row"><span>Admin ${freightCurrency}/INR Rate</span><strong>${freightCurrency==='INR'?'1.00':(getFx(freightCurrency)!=null?money(getFx(freightCurrency)):'—')}</strong><span>From Exchange Rate Master</span></div><div class="routing-money-row"><span><strong>SEA Freight Buy Total (INR)</strong></span><strong>${freightTotalInr==null?'—':fmtINR(freightTotalInr)}</strong><span></span></div></div><div class="routing-money-row"><span>Ocean Freight Margin % (On Selling)</span><input id="rp-margin" type="number" min="0" max="99.99" step="0.01" value="${Number(state.margin).toFixed(2)}"><span>%</span></div><div class="routing-money-row"><span>Ocean Freight Margin Amount (INR)</span><strong>${calc.finalSell==null||!calc.freight?'—':fmtINR(calc.marginAmount||0)}</strong><span></span></div><div class="routing-money-row"><span>Ocean Freight Sell (INR)</span><strong>${calc.freight?.sellInr==null?'—':fmtINR(calc.freight.sellInr)}</strong><span></span></div><div class="routing-final-sell"><span>Final Total Sell Amount (INR)</span><strong>${calc.finalSell==null?'—':fmtINR(calc.finalSell)}</strong></div><div class="routing-db-note">Ocean Freight Buy = Rate Sheet Buy (or Manual Buy if no valid rate) + Additional Buy. Margin applies only to Ocean Freight. Other charges default Sell = Buy and remain individually editable.</div></div></div></div></section>
+        <section class="routing-tab-panel" data-panel="schedule"><div class="routing-popup-grid"><div class="routing-popup-panel"><h4>🚢 Transit &amp; Schedule</h4><div class="inner">${selected?detailHTML(selected,true):'<div class="routing-empty-state">Select a service.</div>'}</div></div><div class="routing-popup-panel"><h4>Route Path</h4><div class="inner routing-route-flow">${routePath.map((p,i)=>`<div><span>${i===0?'POL':i===routePath.length-1?'POD':'VIA'}</span><strong>${esc(p)}</strong></div>${i<routePath.length-1?'<b>↓</b>':''}`).join('')}</div></div></div></section>
+        <section class="routing-tab-panel" data-panel="alternatives"><div class="routing-popup-panel"><h4>🔀 Alternative Routes</h4><div class="inner"><div class="routing-db-note">Alternatives are informational only and will never replace the requested route automatically.</div><div id="routing-alt-list">${alternativeHTML(c)}</div></div></div></section>
+      </div>
+      <div class="routing-popup-footer"><div class="left"><button class="btn btn-export" id="routing-export">📤 Export to Excel</button><span class="routing-footer-note">Rates &amp; validity: Admin database</span></div><div class="right"><button class="btn btn-clear" id="routing-close-bottom">Close</button><button class="btn btn-quoted" id="routing-select" ${selected?'':'disabled'}>✓ ${selected?'Select '+esc(selected.carrier)+' &amp; Continue':'Select &amp; Continue'}</button></div></div>
+    </div>`;
+  }
+  function detailHTML(r,full){
+    const rate=r?.__rate||{};
+    const transit=r?.__rateTransit||r?.transitDays||rate.transitTime||rate.transit||rate.tt||'-';
+    const inventory=rate.inventory||rate.containerType||r?.container||'-';
+    const cargo=rate.commodity||r?.commodity||'-';
+    const validityFrom=rate.validFrom||r?.effectiveFrom;
+    const validityTo=rate.validTo||r?.effectiveUntil;
+    return `<div class="routing-detail-list"><div><span>Carrier</span><strong>${esc(r.carrier||'-')}</strong></div><div><span>Service</span><strong>${esc(r.serviceName||r.serviceId||'-')}</strong></div><div><span>POL</span><strong>${esc(r.pol||rate.pol||'-')}</strong></div><div><span>Via</span><strong>${esc(r.viaPort||rate.viaPort||rate.via||'-')}</strong></div><div><span>POD</span><strong>${esc(r.pod||rate.pod||'-')}</strong></div><div><span>Inventory / Container</span><strong>${esc(inventory)}</strong></div><div><span>Cargo</span><strong>${esc(cargo)}</strong></div><div><span>Route Type</span><strong>${esc(r.directTs||'-')}</strong></div><div><span>Transit</span><strong>${esc(String(transit).replace(/\s*days?\s*$/i,''))} Days</strong></div><div><span>Frequency</span><strong>${esc(r.frequency||'-')}</strong></div><div><span>Rate Valid From</span><strong>${dateText(validityFrom)}</strong></div><div><span>Rate Valid Until</span><strong>${dateText(validityTo)}</strong></div><div><span>Status</span><strong class="routing-status ok">${esc(r.status||'ACTIVE')}</strong></div>${rate.freightAmount!=null?`<div><span>Future Buy Rate</span><strong>${esc(String(rate.currency||'USD'))} ${money(rate.freightAmount)}</strong></div>`:''}${full?`<div><span>Remarks</span><strong>${esc(rate.remarks||r.remarks||'-')}</strong></div>`:''}</div>`;
+  }
+  function alternativeHTML(c){const rows=(dbReady().routing||[]).filter(r=>norm(r.mode||'SEA')==='SEA'&&norm(r.pol)===norm(c.pol)&&norm(r.pod)!==norm(c.pod)&&(!r.status||norm(r.status)==='ACTIVE')).slice(0,8);return rows.length?`<table class="routing-popup-table"><thead><tr><th>Carrier</th><th>POL</th><th>Via</th><th>POD</th><th>Transit</th><th>Frequency</th><th>Type</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.carrier)}</td><td>${esc(r.pol)}</td><td>${esc(r.viaPort||'-')}</td><td>${esc(r.pod)}</td><td>${esc(r.transitDays||'-')}</td><td>${esc(r.frequency||'-')}</td><td><span class="routing-status warn">Alternative</span></td></tr>`).join('')}</tbody></table>`:'<div class="routing-empty-state">No configured alternatives found.</div>';}
+  function currentCriteria(){return {shipmentType:getField('rp-shipment')||state.shipmentType,pol:getField('rp-pol'),pod:getField('rp-pod'),container:getField('rp-container'),commodity:getField('rp-commodity')||'NON HAZ',targetDate:getField('rp-date')||today(),via:[...document.querySelectorAll('#rp-via-chips span')].map(x=>x.textContent.replace(/×$/,'').trim()).filter(Boolean)};}
+  function setRouteFields(c){state.pol=c.pol;state.pod=c.pod;state.container=c.container;state.commodity=c.commodity;state.shipmentType=c.shipmentType;state.targetDate=c.targetDate;state.via=c.via;state.selected=null;state.sellOverrides={};state.freightManualBuy='';state.freightAdditionalBuy=0;render();}
+  function bindPopup(c,selected){
+    const root=document.getElementById('routing-suggestion-popup');
+    root.querySelectorAll('.routing-popup-tabs button').forEach(btn=>btn.onclick=()=>{root.querySelectorAll('.routing-popup-tabs button').forEach(x=>x.classList.remove('active'));root.querySelectorAll('.routing-tab-panel').forEach(x=>x.classList.remove('active'));btn.classList.add('active');root.querySelector(`[data-panel="${btn.dataset.tab}"]`)?.classList.add('active');});
+    root.querySelectorAll('input[name="routing-service"]').forEach(el=>el.onchange=()=>{state.selected=el.dataset.routeKey;state.sellOverrides={};state.freightManualBuy='';state.freightAdditionalBuy=0;render();});
+    root.querySelectorAll('.routing-popup-table tbody tr[data-route-key]').forEach(row=>row.onclick=e=>{if(e.target.closest('button,input,select'))return;state.selected=row.dataset.routeKey;state.sellOverrides={};state.freightManualBuy='';state.freightAdditionalBuy=0;render();});
+    root.querySelectorAll('.routing-view-btn').forEach(el=>el.onclick=()=>{state.selected=el.dataset.routeKey;state.sellOverrides={};state.freightManualBuy='';state.freightAdditionalBuy=0;render();setTimeout(()=>root.querySelector('[data-tab="schedule"]')?.click(),0);});
+    root.querySelectorAll('.routing-sell-input').forEach(el=>el.onchange=()=>{
+      const key=el.dataset.sellCharge; const value=Math.max(0,Number(el.value)||0); state.sellOverrides[key]=value;
+      if(key==='OCEAN FREIGHT'){
+        const current=selected?.__calc?.freight; const buyInr=Number(current?.inr)||0; const sellInr=toINRStrict(value,current?.currency||'INR');
+        state.margin=(sellInr!=null&&sellInr>0&&buyInr>=0)?Math.max(0,Math.min(99.99,((sellInr-buyInr)/sellInr)*100)):state.margin;
+      }
+      render();setTimeout(()=>root.querySelector('[data-tab="rates"]')?.click(),0);
+    });
+    const freightBuy=root.querySelector('#rp-freight-buy'); if(freightBuy)freightBuy.onchange=()=>{state.freightManualBuy=Math.max(0,Number(freightBuy.value)||0);delete state.sellOverrides['OCEAN FREIGHT'];render();setTimeout(()=>root.querySelector('[data-tab="rates"]')?.click(),0);};
+    const freightAdditional=root.querySelector('#rp-freight-additional'); if(freightAdditional)freightAdditional.onchange=()=>{state.freightAdditionalBuy=Math.max(0,Number(freightAdditional.value)||0);delete state.sellOverrides['OCEAN FREIGHT'];render();setTimeout(()=>root.querySelector('[data-tab="rates"]')?.click(),0);};
+    root.querySelectorAll('#rp-via-chips button').forEach(el=>el.onclick=()=>{state.via.splice(Number(el.dataset.viaIndex),1);render();});
+    root.querySelector('#rp-via-add').onchange=e=>{const v=String(e.target.value||'').trim();if(v&&!state.via.some(x=>norm(x)===norm(v))){state.via.push(v);e.target.value='';render();}else{e.target.value='';}};
+    root.querySelector('#routing-search').onclick=()=>setRouteFields(currentCriteria());
+    root.querySelector('#routing-reset').onclick=()=>{const base=sourceDetails(state.source);setRouteFields({...base,via:[]});};
+    root.querySelector('#routing-close').onclick=root.querySelector('#routing-close-bottom').onclick=closePopup;
+    root.querySelector('#routing-open-master').onclick=()=>{closePopup();if(typeof switchToTab==='function')switchToTab('routing');};
+    root.querySelector('#routing-add-new').onclick=()=>openAddRoutingForm();
+    const margin=root.querySelector('#rp-margin'); if(margin)margin.onchange=()=>{state.margin=Math.max(0,Math.min(99.99,Number(margin.value)||0));delete state.sellOverrides['OCEAN FREIGHT'];render();setTimeout(()=>root.querySelector('[data-tab="rates"]')?.click(),0);};
+    root.querySelector('#routing-export').onclick=()=>exportPopupExcel(c,selected);
+    root.querySelector('#routing-select').onclick=()=>selected&&applySelection(selected,c);
+    root.querySelector('#rp-pol').onchange=()=>{state.pol=getField('rp-pol');};
+    root.querySelector('#rp-pod').onchange=()=>{state.pod=getField('rp-pod');};
+    root.querySelector('#rp-container').onchange=()=>{state.container=getField('rp-container');};
+    root.querySelector('#rp-commodity').onchange=()=>{state.commodity=getField('rp-commodity')||'NON HAZ';};
+    root.querySelector('#rp-shipment').onchange=()=>{state.shipmentType=getField('rp-shipment')||'EXPORT';};
+  }
+  function closePopup(){document.getElementById('routing-suggestion-popup')?.remove();document.body.classList.remove('routing-popup-open');}
+  function openPopup(){let old=document.getElementById('routing-suggestion-popup');if(old)old.remove();const d=document.createElement('div');d.id='routing-suggestion-popup';d.className='routing-popup-overlay';document.body.appendChild(d);document.body.classList.add('routing-popup-open');render();}
+  window.openRoutingSuggestionPopup=function(source){state.source=source||'sea';const d=sourceDetails(state.source);state.pol=d.pol;state.pod=d.pod;state.container=d.container;state.commodity=d.commodity;state.shipmentType=d.shipmentType;state.targetDate=d.targetDate;state.via=[];state.selected=null;state.sellOverrides={};state.freightManualBuy='';state.freightAdditionalBuy=0;state.margin=Number(dbReady().defaults?.profitMargin||15);openPopup();};
+  function applySelection(r,c){
+    const rate=r?.__rate||{};
+    const calc=r?.__calc||{};
+    const transitRaw=rate.transitTime ?? rate.transit ?? rate.tt ?? r.__rateTransit ?? r.transitDays ?? '';
+    const transit=String(transitRaw||'').replace(/\s*days?\s*$/i,'').trim();
+    const inventory=rate.inventory ?? rate.containerType ?? rate.container ?? rate.containerSize ?? c.container ?? '';
+    const cargo=rate.commodity ?? rate.cargo ?? rate.cargoType ?? c.commodity ?? 'NON HAZ';
+    const validity=rate.validTo ?? rate.validityDate ?? rate.validity ?? '';
+    const pol=rate.pol||c.pol||r.pol||'';
+    const pod=rate.pod||c.pod||r.pod||'';
+    const setValue=(id,value)=>{const el=document.getElementById(id);if(el&&value!==undefined&&value!==null&&String(value)!==''){el.value=String(value);el.dispatchEvent(new Event('change',{bubbles:true}));return true;}return false;};
+    const source=state.source;
+
+    if(source==='sea'){
+      setValue('sea-pol',pol);
+      setValue('sea-pod',pod);
+      setValue('sea-container',inventory);
+      setValue('sea-commodity',cargo);
+      setValue('sea-carrier',r.carrier||rate.carrierName||'');
+      setValue('sea-transit',transit);
+      setValue('sea-validityDate',validity);
+      if(typeof markUnsaved==='function')markUnsaved('sea');
+      if(typeof window.onCarrierChange==='function')window.onCarrierChange('sea');
+    } else if(source==='sea1' || source==='sea2'){
+      const suffix=source;
+      // Rate Request has no carrier field; populate the route/rate details that exist in its form.
+      setValue(`rr-pol-${suffix}`,pol);
+      setValue(`rr-pod-${suffix}`,pod);
+      setValue(`rr-inventory-${suffix}`,inventory);
+      setValue(`rr-commodity-${suffix}`,cargo);
+      setValue(`rr-weight-${suffix}`,rate.weight ?? rate.weightKgs ?? rate.weightKg ?? '');
+      setValue(`rr-transit-${suffix}`,transit);
+      if(validity) {
+        const display=typeof formatRateRequestDate==='function'?formatRateRequestDate(validity):validity;
+        setValue(`rr-validity-${suffix}`,display);
+        const picker=document.getElementById(`rr-validity-${suffix}-picker`);
+        if(picker){picker.value=parseRateRequestDisplayDate(validity);}
+      }
+      setValue(`rr-freeTime-${suffix}`,rate.freeTime ?? rate.freeDetention ?? rate.detention ?? '');
+      setValue(`rr-term-${suffix}`,rate.term ?? rate.incoterm ?? '');
+      setValue(`rr-remarks-${suffix}`,rate.remarks ?? '');
+      if(typeof markUnsaved==='function')markUnsaved('raterequest');
+    } else if(source==='sea-import'){
+      setValue('sea-import-pol',pol);
+      setValue('sea-import-pod',pod);
+      setValue('sea-import-container',inventory);
+      setValue('sea-import-commodity',cargo);
+      setValue('sea-import-carrier',r.carrier||rate.carrierName||'');
+      setValue('sea-import-transit',transit);
+      setValue('sea-import-validityDate',validity);
+      if(typeof markUnsaved==='function')markUnsaved('sea-import');
+      if(typeof seaImportOnCarrierChange==='function')seaImportOnCarrierChange();
+    } else {
+      alert('Routing selected, but this source does not have mapped quote fields.');
+      return;
+    }
+
+    // Preserve the existing charge calculation bridge: apply the selected future
+    // Rate Sheet freight/charges to the selected carrier only.
+    setTimeout(()=>{
+      const rows=calc.lines||[];
+      rows.forEach(line=>{
+        const chargeKey=norm(line.name)==='OCEAN FREIGHT'?'FREIGHT':line.name;
+        const safe=typeof window.mcSafeKey==='function'?window.mcSafeKey(chargeKey):String(chargeKey).replace(/[^A-Z0-9]/gi,'_');
+        const prefix=source==='sea'?'sea':source==='sea-import'?'sea-import':null;
+        if(!prefix)return;
+        const sell=document.getElementById(`${prefix}-c1-amt-${safe}`);
+        const buy=document.getElementById(`${prefix}-c1-buyAmt-${safe}`);
+        const cur=document.getElementById(`${prefix}-c1-cur-${safe}`);
+        const buyCur=document.getElementById(`${prefix}-c1-buyCur-${safe}`);
+        if(buy){buy.value=line.currency==='USD'?`$${Number(line.amount).toFixed(2)}`:Number(line.amount).toFixed(2);}
+        if(buyCur)buyCur.value=line.currency;
+        if(cur)cur.value=line.currency;
+        if(sell){
+          const sellAmount=line.sellAmount!=null?Number(line.sellAmount):Number(line.amount)||0;
+          sell.value=line.currency==='USD'?`$${sellAmount.toFixed(2)}`:sellAmount.toFixed(2);
+        }
+      });
+      if(source==='sea'&&typeof recalcAllCarrierCharges==='function')recalcAllCarrierCharges('sea');
+      if(source==='sea-import'&&typeof recalcAllCarrierCharges==='function')recalcAllCarrierCharges('sea-import');
+      closePopup();
+    },300);
+  }
+  function openAddRoutingForm(){
+    const host=document.getElementById('routing-suggestion-popup');if(!host)return;const form=document.createElement('div');form.className='routing-add-overlay';form.innerHTML=`<div class="routing-add-modal"><div class="routing-add-head"><strong>＋ Add New Routing</strong><button id="routing-add-close">×</button></div><div class="routing-add-form"><div class="form-group"><label>Mode</label><input id="ra-mode" list="ra-mode-list" value="SEA" autocomplete="off"><datalist id="ra-mode-list"><option value="SEA"></option></datalist></div><div class="form-group"><label>Shipment Type</label><input id="ra-type" list="ra-type-list" value="EXPORT" autocomplete="off"><datalist id="ra-type-list"><option value="EXPORT"></option><option value="IMPORT"></option></datalist></div><div class="form-group"><label>Carrier</label><input id="ra-carrier" list="ra-carrier-list" autocomplete="off"><datalist id="ra-carrier-list">${(dbReady().carriers||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Service Name</label><input id="ra-service" autocomplete="off"></div><div class="form-group"><label>POL</label><input id="ra-pol" list="ra-pol-list" value="${esc(state.pol)}" autocomplete="off"><datalist id="ra-pol-list">${(dbReady().pol||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Via Port(s)</label><input id="ra-via" list="ra-via-list" value="${esc(state.via.join(' > '))}" placeholder="Type or select Via Port..." autocomplete="off"><datalist id="ra-via-list">${[...(new Set([...(dbReady().pol||[]),...(dbReady().pod||[])]))].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>POD</label><input id="ra-pod" list="ra-pod-list" value="${esc(state.pod)}" autocomplete="off"><datalist id="ra-pod-list">${(dbReady().pod||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Transit Days</label><input id="ra-transit" type="number"></div><div class="form-group"><label>Frequency</label><input id="ra-frequency" list="ra-frequency-list" value="Weekly" autocomplete="off"><datalist id="ra-frequency-list"><option value="Weekly"></option><option value="Twice Weekly"></option><option value="Daily"></option><option value="Fortnightly"></option><option value="Monthly"></option><option value="On Request"></option></datalist></div><div class="form-group"><label>Route Type</label><input id="ra-type-route" list="ra-route-type-list" value="DIRECT" autocomplete="off"><datalist id="ra-route-type-list"><option value="DIRECT"></option><option value="TRANSSHIPMENT"></option></datalist></div><div class="form-group"><label>Effective From</label><input id="ra-from" type="date" value="${today()}"></div><div class="form-group"><label>Effective Until</label><input id="ra-until" type="date"></div><div class="form-group full"><label>Remarks</label><textarea id="ra-remarks"></textarea></div></div><div class="routing-add-actions"><button class="btn btn-clear" id="routing-add-cancel">Cancel</button><button class="btn btn-success" id="routing-add-save">💾 Save Routing</button></div></div>`;host.appendChild(form);form.querySelector('#routing-add-close').onclick=form.querySelector('#routing-add-cancel').onclick=()=>form.remove();form.querySelector('#routing-add-save').onclick=()=>{const d=dbReady();d.routing=Array.isArray(d.routing)?d.routing:[];const rec={serviceId:'SVC-'+Date.now(),mode:'SEA',shipmentType:getField('ra-type'),carrier:getField('ra-carrier'),serviceName:getField('ra-service'),pol:getField('ra-pol'),viaPort:getField('ra-via'),pod:getField('ra-pod'),transitDays:Number(getField('ra-transit'))||0,frequency:getField('ra-frequency')||'Weekly',directTs:getField('ra-type-route')||'DIRECT',effectiveFrom:getField('ra-from'),effectiveUntil:getField('ra-until'),status:'ACTIVE',remarks:getField('ra-remarks'),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};if(!rec.carrier||!rec.pol||!rec.pod){alert('Carrier, POL and POD are required.');return;}const dup=d.routing.some(x=>routeNorm(x.pol)===routeNorm(rec.pol)&&routeNorm(x.viaPort||'')===routeNorm(rec.viaPort||'')&&routeNorm(x.pod)===routeNorm(rec.pod)&&norm(x.carrier)===norm(rec.carrier)&&norm(x.serviceName)===norm(rec.serviceName)&&norm(x.shipmentType||'EXPORT')===norm(rec.shipmentType||'EXPORT'));if(dup){alert('This routing already exists.');return;}d.routing.push(rec);if(typeof saveDB==='function')saveDB();form.remove();alert('Routing saved successfully.');render();};
+  }
+  function exportPopupExcel(c,selected){if(!window.XLSX){alert('Excel library is unavailable.');return;}const calc=selected?.__calc;const rows=(calc?.lines||[]).map(x=>({'Charge':x.name,'Buy Rate':x.amount,'Currency':x.currency,'Buy INR':x.inr,'Sell Rate':x.sellAmount??'', 'Sell INR':x.sellInr??''}));rows.push({'Charge':'SEA FREIGHT BUY TOTAL','Buy Rate':calc?.freightBuy?.total??0,'Currency':calc?.freightBuy?.currency||'','Buy INR':calc?.freightBuy?.total==null?'':toINRStrict(calc.freightBuy.total,calc.freightBuy.currency),'Sell Rate':calc?.freight?.sellAmount??'','Sell INR':calc?.freight?.sellInr??''});rows.push({'Charge':'FINAL TOTAL SELL','Buy Rate':'','Currency':'INR','Buy INR':'','Sell Rate':'','Sell INR':calc?.finalSell??''});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'RATE_DETAILS');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(state.rows.map(r=>({'Carrier':r.carrier,'Service':r.serviceName||r.serviceId,'POL':r.pol,'Via':r.viaPort||'-','POD':r.pod,'Transit Days':r.transitDays,'Frequency':r.frequency,'Route Type':r.directTs,'Rate Status':r.__rateStatus.text,'Rate Valid From':r.__rate?.validFrom||'','Rate Valid To':r.__rate?.validTo||''}))),'ROUTING');XLSX.writeFile(wb,'SHAHID_ERP_Routing_Rate_Comparison.xlsx');}
+})();
+
+
+
+/* ============================================================================
+   SHAHID ERP — NEW QUOTE EXPORT / IMPORT HUB
+   Amendment: adds Export Quote and Import Quote mode selectors while preserving
+   all existing SEA / AIR / LCL / SEA Import engines. Import AIR/LCL use the
+   existing proven quote engines but save into a dedicated import quote store.
+============================================================================ */
+(function(){
+  'use strict';
+  window.__quoteDirection = window.__quoteDirection || 'EXPORT';
+
+  function ensureImportQuoteStore(){
+    if(!db.importQuotes || typeof db.importQuotes!=='object') db.importQuotes={};
+    ['drafts','rates'].forEach(t=>{
+      if(!db.importQuotes[t] || typeof db.importQuotes[t]!=='object') db.importQuotes[t]={};
+      ['air','lcl'].forEach(m=>{ if(!Array.isArray(db.importQuotes[t][m])) db.importQuotes[t][m]=[]; });
+    });
+  }
+  ensureImportQuoteStore();
+  try{saveDB();}catch(e){}
+
+  function updateDirectionUI(mode){
+    const isImport=window.__quoteDirection==='IMPORT';
+    const titlePrefix=isImport?'📥 Import Quote':'📤 Export Quote';
+    const setLabel=(id,text)=>{const el=document.getElementById(id); if(el) el.textContent=text;};
+    const setPlaceholder=(id,text)=>{const el=document.getElementById(id); if(el) el.placeholder=text;};
+    const refreshDirectionLists=(m)=>{
+      const hidden=db.hiddenItems||{};
+      const visible=(arr,key)=>Array.isArray(arr)?arr.filter(x=>!((hidden[key]||[]).includes(x))):[];
+      const pol=visible(db.pol,'pol'), pod=visible(db.pod,'pod');
+      const importCtx=window.__quoteDirection==='IMPORT';
+      const fill=(id,arr)=>{const el=document.getElementById(id);if(el)el.innerHTML=arr.map(x=>`<option value="${String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">`).join('');};
+      const allUnique=[...new Set([...pol,...pod].map(x=>String(x||'').trim()).filter(Boolean))];
+      const isIndiaLocation=v=>{const x=String(v||'').trim().toUpperCase();return /(^|[ ,(])IN(\s*\)|$)/.test(x)||x.includes('INDIA')||/\b(IN|IND)\s*$/.test(x);};
+      const india=allUnique.filter(isIndiaLocation), overseas=allUnique.filter(x=>!isIndiaLocation(x)&&x!=='-');
+      if(m==='air'||m==='lcl'){ fill(`${m}-pol-list`,importCtx?overseas:pol); fill(`${m}-pod-list`,importCtx?india:pod); }
+      if(m==='sea'){ fill('sea-pol-list',importCtx?overseas:pol); fill('sea-pod-list',importCtx?india:pod); }
+      if(m==='sea-import'){
+        // Import direction is always Overseas POL -> Indian POD.
+        fill('sea-import-pol-list',pod);
+        fill('sea-import-pod-list',pol);
+      }
+    };
+    if(mode==='sea'){
+      setLabel('sea-tab-title',`${titlePrefix} // 🚢 Sea Freight Quotation`);
+      refreshDirectionLists('sea');
+    }
+    if(mode==='air'){
+      setLabel('air-tab-title',`${titlePrefix} // ✈️ Air Freight Quotation`);
+      const b=document.getElementById('air-direction-badge'); if(b)b.style.display='none';
+      const polLabel=document.querySelector('label[for="air-pol"]') || document.getElementById('air-pol')?.closest('.form-group')?.querySelector('label');
+      const podLabel=document.querySelector('label[for="air-pod"]') || document.getElementById('air-pod')?.closest('.form-group')?.querySelector('label');
+      if(polLabel)polLabel.textContent=isImport?'ORIGIN AIRPORT *':'POL *';
+      if(podLabel)podLabel.textContent=isImport?'DESTINATION AIRPORT *':'POD *';
+      setPlaceholder('air-pol',isImport?'Type Origin Airport...':'Type POL...');
+      setPlaceholder('air-pod',isImport?'Type Destination Airport...':'Type POD...');
+      const shipmentTitle=document.querySelector('#air .form-section h3');
+      if(shipmentTitle)shipmentTitle.textContent=isImport?'📥 Import Air — Shipment Details':'📋 Customer & Shipment Details';
+      refreshDirectionLists('air');
+    }
+    if(mode==='lcl'){
+      setLabel('lcl-tab-title',`${titlePrefix} // 📦 LCL Freight Quotation`);
+      const b=document.getElementById('lcl-direction-badge'); if(b)b.style.display='none';
+      const polLabel=document.querySelector('label[for="lcl-pol"]') || document.getElementById('lcl-pol')?.closest('.form-group')?.querySelector('label');
+      const podLabel=document.querySelector('label[for="lcl-pod"]') || document.getElementById('lcl-pod')?.closest('.form-group')?.querySelector('label');
+      if(polLabel)polLabel.textContent=isImport?'OVERSEAS POL *':'POL *';
+      if(podLabel)podLabel.textContent=isImport?'INDIAN POD *':'POD *';
+      setPlaceholder('lcl-pol',isImport?'Type Overseas POL...':'Type POL...');
+      setPlaceholder('lcl-pod',isImport?'Type Indian POD...':'Type POD...');
+      const shipmentTitle=document.querySelector('#lcl .form-section h3');
+      if(shipmentTitle)shipmentTitle.textContent=isImport?'📥 Import LCL — Shipment Details':'📋 Customer & Shipment Details';
+      refreshDirectionLists('lcl');
+    }
+    if(mode==='sea-import'){
+      setLabel('sea-import-tab-title',`${titlePrefix} // 🚢 Sea Freight Quotation`);
+      refreshDirectionLists('sea-import');
+    }
+
+    // HARD DIRECTION ENFORCEMENT FOR IMPORT AIR/LCL:
+    // Existing master semantics are: db.pol = India/Export POL master,
+    // db.pod = overseas/Export POD master. Import must reverse these lists.
+    // Re-apply after every direction switch so earlier generic dropdown refreshes
+    // cannot put the Export lists back into Import AIR/LCL.
+    if(isImport && (mode==='air' || mode==='lcl')){
+      const hidden=db.hiddenItems||{};
+      const masters=typeof getMasterDropdownLists==='function'?getMasterDropdownLists():{pol:db.pol||[],pod:db.pod||[]};
+      const visible=(arr,key)=>Array.isArray(arr)?arr.filter(x=>!((hidden[key]||[]).includes(x))):[];
+      const sourceIndia=visible(masters.pol,'pol');
+      const sourceOverseas=visible(masters.pod,'pod');
+      const allUnique=[...new Set([...sourceIndia,...sourceOverseas].map(x=>String(x||'').trim()).filter(Boolean))];
+      const keyOf=v=>String(v||'').trim().toUpperCase();
+      const isIndiaLocation=v=>{const x=keyOf(v);return /(^|[ ,(])IN(\s*\)|$)/.test(x)||x.includes('INDIA')||/\b(IN|IND)\s*$/.test(x);};
+      // Do not depend only on the POL/POD array names: classify by the actual
+      // country code as well. This prevents an incorrectly maintained master
+      // array from putting Indian ports back into Import POL.
+      const india=[...new Set(allUnique.filter(isIndiaLocation))];
+      const overseas=[...new Set(allUnique.filter(x=>!isIndiaLocation(x) && x!=='-'))];
+      const fill=(id,arr)=>{const el=document.getElementById(id);if(el)el.innerHTML=arr.map(x=>`<option value="${String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">`).join('');};
+      fill(`${mode}-pol-list`,overseas);
+      fill(`${mode}-pod-list`,india);
+      const polEl=document.getElementById(`${mode}-pol`);
+      const podEl=document.getElementById(`${mode}-pod`);
+      // Prevent an old Export/India value from visually remaining in Import POL,
+      // and prevent an overseas value from remaining in Import POD.
+      if(polEl && isIndiaLocation(polEl.value)) polEl.value='';
+      if(podEl && podEl.value && !isIndiaLocation(podEl.value)) podEl.value='';
+    }
+  }
+
+  function ensureNewQuoteModeBar(panelId,direction){
+    const panel=document.getElementById(panelId); if(!panel) return;
+    const dir=String(direction||'EXPORT').toUpperCase();
+    const title=dir==='IMPORT'?'📥 Import Quote':'📤 Export Quote';
+    const mode=panelId==='sea-import'?'sea':panelId;
+    const iconTitle=mode==='sea'?'🚢 Sea Freight Quotation':mode==='air'?'✈️ Air Freight Quotation':'📦 LCL Freight Quotation';
+    const heading=panel.querySelector(':scope > .tab-heading');
+    if(!heading) return;
+    heading.classList.add('new-quote-single-line-heading');
+    heading.innerHTML=`<h2 class="new-quote-combined-title">${title} // ${iconTitle}</h2><div class="new-quote-mode-buttons"><button type="button" class="btn btn-quoted" onclick="openNewQuoteMode('${dir}','sea')">🚢 SEA</button><button type="button" class="btn btn-quoted" onclick="openNewQuoteMode('${dir}','air')">✈️ AIR</button><button type="button" class="btn btn-quoted" onclick="openNewQuoteMode('${dir}','lcl')">📦 LCL</button></div>`;
+    heading.dataset.direction=dir;
+    // Remove any legacy dynamically-created two-line mode bar from older sessions.
+    panel.querySelectorAll(':scope > .new-quote-mode-bar').forEach(el=>el.remove());
+  }
+
+  window.openNewQuoteMode=function(direction,mode){
+    direction=String(direction||'EXPORT').toUpperCase();
+    mode=String(mode||'sea').toLowerCase();
+    window.__quoteDirection=direction;
+    if(direction==='IMPORT' && mode==='sea'){
+      ensureNewQuoteModeBar('sea-import','IMPORT');
+      updateDirectionUI('sea-import');
+      if(typeof window.openSeaImportQuote==='function') return window.openSeaImportQuote();
+      return switchToTab('sea-import');
+    }
+    ensureNewQuoteModeBar(mode,direction);
+    updateDirectionUI(mode);
+    switchToTab(mode);
+    setTimeout(()=>{updateDirectionUI(mode);ensureNewQuoteModeBar(mode,direction);},30);
+  };
+
+  // Final guard: generic master-data refreshes must never restore Export POL/POD
+  // lists while Import AIR/LCL is active.
+  if(typeof window.populateDropdowns==='function' && !window.__importDirectionDropdownGuard){
+    const __originalPopulateDropdowns=window.populateDropdowns;
+    window.populateDropdowns=function(){
+      const result=__originalPopulateDropdowns.apply(this,arguments);
+      try{
+        const dir=String(window.__quoteDirection||'EXPORT').toUpperCase();
+        if(dir==='IMPORT'){
+          updateDirectionUI('air');
+          updateDirectionUI('lcl');
+        }
+      }catch(e){ console.warn('Import direction dropdown guard skipped:',e); }
+      return result;
+    };
+    window.__importDirectionDropdownGuard=true;
+  }
+
+  // Existing direct New Quote buttons remain Export by default. The new Import/Export
+  // hub buttons explicitly set direction before switching to a mode.
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest?.('.tab-btn-vertical');
+    if(!btn)return;
+    const tab=btn.dataset.tab;
+    if(tab==='sea') { window.__quoteDirection='EXPORT'; setTimeout(()=>updateDirectionUI('sea'),0); }
+    if(tab==='air') { window.__quoteDirection='EXPORT'; setTimeout(()=>updateDirectionUI('air'),0); }
+    if(tab==='lcl') { window.__quoteDirection='EXPORT'; setTimeout(()=>updateDirectionUI('lcl'),0); }
+    if(tab==='sea-import') { window.__quoteDirection='IMPORT'; setTimeout(()=>updateDirectionUI('sea-import'),0); }
+  },true);
+
+  function importQuoteNumber(mode,store){
+    const prefix=mode==='air'?'A':'L';
+    const now=new Date();
+    const base=`IQ-${prefix}-${String(now.getFullYear()).slice(-2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+    const all=[...(db.importQuotes?.drafts?.[mode]||[]),...(db.importQuotes?.rates?.[mode]||[])];
+    let qn=base,seq=1; while(all.some(x=>x.quoteNumber===qn)){seq++;qn=`${base}-${String(seq).padStart(2,'0')}`;} return qn;
+  }
+
+  function saveImportQuote(mode,target,status){
+    ensureImportQuoteStore();
+    const data=(window.__multiGetFormData||getFormData)(mode);
+    data.direction='IMPORT';
+    data.quoteType='IMPORT_QUOTE';
+    data.status=status||'DRAFT';
+    if(mode==='air' && !(parseFloat(document.getElementById('air-weight')?.value)>0)) return alert('IMPORT AIR: Gross Weight is required.');
+    if(mode==='lcl'){
+      const wt=parseFloat(document.getElementById('lcl-weight')?.value),vol=parseFloat(document.getElementById('lcl-volume')?.value);
+      if(!(wt>0)||!(vol>0)) return alert('IMPORT LCL: Gross Weight and CBM are both required.');
+    }
+    if(!data.client && Object.keys(data.charges||{}).length===0) return alert('Fill Client Name or at least one charge.');
+    if(data.marginINR<0 && (data.totalSellINR>0||data.totalBuyINR>0) && !confirm('⚠️ WARNING: This Import quote has a negative margin (loss). Do you want to proceed?')) return;
+    data.quoteNumber=importQuoteNumber(mode,target);
+    data.timestamp=data.timestamp||new Date().toISOString();
+    data.lastModified=new Date().toISOString();
+    db.importQuotes[target][mode].push(data);
+    saveDB(); autoBackup();
+    const q=document.getElementById(`${mode}-qn-value`); if(q)q.textContent=data.quoteNumber;
+    document.getElementById(`${mode}-qn-box`)?.classList.add('show');
+    hasUnsavedChanges[mode]=false;
+    alert(target==='rates'?`Import quotation finalized!\nQuote No: ${data.quoteNumber}`:'Import quotation saved as Draft.');
+  }
+
+  const originalSaveRecord=window.saveRecord;
+  if(typeof originalSaveRecord==='function' && !window.__newQuoteSavePatch){
+    window.__newQuoteSavePatch=true;
+    window.saveRecord=function(mode,target,status){
+      if(window.__quoteDirection==='IMPORT' && (mode==='air'||mode==='lcl')) return saveImportQuote(mode,target,status||'DRAFT');
+      return originalSaveRecord.apply(this,arguments);
+    };
+  }
+
+  // Preserve the existing dedicated SEA Import engine; expose its data in the same
+  // hub without moving or rewriting the established form.
+  window.getImportQuoteStore=function(){ensureImportQuoteStore();return db.importQuotes;};
+
+  const oldSwitch=window.switchToTab;
+  if(typeof oldSwitch==='function' && !window.__newQuoteSwitchPatch){
+    window.__newQuoteSwitchPatch=true;
+    window.switchToTab=function(tab){
+      if(tab==='export-quote'){
+        window.__quoteDirection='EXPORT';
+        const result=oldSwitch.apply(this,arguments);
+        setTimeout(()=>openNewQuoteMode('EXPORT','sea'),0);
+        return result;
+      }
+      if(tab==='import-quote'){
+        window.__quoteDirection='IMPORT';
+        const result=oldSwitch.apply(this,arguments);
+        setTimeout(()=>openNewQuoteMode('IMPORT','sea'),0);
+        return result;
+      }
+      const result=oldSwitch.apply(this,arguments);
+      if(tab==='air'||tab==='lcl')setTimeout(()=>updateDirectionUI(tab),20);
+      if(tab==='sea-import')setTimeout(()=>updateDirectionUI('sea-import'),20);
+      return result;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    ensureImportQuoteStore();
+    updateDirectionUI('air'); updateDirectionUI('lcl');
+    updateDirectionUI('sea'); updateDirectionUI('sea-import');
+    // Keep the hub navigation simple: clicking Export/Import Quote opens SEA by default.
+    setTimeout(()=>{
+      ensureNewQuoteModeBar('sea','EXPORT');
+      ensureNewQuoteModeBar('sea-import','IMPORT');
+    },0);
+  });
+})();
+
