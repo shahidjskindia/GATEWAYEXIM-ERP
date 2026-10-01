@@ -1625,67 +1625,6 @@ window.SHAHID_RUN_GDRIVE_EXPORT_CHECK_NOW=driveCheck;
 })();
 
 
-/* SHAHID PRODUCT KEY — ONE TIME PER DEVICE
-   Key format is intentionally hidden from the application UI.
-   Existing ERP data/business functions remain untouched.
-*/
-(function(){
-  'use strict';
-  var STORAGE_KEY='shahid_erp_pc_activation_v2';
-
-  function pad(n){return String(n).padStart(2,'0');}
-  function nowKey(){
-    var d=new Date();
-    return 'SS/'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
-  }
-  function deviceFingerprint(){
-    var raw=[
-      navigator.userAgent||'',navigator.language||'',screen.width||0,screen.height||0,
-      screen.colorDepth||0,Intl.DateTimeFormat().resolvedOptions().timeZone||''
-    ].join('|');
-    var h=2166136261;
-    for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}
-    return ('00000000'+(h>>>0).toString(16)).slice(-8).toUpperCase();
-  }
-  function activate(){
-    var input=document.getElementById('shahid-product-key-input');
-    var key=(input && input.value || '').trim().toUpperCase();
-    if(key!==nowKey()){
-      var st=document.getElementById('shahid-product-key-status');
-      if(st){st.textContent='Invalid activation key.';st.style.color='#dc2626';}
-      return;
-    }
-    var rec={device:deviceFingerprint(),activated:true,activatedAt:Date.now()};
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(rec));
-    var gate=document.getElementById('shahid-product-key-gate');
-    if(gate) gate.remove();
-    window.SHAHID_PRODUCT_KEY_ACTIVE=true;
-  }
-  function boot(){
-    var fp=deviceFingerprint(), saved=null;
-    try{saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');}catch(e){}
-    if(saved && saved.activated && saved.device===fp){
-      window.SHAHID_PRODUCT_KEY_ACTIVE=true;
-      return;
-    }
-    window.SHAHID_PRODUCT_KEY_ACTIVE=false;
-
-    var gate=document.createElement('div');
-    gate.id='shahid-product-key-gate';
-    gate.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#0b1220;font-family:Arial,sans-serif';
-    gate.innerHTML='<div style="width:min(420px,92vw);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 70px rgba(0,0,0,.35)">'+
-      '<h2 style="margin:0 0 8px">🔐 SHAHID ERP Activation</h2>'+
-      '<p style="margin:0 0 18px;color:#64748b">Enter your Product Key to activate this PC.</p>'+
-      '<input id="shahid-product-key-input" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;letter-spacing:1px">'+
-      '<button id="shahid-product-key-btn" type="button" style="width:100%;margin-top:12px;padding:13px;border:0;border-radius:10px;background:#0f172a;color:#fff;font-weight:700;cursor:pointer">Activate</button>'+
-      '<div id="shahid-product-key-status" style="min-height:20px;margin-top:12px;font-size:13px"></div></div>';
-    document.body.appendChild(gate);
-    document.getElementById('shahid-product-key-btn').onclick=activate;
-    document.getElementById('shahid-product-key-input').onkeydown=function(e){if(e.key==='Enter')activate();};
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();
-
 
 
 
@@ -24683,6 +24622,43 @@ function switchLocalTab(mode) {
     if (mode === 'sea') renderSeaTHCMaster();
     renderCarrierChargesMaster(mode === 'sea' ? 'sealcl' : mode);
 }
+/* ===== Amendment 18: Rates + Routing button click guard =====
+ * Keep the existing navigation/rendering logic unchanged, but explicitly bind
+ * the two affected user-facing buttons through one delegated capture handler.
+ * This prevents earlier/stacked navigation listeners from swallowing the click.
+ * RBAC is still enforced by hasTabAccess()/switchToTab()/switchLocalTab().
+ */
+(function(){
+    'use strict';
+    if (window.__SHAHID_RATES_ROUTING_CLICK_GUARD) return;
+    window.__SHAHID_RATES_ROUTING_CLICK_GUARD = true;
+
+    document.addEventListener('click', function(e){
+        const ratesBtn = e.target.closest?.('.tab-btn-vertical[data-tab="rates"]');
+        if (ratesBtn) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (typeof hasTabAccess === 'function' && !hasTabAccess('rates')) {
+                alert('You do not have permission to open Rates.');
+                return;
+            }
+            if (typeof switchToTab === 'function') switchToTab('rates');
+            return;
+        }
+
+        const routingBtn = e.target.closest?.('.local-sub-tabs .master-tab[data-local="routing"]');
+        if (routingBtn) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (typeof hasTabAccess === 'function' && !hasTabAccess('routing')) {
+                alert('You do not have permission to open Routing.');
+                return;
+            }
+            if (typeof switchLocalTab === 'function') switchLocalTab('routing');
+        }
+    }, true);
+})();
+
 /* ============================================================================
    MULTI-CARRIER QUOTE ENGINE v1
    SEA / AIR / LCL — 3 carrier columns, existing row/input styling retained.
@@ -33119,6 +33095,32 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return validRoutingOn(r,c.targetDate);
   }
   function getRoutes(c){return (Array.isArray(dbReady().routing)?dbReady().routing:[]).filter(r=>routeMatches(r,c));}
+  // Transit lookup is intentionally independent from rate validity and routing
+  // effective dates. A route may be expired/inactive for pricing while its
+  // configured transit time is still the schedule information the user needs.
+  // Prefer a currently valid active routing record, then fall back to the most
+  // recent matching routing record so TT is not blank merely because a future
+  // freight rate is unavailable.
+  function bestTransitRouting(carrier,c){
+    const rows=(Array.isArray(dbReady().routing)?dbReady().routing:[]).filter(r=>{
+      if(norm(r.mode||'SEA')!=='SEA') return false;
+      if(c.shipmentType && norm(r.shipmentType||'EXPORT')!==norm(c.shipmentType)) return false;
+      if(norm(r.carrier)!==norm(carrier)) return false;
+      if(norm(r.pol)!==norm(c.pol)||norm(r.pod)!==norm(c.pod)) return false;
+      const wanted=routeNorm(c.via.join('>'));
+      const rv=routeNorm(r.viaPort||r.via||'');
+      if(wanted && rv!==wanted) return false;
+      return true;
+    });
+    if(!rows.length)return null;
+    const valid=rows.filter(r=>norm(r.status||'ACTIVE')==='ACTIVE' && validRoutingOn(r,c.targetDate));
+    const pool=valid.length?valid:rows;
+    return pool.sort((a,b)=>{
+      const av=String(a.effectiveFrom??a.validFrom??a.updatedAt??'');
+      const bv=String(b.effectiveFrom??b.validFrom??b.updatedAt??'');
+      return bv.localeCompare(av);
+    })[0]||null;
+  }
   // RATE SHEET SOURCE RULE:
   // Carrier names are discovered from ALL matching SEA Rate Sheet records
   // (historical + current + future), while the actual rate used/displayed
@@ -33149,8 +33151,39 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     });
     return rows.sort((a,b)=>String(a.validFrom||'').localeCompare(String(b.validFrom||'')));
   }
+  // Normalize Transit Time across Routing Master and all legacy/new Rate Sheet field names.
+  function getTransitTime(record){
+    if(!record)return '';
+    const value = record.transitTime ?? record.transitDays ?? record.transit ?? record.tt ?? record.TT ?? '';
+    return String(value).trim();
+  }
   function rateRows(carrier,c){return futureRateRows(carrier,c);}
   function bestRate(carrier,c){return rateRows(carrier,c)[0]||null;}
+  // Transit source rule: Transit must come directly from the matching Rate Sheet
+  // record and must NOT depend on freight-rate validity. Some existing Rate Sheet
+  // records use SEA, SEA_EXPORT or SEA_IMPORT as freightType; therefore the Transit
+  // lookup intentionally accepts the applicable SEA variants while preserving the
+  // existing Carrier + POL + POD + Container + Commodity matching rules.
+  function rateSheetTransitMatches(r,c,carrier){
+    if(norm(r.carrierName)!==norm(carrier)) return false;
+    const ft=norm(r.freightType||'SEA').replace(/\s+/g,'_');
+    const shipment=norm(c.shipmentType||'EXPORT');
+    const seaType=ft==='SEA'||ft==='SEA_EXPORT'||ft==='SEA_IMPORT'||ft==='EXPORT'||ft==='IMPORT';
+    if(!seaType) return false;
+    if(shipment==='IMPORT' && ft==='SEA_EXPORT') return false;
+    if(shipment!=='IMPORT' && ft==='SEA_IMPORT') return false;
+    if(norm(r.pol)!==norm(c.pol)||norm(r.pod)!==norm(c.pod)) return false;
+    if(c.container && r.containerType && containerNorm(r.containerType)!==containerNorm(c.container)) return false;
+    if(c.commodity && r.commodity && norm(r.commodity)!==norm(c.commodity)) return false;
+    return !!getTransitTime(r);
+  }
+  function bestTransitRate(carrier,c){
+    const rates=Array.isArray(dbReady().rateSheet)?dbReady().rateSheet:[];
+    const rows=rates.filter(r=>rateSheetTransitMatches(r,c,carrier));
+    // Prefer the newest Rate Sheet record that actually contains Transit.
+    // ValidFrom/ValidTo are deliberately ignored for Transit selection.
+    return rows.sort((a,b)=>String(b.updatedAt||b.createdAt||b.validFrom||'').localeCompare(String(a.updatedAt||a.createdAt||a.validFrom||'')))[0]||null;
+  }
   function freightBuyState(carrier,c){
     const rate=bestRate(carrier,c);
     const base=rate?Number(rate.freightAmount)||0:Math.max(0,Number(state.freightManualBuy)||0);
@@ -33240,14 +33273,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return carriers.map(carrier=>{
       const route=routeByCarrier.get(norm(carrier));
       const rate=bestRate(carrier,c);
-      const rateTransit=rate?.transitTime ?? rate?.transit ?? rate?.tt ?? '';
       const r=route?{...route}:{
         carrier, mode:'SEA', shipmentType:c.shipmentType||'EXPORT', pol:c.pol,
         pod:c.pod, viaPort:c.via.join('>'), serviceName:'-', transitDays:'-',
         frequency:'-', directTs:'-', effectiveFrom:'-', effectiveUntil:'-', status:'RATE SHEET'
       };
+      const transitRate=bestTransitRate(carrier,c);
+      const transitRoute=bestTransitRouting(carrier,c);
+      const rateTransit=getTransitTime(rate)||getTransitTime(transitRate);
+      const routeTransit=getTransitTime(transitRoute)||getTransitTime(r);
       const rs=rateStatus(carrier,c);
-      return {...r,carrier,__rateStatus:rs,__rate:rate,__rateTransit:rateTransit||r.transitDays,__calc:calculate(c,carrier)};
+      return {...r,carrier,__rateStatus:rs,__rate:rate,__rateTransit:rateTransit||routeTransit||r.transitDays,__transitSource:rateTransit?'RATE SHEET':(routeTransit?'ROUTING MASTER':'-'),__calc:calculate(c,carrier)};
     }).sort((a,b)=>norm(a.carrier).localeCompare(norm(b.carrier)));
   }
   function render(){
@@ -33318,7 +33354,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function detailHTML(r,full){
     const rate=r?.__rate||{};
-    const transit=r?.__rateTransit||r?.transitDays||rate.transitTime||rate.transit||rate.tt||'-';
+    const transit=r?.__rateTransit||getTransitTime(r)||getTransitTime(rate)||'-';
     const inventory=rate.inventory||rate.containerType||r?.container||'-';
     const cargo=rate.commodity||r?.commodity||'-';
     const validityFrom=rate.validFrom||r?.effectiveFrom;
@@ -33366,7 +33402,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function applySelection(r,c){
     const rate=r?.__rate||{};
     const calc=r?.__calc||{};
-    const transitRaw=rate.transitTime ?? rate.transit ?? rate.tt ?? r.__rateTransit ?? r.transitDays ?? '';
+    const transitRaw=r?.__rateTransit || getTransitTime(rate) || getTransitTime(r) || '';
     const transit=String(transitRaw||'').replace(/\s*days?\s*$/i,'').trim();
     const inventory=rate.inventory ?? rate.containerType ?? rate.container ?? rate.containerSize ?? c.container ?? '';
     const cargo=rate.commodity ?? rate.cargo ?? rate.cargoType ?? c.commodity ?? 'NON HAZ';
@@ -33702,4 +33738,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     },0);
   });
 })();
-
