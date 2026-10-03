@@ -1626,6 +1626,10 @@ window.SHAHID_RUN_GDRIVE_EXPORT_CHECK_NOW=driveCheck;
 
 
 
+
+
+
+
 /* SHAHID CROSS-PLATFORM COMPATIBILITY LAYER v1
    Non-invasive: preserves existing business logic and data APIs.
 */
@@ -22426,7 +22430,7 @@ function sendRateRequestEmail() {
 
     // Subject with mode
     const modeLabel = data.mode === 'AIR' ? 'AIR' : 'SEA';
-    const subject = `${modeLabel} RATE REQUEST // ${qn} // ${data.pol} TO ${data.pod} // ${data.commodity} // ${data.weight} Kgs`;
+    const subject = `${modeLabel} RATE REQUEST // ${qn} // ${data.pol} TO ${data.pod} // ${data.commodity}`;
     document.getElementById('email-subject').value = subject;
     document.getElementById('email-html-preview').innerHTML = htmlContent;
     document.getElementById('email-cc').value = defaultCC;
