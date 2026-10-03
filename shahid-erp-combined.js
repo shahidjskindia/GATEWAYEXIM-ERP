@@ -1625,6 +1625,67 @@ window.SHAHID_RUN_GDRIVE_EXPORT_CHECK_NOW=driveCheck;
 })();
 
 
+/* SHAHID PRODUCT KEY — ONE TIME PER DEVICE
+   Key format is intentionally hidden from the application UI.
+   Existing ERP data/business functions remain untouched.
+*/
+(function(){
+  'use strict';
+  var STORAGE_KEY='shahid_erp_pc_activation_v2';
+
+  function pad(n){return String(n).padStart(2,'0');}
+  function nowKey(){
+    var d=new Date();
+    return 'SS/'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
+  }
+  function deviceFingerprint(){
+    var raw=[
+      navigator.userAgent||'',navigator.language||'',screen.width||0,screen.height||0,
+      screen.colorDepth||0,Intl.DateTimeFormat().resolvedOptions().timeZone||''
+    ].join('|');
+    var h=2166136261;
+    for(var i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619);}
+    return ('00000000'+(h>>>0).toString(16)).slice(-8).toUpperCase();
+  }
+  function activate(){
+    var input=document.getElementById('shahid-product-key-input');
+    var key=(input && input.value || '').trim().toUpperCase();
+    if(key!==nowKey()){
+      var st=document.getElementById('shahid-product-key-status');
+      if(st){st.textContent='Invalid activation key.';st.style.color='#dc2626';}
+      return;
+    }
+    var rec={device:deviceFingerprint(),activated:true,activatedAt:Date.now()};
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(rec));
+    var gate=document.getElementById('shahid-product-key-gate');
+    if(gate) gate.remove();
+    window.SHAHID_PRODUCT_KEY_ACTIVE=true;
+  }
+  function boot(){
+    var fp=deviceFingerprint(), saved=null;
+    try{saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');}catch(e){}
+    if(saved && saved.activated && saved.device===fp){
+      window.SHAHID_PRODUCT_KEY_ACTIVE=true;
+      return;
+    }
+    window.SHAHID_PRODUCT_KEY_ACTIVE=false;
+
+    var gate=document.createElement('div');
+    gate.id='shahid-product-key-gate';
+    gate.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#0b1220;font-family:Arial,sans-serif';
+    gate.innerHTML='<div style="width:min(420px,92vw);background:#fff;border-radius:18px;padding:28px;box-shadow:0 20px 70px rgba(0,0,0,.35)">'+
+      '<h2 style="margin:0 0 8px">🔐 SHAHID ERP Activation</h2>'+
+      '<p style="margin:0 0 18px;color:#64748b">Enter your Product Key to activate this PC.</p>'+
+      '<input id="shahid-product-key-input" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:13px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;letter-spacing:1px">'+
+      '<button id="shahid-product-key-btn" type="button" style="width:100%;margin-top:12px;padding:13px;border:0;border-radius:10px;background:#0f172a;color:#fff;font-weight:700;cursor:pointer">Activate</button>'+
+      '<div id="shahid-product-key-status" style="min-height:20px;margin-top:12px;font-size:13px"></div></div>';
+    document.body.appendChild(gate);
+    document.getElementById('shahid-product-key-btn').onclick=activate;
+    document.getElementById('shahid-product-key-input').onkeydown=function(e){if(e.key==='Enter')activate();};
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+
 
 
 
@@ -3219,48 +3280,55 @@ if (!db.docsStatusMaster) db.docsStatusMaster = ["Pending", "In Progress", "Read
 if (!db.users) db.users = [];
 if (!db.plannerNotes) db.plannerNotes = [];
 if (!db.plannerTasks) db.plannerTasks = [];
-if (!db.users.find(u => u.id === 'Shaikh Shahid')) {
-    db.users.push({
-        id: 'Shaikh Shahid',
-        passwordHash: 'b7158b64a98516b31d0c23609f69265a868c594dda9e13159e209c9b6',
-        name: 'Shaikh Shahid',
-        role: 'master',
-        permissions: 'all'
-    });
-}
-// Default DSR account: only add it when absent; existing user records/passwords are preserved.
-if (!db.users.find(u => String(u.id).toLowerCase() === 'shaikh shadab')) {
-    db.users.push({
-        id: 'SHAIKH SHADAB',
-        name: 'SHAIKH SHADAB',
-        passwordHash: null,
-        passwordHashV2: 'oaCTEkk6NE1Z5d1l8PK0IiHIcefaveobrKhsRpstgSs=',
-        passwordSalt: 'JUiQPGA2xbkRfyfyW+8QWg==',
-        role: 'dsr_user',
-        permissions: ['dsr', 'bldraft', 'invoice']
-    });
-}
 
-// Seed the approved default users when missing. If they already exist, only add
-// missing default permissions; never overwrite an existing password or remove
-// permissions that may have been intentionally assigned in the live database.
-const DEFAULT_SEEDED_USERS = [
-    { id: 'SUBHASH ROY', name: 'SUBHASH ROY', passwordHashV2: 'gdPB7R2bJ09l27SMByvxxfNp/8Fo/9T0r0E8moRABe0=', passwordSalt: 'A/y9eypDBxES24jOS11Jsw==', role: 'user', permissions: ['raterequest','export-quote','rrdrafts','drafts','rates','ratesheet','reporting','measurement','routing','localcharges'] },
-    { id: 'KUNJ PATEL', name: 'KUNJ PATEL', passwordHashV2: 'lRoGekOoccGthNyJhCf62gHIfWer5tEJJG8jMFQukPo=', passwordSalt: '7gZmc0bAPq2zxtQevxw0fQ==', role: 'user', permissions: ['raterequest','export-quote','rrdrafts','drafts','rates','ratesheet','reporting','measurement','routing','localcharges'] },
-    { id: 'RAHUL BORSE', name: 'RAHUL BORSE', passwordHashV2: 'EYiT0cg/t1xhjleLH1wY5PzshkFFS73ZPmed8Ut0V6g=', passwordSalt: 'd6GzguiQZkEOBcFpNYgJCg==', role: 'user', permissions: ['raterequest','import-quote','rrdrafts','drafts','rates','ratesheet','dsr','bldraft','reporting','measurement','routing','localcharges'] }
+/* ===== AMENDMENT 25: APPROVED USER ACCESS / CREDENTIAL MIGRATION =====
+   This block updates only the explicitly approved user accounts. Existing ERP
+   data and all unrelated settings remain untouched. Passwords are stored only
+   as PBKDF2-SHA256 hashes + per-user salts; plaintext passwords are never saved.
+*/
+const AMENDMENT_25_USERS = [
+    { id:'SHAIKH SHAHID', name:'SHAIKH SHAHID', role:'master', permissions:'all', passwordHashV2:'uO7BE596c/idbk+G5//B0ijdsExbUSjznNZgqNo2fWo=', passwordSalt:'V+tjwhYel8JuFhFTNivR+w==' },
+    { id:'SHAIKH SHADAB', name:'SHAIKH SHADAB', role:'dsr_user', permissions:['dsr','bldraft','data-backup','planner'], passwordHashV2:'BVEUiRf1YOQizxVGCklvHUz3DSvhXEByKZlQtEGeAxU=', passwordSalt:'CiJHgU+ZOogrkQ/NWaeddw==' },
+    { id:'SUBHASH ROY', name:'SUBHASH ROY', role:'user', permissions:['raterequest','export-quote','rrdrafts','drafts','rates','ratesheet','reporting','measurement','routing','localcharges','data-backup','planner'], passwordHashV2:'J5mD9aibCIJYhZ2qs4qK+U4Fg21/fXoUnzi99OoWEjg=', passwordSalt:'tAez5NLg3lzeMTDJ0nwdYQ==' },
+    { id:'KUNJ PATEL', name:'KUNJ PATEL', role:'user', permissions:['raterequest','export-quote','rrdrafts','drafts','rates','ratesheet','reporting','measurement','routing','localcharges','data-backup','planner'], passwordHashV2:'9hH8/BdihueRFoxUH1OqgQbPAos3bVty4eFyAFsm/sU=', passwordSalt:'19azcmBVr+ymmQPHo8K4bg==' },
+    { id:'MEHUL', name:'MEHUL', role:'user', permissions:['dsr','bldraft','data-backup','planner'], passwordHashV2:'L8dwI0BsBAUY7Phox5gIB+350+ZF29DmnvQ9na1RvwQ=', passwordSalt:'DHOYfyyZhStLhb1Eh9iZRw==' },
+    { id:'RAHUL BORSE', name:'RAHUL BORSE', role:'user', permissions:['raterequest','import-quote','rrdrafts','drafts','rates','ratesheet','dsr','bldraft','reporting','measurement','routing','localcharges','data-backup','planner'], passwordHashV2:'Lk+bqUT6JbtXIeMsvep/z8Oro5J6Y9mNqlS/m3m5xfk=', passwordSalt:'DSuh0q4Wk/vrj6QvB/kOaQ==' },
+    { id:'RAJAN JOSHI', name:'RAJAN JOSHI', role:'master', permissions:'all', passwordHashV2:'v8CAHbcvrVnhs9wFk3v63o+zMjjh7YnwAxOlo7OdYBo=', passwordSalt:'KolntAdr9E2vsYkPyS1uJw==' },
+    { id:'DHARMESH V.', name:'DHARMESH V.', role:'master', permissions:'all', passwordHashV2:'RzNTtbTYACtuaTKW40oqBmVhvcaoKqs+GueiBUbksLQ=', passwordSalt:'WmMlgAeqJxodYdRxJRhPvQ==' }
 ];
-DEFAULT_SEEDED_USERS.forEach(seed => {
-    const existing = db.users.find(u => String(u.id || '').toLowerCase() === seed.id.toLowerCase());
-    if (!existing) {
-        db.users.push({ ...seed, passwordHash: null });
-    } else if (existing.role !== 'master') {
-        const current = Array.isArray(existing.permissions) ? existing.permissions.slice() : [];
-        seed.permissions.forEach(p => { if (!current.includes(p)) current.push(p); });
-        existing.permissions = current;
-        if (!existing.name) existing.name = seed.name;
-        if (!existing.role) existing.role = seed.role;
+
+if (db._amendment25UserAccessVersion !== 2) {
+AMENDMENT_25_USERS.forEach(seed => {
+    const matches = db.users.filter(u => String(u?.id || '').trim().toLowerCase() === seed.id.toLowerCase());
+    let user = matches[0];
+    if (!user) {
+        user = {};
+        db.users.push(user);
+    }
+    // Explicitly requested account details are authoritative for these users.
+    user.id = seed.id;
+    user.name = seed.name;
+    user.role = seed.role;
+    user.permissions = Array.isArray(seed.permissions) ? seed.permissions.slice() : seed.permissions;
+    user.passwordHash = null;
+    user.passwordHashV2 = seed.passwordHashV2;
+    user.passwordSalt = seed.passwordSalt;
+    delete user.password;
+    // Remove accidental case-variant duplicates for the same explicitly
+    // approved account, without touching any unrelated user records.
+    for (let i = db.users.length - 1; i >= 0; i--) {
+        if (db.users[i] !== user && String(db.users[i]?.id || '').trim().toLowerCase() === seed.id.toLowerCase()) {
+            db.users.splice(i, 1);
+        }
     }
 });
+db._amendment25UserAccessApplied = true;
+db._amendment25UserAccessVersion = 2;
+}
+
+// Islam - Daily Tracker is intentionally NOT a tab permission. Its existing
+// access guard is user-ID specific and remains restricted to SHAIKH SHAHID only.
+saveDB();
 
 if (!db.defaults) {
     db.defaults = JSON.parse(JSON.stringify(defaultDB.defaults));
@@ -3652,7 +3720,8 @@ function markUnsaved(mode) { hasUnsavedChanges[mode] = true; }
 // ==================== DARK MODE ====================
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    document.querySelector('.theme-toggle').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    const themeBtn = document.getElementById('darkModeBtn');
+    if (themeBtn) themeBtn.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
     db.theme = theme;
     saveDB();
 }
@@ -7730,7 +7799,18 @@ function sendEmail() {
     }
     const cc = document.getElementById('email-cc').value.trim();
     const subject = document.getElementById('email-subject').value.trim();
-    const htmlContent = currentEmailData.htmlContent;
+    const previewEl = document.getElementById('email-html-preview');
+    const htmlContent = previewEl ? previewEl.innerHTML.trim() : (currentEmailData.htmlContent || '');
+    if (!subject) {
+        alert('Please enter an email subject.');
+        return;
+    }
+    if (!htmlContent) {
+        alert('Email content is empty. Please enter the email content before sending.');
+        return;
+    }
+    currentEmailData.htmlContent = htmlContent;
+    currentEmailData.subject = subject;
 
     // Helper to open Outlook and copy HTML
     const copyAndOpenOutlook = () => {
@@ -22410,7 +22490,7 @@ function sendRateRequestEmail() {
 
     // Subject with mode
     const modeLabel = data.mode === 'AIR' ? 'AIR' : 'SEA';
-    const subject = `${modeLabel} RATE REQUEST // ${qn} // ${data.pol} TO ${data.pod} // ${data.commodity}`;
+    const subject = `${modeLabel} RATE REQUEST // ${qn} // ${data.pol} TO ${data.pod} // ${data.commodity} // ${data.weight} Kgs`;
     document.getElementById('email-subject').value = subject;
     document.getElementById('email-html-preview').innerHTML = htmlContent;
     document.getElementById('email-cc').value = defaultCC;
@@ -26916,13 +26996,8 @@ window.upsertCarrierCharges=upsertCarrierCharges;
     }, false);
 })();
 
-// Remove any legacy standalone "Dark" button while preserving the requested "Dark Mode" button.
-document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('button').forEach(btn=>{
-        const t=(btn.textContent||'').trim();
-        if(t==='🌙 Dark' || t==='Dark') btn.remove();
-    });
-});
+// AMENDMENT 37: The header has one Dark Mode control only.
+// Do not remove it based on its label; applyTheme() updates #darkModeBtn directly.
 
 document.addEventListener('change', function(e){
     if(e.target?.id==='dsr-etd'){ applyDsrCutoffDefaults(true); }
@@ -28913,16 +28988,9 @@ function shahidPreviewShell(innerHtml, mode='quote') {
   }
 
   function normalizeAirRateSheetCurrencies(){
-    if(!Array.isArray(db.rateSheet)) return false;
-    let changed=false;
-    db.rateSheet.forEach(r=>{
-      if(U(r.freightType)==='AIR'){
-        if(U(r.currency)!=='INR'){ r.currency='INR'; changed=true; }
-        if(U(r.buyCurrency)!=='INR'){ r.buyCurrency='INR'; changed=true; }
-        if(U(r.sellCurrency)!=='INR'){ r.sellCurrency='INR'; changed=true; }
-      }
-    });
-    return changed;
+    // Amendment 29: never rewrite historical Rate Sheet records.
+    // New AIR records are normalized at creation time from the entered '$' marker.
+    return false;
   }
 
   function rsKey(r){
@@ -33070,29 +33138,29 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const money=n=>Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtINR=n=>`₹ ${money(n)}`;
   const dbReady=()=>db||{};
-  function today(){return new Date().toISOString().slice(0,10);}
+  // Routing & Rates owns its own date. Use the user's local calendar date so the
+  // default cannot drift to the previous/next day because of UTC conversion.
+  function today(){const d=new Date();const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
   function parseDate(v){const d=new Date(String(v||'')+'T00:00:00');return Number.isNaN(d.getTime())?null:d;}
   function validRateOn(r,date){const d=parseDate(date)||new Date(); const from=parseDate(r.validFrom); const to=parseDate(r.validTo); return (!from||d>=from)&&(!to||d<=to);}
   function validRoutingOn(r,date){const d=parseDate(date)||new Date(); const from=parseDate(r.effectiveFrom ?? r.validFrom); const to=parseDate(r.effectiveUntil ?? r.validTo); return (!from||d>=from)&&(!to||d<=to);}
   function dateText(v){if(!v)return '-'; const d=parseDate(v); return d?d.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'}):String(v);}
   function getField(id){return document.getElementById(id)?.value||'';}
   function sourceDetails(source){
-    if(source==='sea') return {shipmentType:'EXPORT',pol:getField('sea-pol'),pod:getField('sea-pod'),container:getField('sea-container'),commodity:getField('sea-commodity')||'NON HAZ',targetDate:getField('sea-validityDate')||today()};
-    if(source==='sea-import') return {shipmentType:'IMPORT',pol:getField('sea-import-pol'),pod:getField('sea-import-pod'),container:getField('sea-import-container'),commodity:getField('sea-import-commodity')||'NON HAZ',targetDate:getField('sea-import-validityDate')||today()};
-    if(source==='sea2') return {shipmentType:'EXPORT',pol:getField('rr-pol-sea2'),pod:getField('rr-pod-sea2'),container:'',commodity:getField('rr-commodity-sea2')||'NON HAZ',targetDate:getField('rr-validity-sea2')||today()};
-    return {shipmentType:'EXPORT',pol:getField('rr-pol-sea1'),pod:getField('rr-pod-sea1'),container:'',commodity:getField('rr-commodity-sea1')||'NON HAZ',targetDate:getField('rr-validity-sea1')||today()};
+    // IMPORTANT: Routing & Rates date is completely independent from SEA Quote
+    // validity dates. It always starts from today's local calendar date.
+    if(source==='sea') return {shipmentType:'EXPORT',pol:getField('sea-pol'),pod:getField('sea-pod'),container:getField('sea-container'),commodity:getField('sea-commodity')||'NON HAZ',targetDate:today()};
+    if(source==='sea-import') return {shipmentType:'IMPORT',pol:getField('sea-import-pol'),pod:getField('sea-import-pod'),container:getField('sea-import-container'),commodity:getField('sea-import-commodity')||'NON HAZ',targetDate:today()};
+    if(source==='sea2') return {shipmentType:'EXPORT',pol:getField('rr-pol-sea2'),pod:getField('rr-pod-sea2'),container:'',commodity:getField('rr-commodity-sea2')||'NON HAZ',targetDate:today()};
+    return {shipmentType:'EXPORT',pol:getField('rr-pol-sea1'),pod:getField('rr-pod-sea1'),container:'',commodity:getField('rr-commodity-sea1')||'NON HAZ',targetDate:today()};
   }
+  // ROUTING SEARCH RULE (Amendment 31): route discovery is POL + POD only.
+  // Cargo/HAZ, container, inventory, shipment direction, Via and routing
+  // validity must not block discovery of an existing route. Commercial rate
+  // visibility is handled separately by the Rate Sheet validity check.
   function routeMatches(r,c){
     if(norm(r.mode||'SEA')!=='SEA') return false;
-    if(r.status && norm(r.status)!=='ACTIVE') return false;
-    if(c.shipmentType && norm(r.shipmentType||'EXPORT')!==norm(c.shipmentType)) return false;
-    if(norm(r.pol)!==norm(c.pol)||norm(r.pod)!==norm(c.pod)) return false;
-    const wanted=routeNorm(c.via.join('>'));
-    const rv=routeNorm(r.viaPort||'');
-    if(wanted && rv!==wanted) return false;
-    // If Via is not yet specified, show all configured direct/transshipment
-    // services for the requested POL/POD so the user can choose the actual path.
-    return validRoutingOn(r,c.targetDate);
+    return norm(r.pol)===norm(c.pol) && norm(r.pod)===norm(c.pod);
   }
   function getRoutes(c){return (Array.isArray(dbReady().routing)?dbReady().routing:[]).filter(r=>routeMatches(r,c));}
   // Transit lookup is intentionally independent from rate validity and routing
@@ -33125,11 +33193,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // Carrier names are discovered from ALL matching SEA Rate Sheet records
   // (historical + current + future), while the actual rate used/displayed
   // by Routing & Rates comes ONLY from the future/target-valid Rate Sheet set.
+  // RATE SHEET SEARCH RULE (Amendment 31): commercial rate candidates are
+  // identified by POL + POD only. Cargo/HAZ, container, inventory and shipment
+  // direction are not search restrictions. The selected/current date is the
+  // sole applicability gate for displaying a commercial rate.
   function rateSheetMatches(r,c){
-    return norm(r.freightType||'SEA')==='SEA' &&
-      norm(r.pol)===norm(c.pol) && norm(r.pod)===norm(c.pod) &&
-      (!c.container || containerNorm(r.containerType)===containerNorm(c.container)) &&
-      (!c.commodity || !r.commodity || norm(r.commodity)===norm(c.commodity));
+    const ft=norm(r.freightType||'SEA').replace(/\s+/g,'_');
+    const seaType=ft==='SEA'||ft==='SEA_EXPORT'||ft==='SEA_IMPORT'||ft==='EXPORT'||ft==='IMPORT';
+    if(!seaType) return false;
+    return norm(r.pol)===norm(c.pol) && norm(r.pod)===norm(c.pod);
+  }
+  function rateSheetRateMatches(r,c){
+    return rateSheetMatches(r,c);
   }
   function allRateSheetCarrierNames(c){
     const rates=Array.isArray(dbReady().rateSheet)?dbReady().rateSheet:[];
@@ -33140,16 +33215,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const todayDate=today();
     const target=c.targetDate||todayDate;
     const rows=rates.filter(r=>{
-      if(!rateSheetMatches(r,c) || norm(r.carrierName)!==norm(carrier)) return false;
+      if(!rateSheetRateMatches(r,c) || norm(r.carrierName)!==norm(carrier)) return false;
       const from=parseDate(r.validFrom);
       const to=parseDate(r.validTo);
-      // Future/usable rate: not expired as of the requested target date,
-      // and its validity starts today or later.
+      // A rate is usable when it has not expired for the requested target date.
+      // Keep historical records intact; selection only chooses the applicable record.
       if(to && target && to < parseDate(target)) return false;
-      if(from && from < parseDate(todayDate)) return false;
+      if(from && target && from > parseDate(target)) return false;
       return true;
     });
-    return rows.sort((a,b)=>String(a.validFrom||'').localeCompare(String(b.validFrom||'')));
+    return rows.sort((a,b)=>{
+      const ad=String(a.validFrom||a.updatedAt||a.createdAt||'');
+      const bd=String(b.validFrom||b.updatedAt||b.createdAt||'');
+      return bd.localeCompare(ad);
+    });
   }
   // Normalize Transit Time across Routing Master and all legacy/new Rate Sheet field names.
   function getTransitTime(record){
@@ -33167,14 +33246,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function rateSheetTransitMatches(r,c,carrier){
     if(norm(r.carrierName)!==norm(carrier)) return false;
     const ft=norm(r.freightType||'SEA').replace(/\s+/g,'_');
-    const shipment=norm(c.shipmentType||'EXPORT');
     const seaType=ft==='SEA'||ft==='SEA_EXPORT'||ft==='SEA_IMPORT'||ft==='EXPORT'||ft==='IMPORT';
     if(!seaType) return false;
-    if(shipment==='IMPORT' && ft==='SEA_EXPORT') return false;
-    if(shipment!=='IMPORT' && ft==='SEA_IMPORT') return false;
     if(norm(r.pol)!==norm(c.pol)||norm(r.pod)!==norm(c.pod)) return false;
-    if(c.container && r.containerType && containerNorm(r.containerType)!==containerNorm(c.container)) return false;
-    if(c.commodity && r.commodity && norm(r.commodity)!==norm(c.commodity)) return false;
+    // Transit discovery follows the same POL + POD route key. Cargo/HAZ,
+    // container, inventory and shipment direction are intentionally ignored.
     return !!getTransitTime(r);
   }
   function bestTransitRate(carrier,c){
@@ -33197,6 +33273,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const all=allRateSheetCarrierNames(c).some(x=>norm(x)===norm(carrier));
       return all?{type:'warn',text:'Future Rate Not Available'}:{type:'none',text:'No Rate'};
     }
+    const rate=rows[0];
+    const amount=[rate?.freightAmount,rate?.buyAmount,rate?.amount].find(v=>v!==null&&v!==undefined&&String(v).trim()!==''&&Number.isFinite(Number(v)));
+    if(amount!==undefined){
+      const currency=String(rate?.currency||rate?.buyCurrency||rate?.sellCurrency||'USD').trim().toUpperCase();
+      const symbol=({USD:'$',INR:'₹',EUR:'€',GBP:'£',AED:'د.إ',SGD:'S$',AUD:'A$',CAD:'C$',HKD:'HK$',JPY:'¥',CNY:'¥'})[currency]||currency;
+      const n=Number(amount);
+      const formatted=n.toLocaleString('en-IN',{minimumFractionDigits:Number.isInteger(n)?0:2,maximumFractionDigits:2});
+      return {type:'ok',text:`${symbol}${formatted}`};
+    }
+    // Preserve the existing status/comment behavior if the valid record does
+    // not contain a usable commercial amount.
     const calc=calculate(c,carrier);
     return calc.lines.length>1?{type:'ok',text:'Complete Future Rate'}:{type:'warn',text:'Freight Only / Partial'};
   }
@@ -33283,7 +33370,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const rateTransit=getTransitTime(rate)||getTransitTime(transitRate);
       const routeTransit=getTransitTime(transitRoute)||getTransitTime(r);
       const rs=rateStatus(carrier,c);
-      return {...r,carrier,__rateStatus:rs,__rate:rate,__rateTransit:rateTransit||routeTransit||r.transitDays,__transitSource:rateTransit?'RATE SHEET':(routeTransit?'ROUTING MASTER':'-'),__calc:calculate(c,carrier)};
+      const rateData=rate?{...rate}:{};
+      const merged={...r};
+      // Rate Sheet is the authoritative source for rate-related route sub-data.
+      // Keep Routing Master fields when Rate Sheet does not contain them.
+      ['pol','pod','viaPort','serviceName','frequency','directTs','effectiveFrom','effectiveUntil','status','remarks','mode','shipmentType','inventory','containerType','commodity','weight','freeTime','quoteNumber','source','validFrom','validTo','currency','freightAmount','buyAmount','sellAmount','buyCurrency','sellCurrency','basis','client','incoterm','service','routeType'].forEach(k=>{
+        if(rateData[k]!==undefined && rateData[k]!==null && String(rateData[k])!=='') merged[k]=rateData[k];
+      });
+      return {...merged,carrier:rateData.carrierName||carrier,__rateStatus:rs,__rate:rate,__rateData:rateData,__rateTransit:rateTransit||routeTransit||r.transitDays,__transitSource:rateTransit?'RATE SHEET':(routeTransit?'ROUTING MASTER':'-'),__calc:calculate(c,carrier)};
     }).sort((a,b)=>norm(a.carrier).localeCompare(norm(b.carrier)));
   }
   function render(){
@@ -33355,11 +33449,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function detailHTML(r,full){
     const rate=r?.__rate||{};
     const transit=r?.__rateTransit||getTransitTime(r)||getTransitTime(rate)||'-';
-    const inventory=rate.inventory||rate.containerType||r?.container||'-';
-    const cargo=rate.commodity||r?.commodity||'-';
-    const validityFrom=rate.validFrom||r?.effectiveFrom;
-    const validityTo=rate.validTo||r?.effectiveUntil;
-    return `<div class="routing-detail-list"><div><span>Carrier</span><strong>${esc(r.carrier||'-')}</strong></div><div><span>Service</span><strong>${esc(r.serviceName||r.serviceId||'-')}</strong></div><div><span>POL</span><strong>${esc(r.pol||rate.pol||'-')}</strong></div><div><span>Via</span><strong>${esc(r.viaPort||rate.viaPort||rate.via||'-')}</strong></div><div><span>POD</span><strong>${esc(r.pod||rate.pod||'-')}</strong></div><div><span>Inventory / Container</span><strong>${esc(inventory)}</strong></div><div><span>Cargo</span><strong>${esc(cargo)}</strong></div><div><span>Route Type</span><strong>${esc(r.directTs||'-')}</strong></div><div><span>Transit</span><strong>${esc(String(transit).replace(/\s*days?\s*$/i,''))} Days</strong></div><div><span>Frequency</span><strong>${esc(r.frequency||'-')}</strong></div><div><span>Rate Valid From</span><strong>${dateText(validityFrom)}</strong></div><div><span>Rate Valid Until</span><strong>${dateText(validityTo)}</strong></div><div><span>Status</span><strong class="routing-status ok">${esc(r.status||'ACTIVE')}</strong></div>${rate.freightAmount!=null?`<div><span>Future Buy Rate</span><strong>${esc(String(rate.currency||'USD'))} ${money(rate.freightAmount)}</strong></div>`:''}${full?`<div><span>Remarks</span><strong>${esc(rate.remarks||r.remarks||'-')}</strong></div>`:''}</div>`;
+    const inventory=rate.inventory||rate.containerType||rate.container||rate.containerSize||r?.container||'-';
+    const cargo=rate.commodity||rate.cargo||rate.cargoType||r?.commodity||'-';
+    const validityFrom=rate.validFrom||rate.validityFrom||r?.effectiveFrom;
+    const validityTo=rate.validTo||rate.validityTo||rate.validityDate||r?.effectiveUntil;
+    const field=(label,value)=>`<div><span>${label}</span><strong>${esc(value===undefined||value===null||String(value)===''?'-':value)}</strong></div>`;
+    const extras=[];
+    if(rate.freightAmount!=null) extras.push(field('Freight Buy',`${rate.currency||rate.buyCurrency||'USD'} ${money(rate.freightAmount)}`));
+    if(rate.sellAmount!=null) extras.push(field('Freight Sell',`${rate.sellCurrency||rate.currency||'USD'} ${money(rate.sellAmount)}`));
+    if(rate.buyCurrency) extras.push(field('Buy Currency',rate.buyCurrency));
+    if(rate.sellCurrency) extras.push(field('Sell Currency',rate.sellCurrency));
+    if(rate.weight!==undefined && rate.weight!=='') extras.push(field('Weight',rate.weight));
+    if(rate.basis) extras.push(field('Basis',rate.basis));
+    if(rate.freeTime) extras.push(field('Free Time',rate.freeTime));
+    if(rate.quoteNumber) extras.push(field('Quotation No.',rate.quoteNumber));
+    if(rate.source) extras.push(field('Source',rate.source));
+    if(rate.client) extras.push(field('Client',rate.client));
+    if(rate.incoterm) extras.push(field('Incoterm',rate.incoterm));
+    if(rate.routeType) extras.push(field('Route Type',rate.routeType));
+    if(rate.service) extras.push(field('Service',rate.service));
+    return `<div class="routing-detail-list">${field('Carrier',r.carrier||rate.carrierName||'-')}${field('Service',r.serviceName||rate.serviceName||rate.serviceId||'-')}${field('POL',rate.pol||r.pol||'-')}${field('Via',rate.viaPort||rate.via||r.viaPort||'-')}${field('POD',rate.pod||r.pod||'-')}${field('Inventory / Container',inventory)}${field('Cargo',cargo)}${field('Transit',String(transit).replace(/\s*days?\s*$/i,'')+' Days')}${field('Frequency',rate.frequency||r.frequency||'-')}${field('Route Type',rate.directTs||rate.routeType||r.directTs||'-')}${field('Rate Valid From',dateText(validityFrom))}${field('Rate Valid Until',dateText(validityTo))}${field('Status',rate.status||r.status||'ACTIVE')}${extras.join('')}${full?field('Remarks',rate.remarks||r.remarks||'-'):''}</div>`;
   }
   function alternativeHTML(c){const rows=(dbReady().routing||[]).filter(r=>norm(r.mode||'SEA')==='SEA'&&norm(r.pol)===norm(c.pol)&&norm(r.pod)!==norm(c.pod)&&(!r.status||norm(r.status)==='ACTIVE')).slice(0,8);return rows.length?`<table class="routing-popup-table"><thead><tr><th>Carrier</th><th>POL</th><th>Via</th><th>POD</th><th>Transit</th><th>Frequency</th><th>Type</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.carrier)}</td><td>${esc(r.pol)}</td><td>${esc(r.viaPort||'-')}</td><td>${esc(r.pod)}</td><td>${esc(r.transitDays||'-')}</td><td>${esc(r.frequency||'-')}</td><td><span class="routing-status warn">Alternative</span></td></tr>`).join('')}</tbody></table>`:'<div class="routing-empty-state">No configured alternatives found.</div>';}
   function currentCriteria(){return {shipmentType:getField('rp-shipment')||state.shipmentType,pol:getField('rp-pol'),pod:getField('rp-pod'),container:getField('rp-container'),commodity:getField('rp-commodity')||'NON HAZ',targetDate:getField('rp-date')||today(),via:[...document.querySelectorAll('#rp-via-chips span')].map(x=>x.textContent.replace(/×$/,'').trim()).filter(Boolean)};}
@@ -33419,7 +33528,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       setValue('sea-commodity',cargo);
       setValue('sea-carrier',r.carrier||rate.carrierName||'');
       setValue('sea-transit',transit);
-      setValue('sea-validityDate',validity);
+      // Do NOT write the Routing & Rates validity date back into SEA Quote.
+      // SEA Quote validity remains fully independent from Routing & Rates date.
       if(typeof markUnsaved==='function')markUnsaved('sea');
       if(typeof window.onCarrierChange==='function')window.onCarrierChange('sea');
     } else if(source==='sea1' || source==='sea2'){
@@ -33483,7 +33593,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     },300);
   }
   function openAddRoutingForm(){
-    const host=document.getElementById('routing-suggestion-popup');if(!host)return;const form=document.createElement('div');form.className='routing-add-overlay';form.innerHTML=`<div class="routing-add-modal"><div class="routing-add-head"><strong>＋ Add New Routing</strong><button id="routing-add-close">×</button></div><div class="routing-add-form"><div class="form-group"><label>Mode</label><input id="ra-mode" list="ra-mode-list" value="SEA" autocomplete="off"><datalist id="ra-mode-list"><option value="SEA"></option></datalist></div><div class="form-group"><label>Shipment Type</label><input id="ra-type" list="ra-type-list" value="EXPORT" autocomplete="off"><datalist id="ra-type-list"><option value="EXPORT"></option><option value="IMPORT"></option></datalist></div><div class="form-group"><label>Carrier</label><input id="ra-carrier" list="ra-carrier-list" autocomplete="off"><datalist id="ra-carrier-list">${(dbReady().carriers||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Service Name</label><input id="ra-service" autocomplete="off"></div><div class="form-group"><label>POL</label><input id="ra-pol" list="ra-pol-list" value="${esc(state.pol)}" autocomplete="off"><datalist id="ra-pol-list">${(dbReady().pol||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Via Port(s)</label><input id="ra-via" list="ra-via-list" value="${esc(state.via.join(' > '))}" placeholder="Type or select Via Port..." autocomplete="off"><datalist id="ra-via-list">${[...(new Set([...(dbReady().pol||[]),...(dbReady().pod||[])]))].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>POD</label><input id="ra-pod" list="ra-pod-list" value="${esc(state.pod)}" autocomplete="off"><datalist id="ra-pod-list">${(dbReady().pod||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Transit Days</label><input id="ra-transit" type="number"></div><div class="form-group"><label>Frequency</label><input id="ra-frequency" list="ra-frequency-list" value="Weekly" autocomplete="off"><datalist id="ra-frequency-list"><option value="Weekly"></option><option value="Twice Weekly"></option><option value="Daily"></option><option value="Fortnightly"></option><option value="Monthly"></option><option value="On Request"></option></datalist></div><div class="form-group"><label>Route Type</label><input id="ra-type-route" list="ra-route-type-list" value="DIRECT" autocomplete="off"><datalist id="ra-route-type-list"><option value="DIRECT"></option><option value="TRANSSHIPMENT"></option></datalist></div><div class="form-group"><label>Effective From</label><input id="ra-from" type="date" value="${today()}"></div><div class="form-group"><label>Effective Until</label><input id="ra-until" type="date"></div><div class="form-group full"><label>Remarks</label><textarea id="ra-remarks"></textarea></div></div><div class="routing-add-actions"><button class="btn btn-clear" id="routing-add-cancel">Cancel</button><button class="btn btn-success" id="routing-add-save">💾 Save Routing</button></div></div>`;host.appendChild(form);form.querySelector('#routing-add-close').onclick=form.querySelector('#routing-add-cancel').onclick=()=>form.remove();form.querySelector('#routing-add-save').onclick=()=>{const d=dbReady();d.routing=Array.isArray(d.routing)?d.routing:[];const rec={serviceId:'SVC-'+Date.now(),mode:'SEA',shipmentType:getField('ra-type'),carrier:getField('ra-carrier'),serviceName:getField('ra-service'),pol:getField('ra-pol'),viaPort:getField('ra-via'),pod:getField('ra-pod'),transitDays:Number(getField('ra-transit'))||0,frequency:getField('ra-frequency')||'Weekly',directTs:getField('ra-type-route')||'DIRECT',effectiveFrom:getField('ra-from'),effectiveUntil:getField('ra-until'),status:'ACTIVE',remarks:getField('ra-remarks'),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};if(!rec.carrier||!rec.pol||!rec.pod){alert('Carrier, POL and POD are required.');return;}const dup=d.routing.some(x=>routeNorm(x.pol)===routeNorm(rec.pol)&&routeNorm(x.viaPort||'')===routeNorm(rec.viaPort||'')&&routeNorm(x.pod)===routeNorm(rec.pod)&&norm(x.carrier)===norm(rec.carrier)&&norm(x.serviceName)===norm(rec.serviceName)&&norm(x.shipmentType||'EXPORT')===norm(rec.shipmentType||'EXPORT'));if(dup){alert('This routing already exists.');return;}d.routing.push(rec);if(typeof saveDB==='function')saveDB();form.remove();alert('Routing saved successfully.');render();};
+    const host=document.getElementById('routing-suggestion-popup');if(!host)return;const form=document.createElement('div');form.className='routing-add-overlay';form.innerHTML=`<div class="routing-add-modal"><div class="routing-add-head"><strong>＋ Add New Routing</strong><button id="routing-add-close">×</button></div><div class="routing-add-form"><div class="form-group"><label>Mode</label><input id="ra-mode" list="ra-mode-list" value="SEA" autocomplete="off"><datalist id="ra-mode-list"><option value="SEA"></option></datalist></div><div class="form-group"><label>Shipment Type</label><input id="ra-type" list="ra-type-list" value="EXPORT" autocomplete="off"><datalist id="ra-type-list"><option value="EXPORT"></option><option value="IMPORT"></option></datalist></div><div class="form-group"><label>Carrier</label><input id="ra-carrier" list="ra-carrier-list" autocomplete="off"><datalist id="ra-carrier-list">${(dbReady().carriers||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Service Name</label><input id="ra-service" autocomplete="off"></div><div class="form-group"><label>POL</label><input id="ra-pol" list="ra-pol-list" value="${esc(state.pol)}" autocomplete="off"><datalist id="ra-pol-list">${(dbReady().pol||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Via Port(s)</label><input id="ra-via" list="ra-via-list" value="${esc(state.via.join(' > '))}" placeholder="Type or select Via Port..." autocomplete="off"><datalist id="ra-via-list">${[...(new Set([...(dbReady().pol||[]),...(dbReady().pod||[])]))].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>POD</label><input id="ra-pod" list="ra-pod-list" value="${esc(state.pod)}" autocomplete="off"><datalist id="ra-pod-list">${(dbReady().pod||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist></div><div class="form-group"><label>Transit Days</label><input id="ra-transit" type="number"></div><div class="form-group"><label>Freight Buy Rate (optional)</label><input id="ra-rate" type="text" placeholder="e.g. 2500 or $2500"></div><div class="form-group"><label>Currency</label><select id="ra-currency"><option value="USD">USD</option><option value="INR">INR</option></select></div><div class="form-group"><label>Frequency</label><input id="ra-frequency" list="ra-frequency-list" value="Weekly" autocomplete="off"><datalist id="ra-frequency-list"><option value="Weekly"></option><option value="Twice Weekly"></option><option value="Daily"></option><option value="Fortnightly"></option><option value="Monthly"></option><option value="On Request"></option></datalist></div><div class="form-group"><label>Route Type</label><input id="ra-type-route" list="ra-route-type-list" value="DIRECT" autocomplete="off"><datalist id="ra-route-type-list"><option value="DIRECT"></option><option value="TRANSSHIPMENT"></option></datalist></div><div class="form-group"><label>Effective From</label><input id="ra-from" type="date" value="${today()}"></div><div class="form-group"><label>Effective Until</label><input id="ra-until" type="date"></div><div class="form-group full"><label>Remarks</label><textarea id="ra-remarks"></textarea></div></div><div class="routing-add-actions"><button class="btn btn-clear" id="routing-add-cancel">Cancel</button><button class="btn btn-success" id="routing-add-save">💾 Save Routing</button></div></div>`;host.appendChild(form);form.querySelector('#routing-add-close').onclick=form.querySelector('#routing-add-cancel').onclick=()=>form.remove();form.querySelector('#routing-add-save').onclick=()=>{const d=dbReady();d.routing=Array.isArray(d.routing)?d.routing:[];const rec={serviceId:'SVC-'+Date.now(),mode:'SEA',shipmentType:getField('ra-type'),carrier:getField('ra-carrier'),serviceName:getField('ra-service'),pol:getField('ra-pol'),viaPort:getField('ra-via'),pod:getField('ra-pod'),transitDays:Number(getField('ra-transit'))||0,frequency:getField('ra-frequency')||'Weekly',directTs:getField('ra-type-route')||'DIRECT',effectiveFrom:getField('ra-from'),effectiveUntil:getField('ra-until'),status:'ACTIVE',remarks:getField('ra-remarks'),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};if(!rec.carrier||!rec.pol||!rec.pod){alert('Carrier, POL and POD are required.');return;}const dup=d.routing.some(x=>routeNorm(x.pol)===routeNorm(rec.pol)&&routeNorm(x.viaPort||'')===routeNorm(rec.viaPort||'')&&routeNorm(x.pod)===routeNorm(rec.pod)&&norm(x.carrier)===norm(rec.carrier)&&norm(x.serviceName)===norm(rec.serviceName)&&norm(x.shipmentType||'EXPORT')===norm(rec.shipmentType||'EXPORT'));if(dup){alert('This routing already exists.');return;}d.routing.push(rec);
+      const rawRate=String(getField('ra-rate')||'').trim();
+      if(rawRate){
+        const amount=Number(rawRate.replace(/[$,\s]/g,''))||0;
+        if(amount>0){
+          const explicitUSD=rawRate.includes('$');
+          const mode=norm(rec.mode||'SEA');
+          const currency=mode==='SEA'||mode==='LCL'||rec.shipmentType==='IMPORT'?'USD':(explicitUSD?'USD':String(getField('ra-currency')||'INR').toUpperCase());
+          if(!Array.isArray(d.rateSheet))d.rateSheet=[];
+          d.rateSheet.push({id:'RS-ROUTE-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),carrierName:rec.carrier,freightType:rec.shipmentType==='IMPORT'?'SEA_IMPORT':mode||'SEA',pol:rec.pol,pod:rec.pod,viaPort:rec.viaPort||'',serviceName:rec.serviceName||'',containerType:'',currency,buyCurrency:currency,sellCurrency:currency,freightAmount:amount,buyAmount:amount,sellAmount:amount,transitTime:rec.transitDays?`${rec.transitDays} days`:'',validFrom:rec.effectiveFrom||today(),validTo:rec.effectiveUntil||'',commodity:'',frequency:rec.frequency||'',directTs:rec.directTs||'',remarks:rec.remarks||'Added from Routing',source:'routing',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+        }
+      }
+      if(typeof saveDB==='function')saveDB();form.remove();alert('Routing saved successfully. New Rate Sheet record was added when a Freight Buy Rate was entered.');render();};
   }
   function exportPopupExcel(c,selected){if(!window.XLSX){alert('Excel library is unavailable.');return;}const calc=selected?.__calc;const rows=(calc?.lines||[]).map(x=>({'Charge':x.name,'Buy Rate':x.amount,'Currency':x.currency,'Buy INR':x.inr,'Sell Rate':x.sellAmount??'', 'Sell INR':x.sellInr??''}));rows.push({'Charge':'SEA FREIGHT BUY TOTAL','Buy Rate':calc?.freightBuy?.total??0,'Currency':calc?.freightBuy?.currency||'','Buy INR':calc?.freightBuy?.total==null?'':toINRStrict(calc.freightBuy.total,calc.freightBuy.currency),'Sell Rate':calc?.freight?.sellAmount??'','Sell INR':calc?.freight?.sellInr??''});rows.push({'Charge':'FINAL TOTAL SELL','Buy Rate':'','Currency':'INR','Buy INR':'','Sell Rate':'','Sell INR':calc?.finalSell??''});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'RATE_DETAILS');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(state.rows.map(r=>({'Carrier':r.carrier,'Service':r.serviceName||r.serviceId,'POL':r.pol,'Via':r.viaPort||'-','POD':r.pod,'Transit Days':r.transitDays,'Frequency':r.frequency,'Route Type':r.directTs,'Rate Status':r.__rateStatus.text,'Rate Valid From':r.__rate?.validFrom||'','Rate Valid To':r.__rate?.validTo||''}))),'ROUTING');XLSX.writeFile(wb,'SHAHID_ERP_Routing_Rate_Comparison.xlsx');}
 })();
@@ -33737,4 +33859,934 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ensureNewQuoteModeBar('sea-import','IMPORT');
     },0);
   });
+})();
+
+
+
+
+
+/* ============================================================================
+   AMENDMENT 28 — RATE SHEET ADD-ONLY + QUOTATION AUTO-SYNC + ROUTING ISOLATION
+   ---------------------------------------------------------------------------
+   Rules:
+     1) Every new quotation/rate creates a NEW Rate Sheet record.
+     2) Existing Rate Sheet records are never overwritten by auto-sync.
+     3) Import Quote finalization also feeds Rate Sheet automatically.
+     4) Routing Carrier discovery and Transit are independent of Inventory.
+   ============================================================================ */
+(function(){
+  const A28U=v=>String(v??'').trim().toUpperCase();
+  const A28C=v=>{
+    const s=A28U(v).replace(/[-_]/g,' ').replace(/\s+/g,' ');
+    if(s==='20GP'||s.includes('20 GP'))return '20 GP';
+    if(s==='40GP'||s.includes('40 GP'))return '40 GP';
+    if(s==='40HC'||s.includes('40 HC'))return '40 HC';
+    return String(v??'').trim();
+  };
+  const A28now=()=>new Date().toISOString();
+  const A28today=()=>new Date().toISOString().slice(0,10);
+  function A28ensure(){if(!Array.isArray(db.rateSheet))db.rateSheet=[];}
+  function A28push(r){
+    A28ensure();
+    const now=A28now();
+    const rec={...r,id:r.id||('RS-A28-'+Date.now()+'-'+Math.random().toString(36).slice(2,8)),createdAt:r.createdAt||now,updatedAt:now};
+    db.rateSheet.push(rec);
+    return rec;
+  }
+  function A28rowsFromQuote(data,mode){
+    if(!data||!Array.isArray(data.carrierRates))return [];
+    const m=A28U(mode).replace(/[-\s]/g,'_');
+    const freightType=m==='SEA_IMPORT'?'SEA_IMPORT':m==='AIR'?'AIR':m==='LCL'?'LCL':'SEA';
+    const isAir=freightType==='AIR';
+    const isSea=freightType==='SEA'||freightType==='SEA_IMPORT';
+    const cm=isSea&&A28U(data.comparisonMode)==='CONTAINER'&&Array.isArray(data.comparisonContainers);
+    const containers=cm?data.comparisonContainers.slice(0,3):[data.container||'',data.container||'',data.container||''];
+    const key=isAir?'AIR FREIGHT':'FREIGHT';
+    return data.carrierRates.slice(0,3).map((cr,i)=>{
+      const carrier=String(cr?.carrier||'').trim(); if(!carrier)return null;
+      const f=cr?.charges?.[key]||cr?.charges?.FREIGHT||cr?.charges?.['AIR FREIGHT'];
+      if(!f)return null;
+      const buy=Number(f.buyAmount)||0, sell=Number(f.amount)||0;
+      const amount=buy>0?buy:sell; if(amount<=0)return null;
+      const rawBuy=String(f.buyRaw??f.rawBuy??f.buyValue??'').trim();
+      const rawSell=String(f.raw??f.rawValue??f.value??'').trim();
+      const airDollar=(rawBuy.includes('$')||rawSell.includes('$')||String(f.buyCurrency||'').toUpperCase()==='USD'||String(f.currency||'').toUpperCase()==='USD');
+      // Currency rule: SEA + LCL are always USD. AIR is USD only when $ is explicitly
+      // present (or the existing charge has already been explicitly marked USD); otherwise INR.
+      const currency=isAir?(airDollar?'USD':'INR'):'USD';
+      const buyCurrency=currency;
+      const sellCurrency=currency;
+      return {
+        carrierName:carrier,freightType,pol:String(data.pol||'').trim(),pod:String(data.pod||'').trim(),
+        containerType:A28C(containers[i]||''),currency,freightAmount:amount,buyAmount:buy,sellAmount:sell,
+        buyCurrency,sellCurrency,
+        transitTime:data.transit?String(data.transit):'',
+        validFrom:data.validFrom||A28today(),validTo:data.validityDate||data.validTo||'',
+        commodity:String(data.commodity||'').trim(),remarks:`Auto-saved from quote ${data.quoteNumber||'N/A'}`,
+        source:'quote',quoteNumber:data.quoteNumber||'',
+        quoteType:data.quoteType||data.mode||freightType,
+        client:data.client||'',incoterm:data.incoterm||'',weight:data.weight||'',via:data.via||data.viaPort||'',
+        serviceName:data.serviceName||'',frequency:data.frequency||'',routeType:data.routeType||data.directTs||'',
+        basis:f.basis||'',freeTime:data.freeTime||'',inventory:data.inventory||containers[i]||'',
+        rawBuy,rawSell
+      };
+    }).filter(Boolean);
+  }
+  window.updateRateSheetFromQuote=function(data,mode){
+    const rows=A28rowsFromQuote(data,mode);
+    if(!rows.length)return {added:0,updated:0,skipped:0};
+    rows.forEach(A28push);
+    saveDB();
+    if(typeof updateExpiryDashboard==='function')updateExpiryDashboard();
+    if(typeof renderRateSheet==='function'&&document.getElementById('ratesheet')?.classList.contains('active'))renderRateSheet();
+    return {added:rows.length,updated:0,skipped:0};
+  };
+  window.saveRateSheet=function(editIdx){
+    const get=id=>document.getElementById(id);
+    const rateData={
+      carrierName:String(get('rs-carrier')?.value||'').trim(),
+      freightType:String(get('rs-freightType')?.value||'SEA').trim().toUpperCase(),
+      pol:String(get('rs-pol')?.value||'').trim(),pod:String(get('rs-pod')?.value||'').trim(),
+      containerType:A28C(get('rs-container')?.value||''),
+      currency:String(get('rs-currency')?.value||'USD').trim().toUpperCase()||'USD',
+      freightAmount:Number(get('rs-amount')?.value||0),buyAmount:Number(get('rs-amount')?.value||0),
+      buyCurrency:String(get('rs-currency')?.value||'USD').trim().toUpperCase()||'USD',
+      transitTime:String(get('rs-transit')?.value||'').trim(),commodity:String(get('rs-commodity')?.value||'').trim(),
+      validFrom:String(get('rs-validFrom')?.value||A28today()).trim(),validTo:String(get('rs-validTo')?.value||'').trim(),
+      remarks:String(get('rs-remarks')?.value||'').trim(),source:editIdx!==null&&editIdx!==undefined?'manual-new-version':'manual'
+    };
+    // Global currency rule for newly created Rate Sheet records.
+    if(rateData.freightType==='SEA'||rateData.freightType==='SEA_IMPORT'||rateData.freightType==='SEA_EXPORT'||rateData.freightType==='LCL'){
+      rateData.currency='USD'; rateData.buyCurrency='USD'; rateData.sellCurrency='USD';
+    }
+    if(rateData.freightType==='AIR'){
+      const raw=String(get('rs-amount')?.value||'').trim();
+      const cur=raw.includes('$')?'USD':'INR';
+      rateData.currency=cur; rateData.buyCurrency=cur; rateData.sellCurrency=cur;
+    }
+    if(!rateData.carrierName||!rateData.pol||!rateData.pod||!rateData.validTo)return alert('Please fill Carrier, POL, POD, and Valid To fields.');
+    // Even when opened through Edit, preserve the old record and append a new version.
+    A28push(rateData); saveDB();
+    if(typeof closeModal==='function')closeModal('rateSheetModal');
+    if(typeof renderRateSheet==='function')renderRateSheet();
+    if(typeof updateExpiryDashboard==='function')updateExpiryDashboard();
+    if(typeof autoBackup==='function')autoBackup();
+    alert(editIdx!==null&&editIdx!==undefined?'New Rate Sheet version saved. Original record preserved.':'Rate saved successfully as a new record.');
+  };
+  window.saveFreightRate=function(mode){
+    const get=id=>document.getElementById(id);
+    const pol=get(`${mode}-pol`)?.value||'',pod=get(`${mode}-pod`)?.value||'',container=get(`${mode}-container`)?.value||'';
+    const transit=get(`${mode}-transit`)?.value||'',validTo=get(`${mode}-validityDate`)?.value||'',commodity=get(`${mode}-commodity`)?.value||'NON HAZ';
+    const names=[0,1,2].map(i=>get(i===0?`${mode}-carrier`:`${mode}-carrier-${i+1}`)?.value||'').filter(Boolean);
+    if(!pol||!pod||!names.length)return alert('Please select Carrier 1, POL and POD first.');
+    const key=mode==='air'?'AIR FREIGHT':'FREIGHT'; let saved=0;
+    names.forEach((carrier,i)=>{
+      const safe=mode==='air'?'AIR_FREIGHT':'FREIGHT';
+      const sell=get(`${mode}-c${i+1}-amt-${safe}`)?.value||'',buy=get(`${mode}-c${i+1}-buyAmt-${safe}`)?.value||'';
+      const amount=parseFloat(String(buy||sell).replace(/[$,]/g,''))||0; if(amount<=0)return;
+      A28push({carrierName:carrier,freightType:mode.toUpperCase(),pol,pod,containerType:mode==='sea'?A28C(container):container,commodity,
+        freightAmount:amount,buyAmount:parseFloat(String(buy||amount).replace(/[$,]/g,''))||amount,
+        sellAmount:parseFloat(String(sell||amount).replace(/[$,]/g,''))||amount,
+        currency:(mode==='air' ? (String(get(`${mode}-c${i+1}-buyAmt-${safe}`)?.value||get(`${mode}-c${i+1}-amt-${safe}`)?.value||'').includes('$')?'USD':'INR') : 'USD'),
+        buyCurrency:(mode==='air' ? (String(get(`${mode}-c${i+1}-buyAmt-${safe}`)?.value||get(`${mode}-c${i+1}-amt-${safe}`)?.value||'').includes('$')?'USD':'INR') : 'USD'),
+        sellCurrency:(mode==='air' ? (String(get(`${mode}-c${i+1}-amt-${safe}`)?.value||'').includes('$')?'USD':'INR') : 'USD'),
+        transitTime:transit,validFrom:A28today(),validTo,source:'manual'}); saved++;
+    });
+    saveDB();if(typeof renderRateSheet==='function')renderRateSheet();if(typeof updateExpiryDashboard==='function')updateExpiryDashboard();
+    alert(`New Rate Sheet record(s) added for ${saved} carrier(s). Existing records were not overwritten.`);
+  };
+  // SEA Import: final quotation save must also create Rate Sheet records.
+  const oldImportSave=window.seaImportSaveQuote;
+  if(typeof oldImportSave==='function'){
+    window.seaImportSaveQuote=function(){
+      let snapshot=null;
+      try{snapshot=typeof window.__seaImportCollectForRateSheet==='function'?window.__seaImportCollectForRateSheet():null;}catch(e){}
+      if(!snapshot){
+        try{
+          const carriers=[0,1,2].map(i=>document.getElementById(i===0?'sea-import-carrier':`sea-import-carrier-${i+1}`)?.value||'').filter(Boolean);
+          const g=window.__multiCollectGridData?window.__multiCollectGridData('sea-import'):{names:carriers,arrays:[{},{},{}]};
+          snapshot={pol:document.getElementById('sea-import-pol')?.value||'',pod:document.getElementById('sea-import-pod')?.value||'',container:document.getElementById('sea-import-container')?.value||'',commodity:document.getElementById('sea-import-commodity')?.value||'',transit:document.getElementById('sea-import-transit')?.value||'',validityDate:document.getElementById('sea-import-validityDate')?.value||'',quoteNumber:document.getElementById('sea-import-qn-value')?.textContent||'',carrierRates:g.names.map((n,i)=>({carrier:n,charges:g.arrays[i]||{}})).filter(x=>x.carrier)};
+        }catch(e){snapshot=null;}
+      }
+      const result=oldImportSave.apply(this,arguments);
+      if(snapshot&&Array.isArray(snapshot.carrierRates)&&snapshot.carrierRates.length)window.updateRateSheetFromQuote(snapshot,'sea-import');
+      return result;
+    };
+  }
+  // SEA Import manual freight save: always append a new record.
+  const oldImportFreight=window.seaImportSaveFreightRate;
+  if(typeof oldImportFreight==='function'){
+    window.seaImportSaveFreightRate=function(){
+      const pol=document.getElementById('sea-import-pol')?.value||'',pod=document.getElementById('sea-import-pod')?.value||'',container=document.getElementById('sea-import-container')?.value||'',transit=document.getElementById('sea-import-transit')?.value||'',validTo=document.getElementById('sea-import-validityDate')?.value||'',commodity=document.getElementById('sea-import-commodity')?.value||'NON HAZ';
+      const carrier=document.getElementById('sea-import-carrier')?.value||'';
+      const gd=window.__multiCollectGridData?window.__multiCollectGridData('sea-import'):null; const f=gd?.arrays?.[0]?.FREIGHT;
+      if(!pol||!pod||!carrier||!f?.buyAmount)return oldImportFreight.apply(this,arguments);
+      A28push({id:'RS-SI-A28-'+Date.now(),carrierName:carrier,freightType:'SEA_IMPORT',pol,pod,containerType:A28C(container),currency:String(f.buyCurrency||'USD').toUpperCase(),freightAmount:Number(f.buyAmount),transitTime:transit?`${transit} days`:'',validFrom:A28today(),validTo,commodity,remarks:'Manually saved from SEA Import quote',source:'sea-import'});
+      saveDB();if(typeof renderRateSheet==='function')renderRateSheet();alert('SEA Import: new Rate Sheet record added. Existing records were not overwritten.');
+    };
+  }
+  window.SHAHID_ERP_AMENDMENT_28={rateSheetMode:'ADD_ONLY',inventoryIndependentForCarrierAndTT:true};
+})();
+
+
+/* AMENDMENT 29 — FINAL CURRENCY / COMPLETE RATE-SHEET ROUTING GUARD */
+(function(){
+  const original=window.updateRateSheetFromQuote;
+  if(typeof original==='function'){
+    window.updateRateSheetFromQuote=function(data,mode){
+      const m=String(mode||data?.mode||'SEA').toUpperCase().replace(/[-\s]/g,'_');
+      const isAir=m==='AIR';
+      const isSea=!isAir && (m==='SEA'||m==='SEA_IMPORT'||m==='SEA_EXPORT');
+      const isLcl=m==='LCL';
+      if(Array.isArray(data?.carrierRates)){
+        data={...data,carrierRates:data.carrierRates.map(cr=>{
+          const f=cr?.charges?.['FREIGHT']||cr?.charges?.['AIR FREIGHT']||{};
+          const raw=String(f.buyRaw??f.raw??f.buyValue??f.value??'');
+          const explicitUSD=raw.includes('$')||String(f.buyCurrency||f.currency||'').toUpperCase()==='USD';
+          if(isSea||isLcl){
+            const charges={...(cr.charges||{})};
+            if(charges.FREIGHT)charges.FREIGHT={...charges.FREIGHT,buyCurrency:'USD',currency:'USD'};
+            if(charges['AIR FREIGHT'])charges['AIR FREIGHT']={...charges['AIR FREIGHT'],buyCurrency:'USD',currency:'USD'};
+            return {...cr,charges};
+          }
+          if(isAir && explicitUSD){
+            const charges={...(cr.charges||{})};
+            if(charges['AIR FREIGHT'])charges['AIR FREIGHT']={...charges['AIR FREIGHT'],buyCurrency:'USD',currency:'USD'};
+            if(charges.FREIGHT)charges.FREIGHT={...charges.FREIGHT,buyCurrency:'USD',currency:'USD'};
+            return {...cr,charges};
+          }
+          return cr;
+        })};
+      }
+      return original(data,m);
+    };
+  }
+  window.SHAHID_ERP_AMENDMENT_29={rateSheetAddOnly:true,twoWayRoutingRateSheet:true,seaCurrency:'USD',lclCurrency:'USD',airDollarCurrency:'USD',airDefaultCurrency:'INR',inventoryIndependentCarrierTT:true};
+})();
+
+/* ============================================================================
+   AMENDMENT 30 — QUOTE / RATE SHEET / RATES QUOTED DATA ARCHITECTURE
+   ---------------------------------------------------------------------------
+   Rules:
+     1) Rate Sheet remains ADD-ONLY; no historical record is overwritten.
+     2) Drafts do not create Rate Sheet records automatically.
+     3) Finalized/quoted records create a new Rate Sheet record as before.
+     4) Import AIR/LCL quotations are mirrored into the existing Rates Quoted
+        store so the Rates Quoted screen does not miss them.
+     5) Each quoted record receives a stable source/reference ID where missing.
+     6) A quotation keeps a snapshot of its saved commercial data; later Rate
+        Sheet additions do not mutate the old quotation.
+     7) Existing data and unrelated modules are left untouched.
+============================================================================ */
+(function(){
+  'use strict';
+  const A30now=()=>new Date().toISOString();
+  const A30clone=v=>{try{return JSON.parse(JSON.stringify(v));}catch(e){return v;}};
+  const A30id=(prefix='QT')=>`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+
+  function A30ensureStores(){
+    if(!db.rates||typeof db.rates!=='object')db.rates={};
+    if(!db.importQuotes||typeof db.importQuotes!=='object')db.importQuotes={drafts:{},rates:{}};
+    ['sea','air','lcl','sea-import'].forEach(m=>{
+      if(!Array.isArray(db.rates[m]))db.rates[m]=[];
+      if(!Array.isArray(db.importQuotes.rates?.[m])){
+        if(!db.importQuotes.rates)db.importQuotes.rates={};
+        db.importQuotes.rates[m]=[];
+      }
+      if(!Array.isArray(db.importQuotes.drafts?.[m])){
+        if(!db.importQuotes.drafts)db.importQuotes.drafts={};
+        db.importQuotes.drafts[m]=[];
+      }
+    });
+    if(!Array.isArray(db.rateSheet))db.rateSheet=[];
+  }
+
+  function A30quoteSnapshot(rec){
+    const s=A30clone(rec)||{};
+    delete s.quoteSnapshot;
+    delete s._ratesQuotedMirror;
+    return s;
+  }
+
+  // Final save wrapper: keep quotation history self-contained and give every
+  // newly-created quoted record a stable reference without changing old records.
+  const A30originalSaveRecord=window.saveRecord;
+  if(typeof A30originalSaveRecord==='function' && !window.__A30_SAVE_RECORD_V30){
+    window.__A30_SAVE_RECORD_V30=true;
+    window.saveRecord=function(mode,target,status){
+      A30ensureStores();
+      const beforeRates=Array.isArray(db.rates?.[mode])?db.rates[mode].length:0;
+      const result=A30originalSaveRecord.apply(this,arguments);
+      try{
+        const arr=Array.isArray(db.rates?.[mode])?db.rates[mode]:[];
+        if(String(target||'').toLowerCase()==='rates' && arr.length>beforeRates){
+          const rec=arr[arr.length-1];
+          if(rec && !rec.recordId)rec.recordId=A30id('QREC');
+          if(rec && !rec.quoteSnapshot)rec.quoteSnapshot=A30quoteSnapshot(rec);
+          if(rec){rec.recordVersion=Number(rec.recordVersion||0)+1;rec.commercialSnapshotAt=rec.commercialSnapshotAt||A30now();}
+          // Keep the Rate Sheet source reference aligned with the quotation
+          // that generated it, without altering historical rate values.
+          if(rec?.quoteNumber && Array.isArray(db.rateSheet)){
+            db.rateSheet.forEach(r=>{
+              if(String(r.quoteNumber||'')===String(rec.quoteNumber||'') && !r.sourceQuoteRecordId){
+                r.sourceQuoteRecordId=rec.recordId||'';
+                r.sourceQuoteNumber=rec.quoteNumber||'';
+                r.sourceType='QUOTATION';
+              }
+            });
+          }
+          saveDB();
+        }
+      }catch(e){console.warn('Amendment 30 quote snapshot guard skipped:',e);}
+      return result;
+    };
+  }
+
+  // Import AIR/LCL currently use the dedicated importQuotes store. Mirror only
+  // finalized quotations into the existing Rates Quoted store. Drafts remain
+  // drafts and are not promoted to Rates Quoted.
+  function A30mirrorImportQuote(mode){
+    A30ensureStores();
+    const m=String(mode||'').toLowerCase();
+    if(m!=='air'&&m!=='lcl')return false;
+    const sourceArr=db.importQuotes?.rates?.[m]||[];
+    if(!sourceArr.length)return false;
+    const source=sourceArr[sourceArr.length-1];
+    if(!source)return false;
+    source.recordId=source.recordId||A30id('IQREC');
+    source.quoteSnapshot=source.quoteSnapshot||A30quoteSnapshot(source);
+    source.commercialSnapshotAt=source.commercialSnapshotAt||A30now();
+    const targetArr=db.rates[m]||[];
+    const existing=targetArr.find(r=>String(r.sourceImportRecordId||'')===String(source.recordId));
+    if(!existing){
+      const mirror=A30clone(source);
+      mirror.sourceImportRecordId=source.recordId;
+      mirror.sourceStore='importQuotes.rates';
+      mirror.sourceType='IMPORT_QUOTATION';
+      mirror._ratesQuotedMirror=true;
+      targetArr.push(mirror);
+      db.rates[m]=targetArr;
+    }
+    saveDB();
+    return true;
+  }
+  window.__A30mirrorImportQuote=A30mirrorImportQuote;
+
+  // Dedicated import AIR/LCL save path: after the existing save completes,
+  // mirror the finalized record into Rates Quoted and leave the original store intact.
+  const A30oldSaveRecord=window.saveRecord;
+  if(typeof A30oldSaveRecord==='function' && !window.__A30_IMPORT_MIRROR_V30){
+    window.__A30_IMPORT_MIRROR_V30=true;
+    window.saveRecord=function(mode,target,status){
+      const dir=String(window.__quoteDirection||'EXPORT').toUpperCase();
+      const m=String(mode||'').toLowerCase();
+      const result=A30oldSaveRecord.apply(this,arguments);
+      try{
+        if(dir==='IMPORT' && String(target||'').toLowerCase()==='rates' && (m==='air'||m==='lcl')){
+          A30mirrorImportQuote(m);
+          if(typeof renderEnhancedRates==='function')setTimeout(()=>renderEnhancedRates(),0);
+        }
+      }catch(e){console.warn('Amendment 30 import Rates Quoted mirror skipped:',e);}
+      return result;
+    };
+  }
+
+  // Do not create a commercial Rate Sheet record from a draft. A draft is not
+  // yet a quoted commercial transaction. Existing finalized quotation behavior
+  // remains unchanged.
+  const A30oldRS=window.updateRateSheetFromQuote;
+  if(typeof A30oldRS==='function' && !window.__A30_DRAFT_RS_GUARD_V30){
+    window.__A30_DRAFT_RS_GUARD_V30=true;
+    window.updateRateSheetFromQuote=function(data,mode){
+      const st=String(data?.status||'').toUpperCase();
+      if(st==='DRAFT')return {added:0,updated:0,skipped:0,reason:'DRAFT_NOT_PROMOTED'};
+      return A30oldRS.apply(this,arguments);
+    };
+  }
+
+  // Keep Rates Quoted filters aware of the dedicated SEA Import service.
+  function A30ensureRatesModeOptions(){
+    const sel=document.getElementById('rates-mode-filter');
+    if(sel && !Array.from(sel.options).some(o=>o.value==='SEA_IMPORT')){
+      const o=document.createElement('option');o.value='SEA_IMPORT';o.textContent='🚢 SEA IMPORT';sel.appendChild(o);
+    }
+    const quick=document.getElementById('rates-quick-filter');
+    if(quick && !Array.from(quick.options).some(o=>o.value==='sea-import')){
+      const o=document.createElement('option');o.value='sea-import';o.textContent='📥 SEA IMPORT';quick.appendChild(o);
+    }
+  }
+  document.addEventListener('DOMContentLoaded',A30ensureRatesModeOptions);
+  const A30oldEnhanced=window.renderEnhancedRates;
+  if(typeof A30oldEnhanced==='function' && !window.__A30_RATES_RENDER_V30){
+    window.__A30_RATES_RENDER_V30=true;
+    window.renderEnhancedRates=function(){
+      A30ensureStores();
+      A30ensureRatesModeOptions();
+      return A30oldEnhanced.apply(this,arguments);
+    };
+  }
+
+  // Add a small service-map extension after the existing Rates Quoted renderer
+  // has produced its table. This changes only the displayed SEA Import label.
+  function A30labelSeaImport(){
+    document.querySelectorAll('#rates-table .service-badge').forEach(el=>{
+      const row=el.closest('tr');
+      const cb=row?.querySelector('.rates-row-checkbox');
+      if(cb?.dataset?.mode==='sea-import')el.textContent='FCL IMPORT';
+    });
+  }
+  const A30oldEnhanced2=window.renderEnhancedRates;
+  if(typeof A30oldEnhanced2==='function' && !window.__A30_RATES_LABEL_V30){
+    window.__A30_RATES_LABEL_V30=true;
+    window.renderEnhancedRates=function(){
+      const r=A30oldEnhanced2.apply(this,arguments);
+      setTimeout(A30labelSeaImport,0);
+      return r;
+    };
+  }
+
+  window.SHAHID_ERP_AMENDMENT_30={
+    addOnlyRateSheet:true,
+    quoteSnapshot:true,
+    draftDoesNotPromoteToRateSheet:true,
+    importAirLclRatesQuotedSync:true,
+    ratesQuotedIncludesSeaImport:true,
+    historicalRecordsPreserved:true
+  };
+})();
+
+
+/* ============================================================================
+   AMENDMENT 31 — ROUTING & RATES POL + POD SEARCH / VALID RATE DISPLAY
+   ----------------------------------------------------------------------------
+   Route discovery: POL + POD only.
+   Rate display: matching Rate Sheet record must be valid on target date.
+   Expired/future rates are hidden; historical records remain untouched.
+============================================================================ */
+(function(){
+  'use strict';
+  window.SHAHID_ERP_AMENDMENT_31={
+    routingSearchKey:'POL+POD',
+    rateSearchKey:'POL+POD',
+    rateValidityRequired:true,
+    expiredRatesHidden:true,
+    futureRatesHidden:true,
+    historicalRecordsPreserved:true
+  };
+})();
+
+
+/* ============================================================================
+   AMENDMENT 32 — ROUTING & RATES DATE SEPARATION
+   ----------------------------------------------------------------------------
+   Routing & Rates uses its own local-TODAY default date. It never inherits
+   SEA Quote / Import Quote / Rate Request validity dates. Selecting a route
+   does not write Routing & Rates validity back into SEA Quote.
+   Existing rate validity logic and all unrelated functionality remain intact.
+============================================================================ */
+(function(){
+  'use strict';
+  window.SHAHID_ERP_AMENDMENT_32={
+    routingRatesDateIndependent:true,
+    routingRatesDefaultDate:'LOCAL_TODAY',
+    seaQuoteValidityIndependent:true,
+    historicalRecordsPreserved:true
+  };
+})();
+
+
+/* ============================================================================
+   AMENDMENT 33 — ROUTING & RATES ACTUAL RATE STATUS
+   ----------------------------------------------------------------------------
+   If a valid Rate Sheet record exists for the Routing & Rates target date,
+   Rate Status displays the actual applicable Rate Sheet amount/currency.
+   If no valid rate exists, the existing current no-rate/future-rate comment
+   remains unchanged. No other Routing & Rates behavior is modified.
+============================================================================ */
+(function(){
+  'use strict';
+  window.SHAHID_ERP_AMENDMENT_33={
+    routingRateStatusShowsActualValidRate:true,
+    noRateCommentsPreserved:true,
+    historicalRecordsPreserved:true
+  };
+})();
+
+/* ============================================================================
+   AMENDMENT 36 — NEW QUOTE IMPORT DATA FLOW BRIDGE
+   ---------------------------------------------------------------------------
+   Scope: Import SEA/AIR/LCL quotation persistence and visibility only.
+   - Keeps the existing dedicated import stores as the source of truth.
+   - Makes Import Drafts visible in the existing Draft Quotations screen.
+   - Keeps finalized Import AIR/LCL/SEA records available to existing Rates views.
+   - Uses stable sourceImportRecordId values to prevent duplicates.
+   - Synchronizes edits/deletes made through the existing generic quotation UI
+     back to the dedicated Import stores.
+   - Does not change Export quotation logic or unrelated modules.
+============================================================================ */
+(function(){
+  'use strict';
+  if(window.__AMENDMENT_36_IMPORT_DATA_FLOW__) return;
+  window.__AMENDMENT_36_IMPORT_DATA_FLOW__=true;
+
+  const clone=v=>{try{return JSON.parse(JSON.stringify(v));}catch(e){return v;}};
+  const id=(prefix)=>`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+
+  function ensure(){
+    if(!db.importQuotes || typeof db.importQuotes!=='object') db.importQuotes={};
+    ['drafts','rates'].forEach(bucket=>{
+      if(!db.importQuotes[bucket] || typeof db.importQuotes[bucket]!=='object') db.importQuotes[bucket]={};
+      ['air','lcl'].forEach(mode=>{
+        if(!Array.isArray(db.importQuotes[bucket][mode])) db.importQuotes[bucket][mode]=[];
+      });
+    });
+    if(!db.drafts || typeof db.drafts!=='object') db.drafts={};
+    ['air','lcl','sea-import'].forEach(mode=>{
+      if(!Array.isArray(db.drafts[mode])) db.drafts[mode]=[];
+    });
+    if(!db.rates || typeof db.rates!=='object') db.rates={};
+    ['air','lcl','sea-import'].forEach(mode=>{
+      if(!Array.isArray(db.rates[mode])) db.rates[mode]=[];
+    });
+  }
+
+  function sourceId(rec){
+    if(!rec) return '';
+    if(!rec.importRecordId) rec.importRecordId=rec.sourceImportRecordId||id('IMP');
+    return String(rec.importRecordId);
+  }
+
+  function markImport(rec, bucket, mode){
+    const out=clone(rec)||{};
+    const sid=sourceId(rec);
+    out.importRecordId=sid;
+    out.sourceImportRecordId=sid;
+    out.sourceImportStore=`importQuotes.${bucket}.${mode}`;
+    out.direction='IMPORT';
+    out.quoteType=out.quoteType||'IMPORT_QUOTE';
+    out._importMirror=true;
+    out._importMode=mode;
+    return out;
+  }
+
+  function findBySource(arr,sid){
+    return (arr||[]).findIndex(x=>String(x?.sourceImportRecordId||x?.importRecordId||'')===String(sid));
+  }
+
+  // Synchronize existing dedicated Import Drafts into the standard Draft view.
+  // This is idempotent and never removes the dedicated source records.
+  function syncDraftMirrors(){
+    ensure();
+    ['air','lcl'].forEach(mode=>{
+      const src=db.importQuotes.drafts[mode]||[];
+      const dest=db.drafts[mode];
+      src.forEach((rec,srcIdx)=>{
+        const sid=sourceId(rec);
+        const di=findBySource(dest,sid);
+        const mirror=markImport(rec,'drafts',mode);
+        mirror._importSourceIndex=srcIdx;
+        if(di<0) dest.push(mirror);
+        else dest[di]=mirror;
+      });
+    });
+
+    // SEA Import has its own established seaImport store.
+    const seaSrc=db.drafts.seaImport||[];
+    const seaDest=db.drafts['sea-import'];
+    seaSrc.forEach((rec,srcIdx)=>{
+      const sid=sourceId(rec);
+      const di=findBySource(seaDest,sid);
+      const mirror=markImport(rec,'drafts','sea-import');
+      mirror._importSourceIndex=srcIdx;
+      if(di<0) seaDest.push(mirror);
+      else seaDest[di]=mirror;
+    });
+  }
+
+  function syncRateMirrors(){
+    ensure();
+    ['air','lcl'].forEach(mode=>{
+      const src=db.importQuotes.rates[mode]||[];
+      const dest=db.rates[mode];
+      src.forEach((rec,srcIdx)=>{
+        const sid=sourceId(rec);
+        const di=findBySource(dest,sid);
+        const mirror=markImport(rec,'rates',mode);
+        mirror._importSourceIndex=srcIdx;
+        if(di<0) dest.push(mirror);
+        else if(dest[di]?._importMirror) dest[di]=mirror;
+      });
+    });
+    // SEA Import already stores finalized records in db.rates.seaImport.
+    const seaSrc=db.rates.seaImport||[];
+    const seaDest=db.rates['sea-import'];
+    seaSrc.forEach((rec,srcIdx)=>{
+      const sid=sourceId(rec);
+      const di=findBySource(seaDest,sid);
+      const mirror=markImport(rec,'rates','sea-import');
+      mirror._importSourceIndex=srcIdx;
+      if(di<0) seaDest.push(mirror);
+      else if(seaDest[di]?._importMirror) seaDest[di]=mirror;
+    });
+  }
+
+  function persist(){
+    try{saveDB();}catch(e){console.warn('Amendment 36 persistence skipped:',e);}
+  }
+
+  // Ensure existing data becomes visible immediately after loading.
+  ensure();
+  syncDraftMirrors();
+  syncRateMirrors();
+  persist();
+
+  // Keep new Import AIR/LCL saves visible in the normal Draft/Rate views.
+  const oldSaveRecord=window.saveRecord;
+  if(typeof oldSaveRecord==='function'){
+    window.saveRecord=function(mode,target,status){
+      const beforeIds=new Set((db.importQuotes?.[String(target||'').toLowerCase()]?.[String(mode||'').toLowerCase()]||[]).map(sourceId));
+      const result=oldSaveRecord.apply(this,arguments);
+      try{
+        const dir=String(window.__quoteDirection||'EXPORT').toUpperCase();
+        const m=String(mode||'').toLowerCase();
+        const t=String(target||'').toLowerCase();
+        if(dir==='IMPORT' && (m==='air'||m==='lcl') && (t==='drafts'||t==='rates')){
+          ensure();
+          const arr=db.importQuotes[t][m]||[];
+          // saveImportQuote already created the dedicated source record.
+          // Assign stable IDs to any newly-created source records and rebuild mirrors.
+          arr.forEach(r=>sourceId(r));
+          if(t==='drafts') syncDraftMirrors();
+          else syncRateMirrors();
+          persist();
+        }
+      }catch(e){console.warn('Amendment 36 Import save bridge skipped:',e);}
+      return result;
+    };
+  }
+
+  // SEA Import uses its own save handlers.
+  ['seaImportSaveDraft','seaImportSaveQuote'].forEach(fnName=>{
+    const old=window[fnName];
+    if(typeof old!=='function') return;
+    window[fnName]=function(){
+      const result=old.apply(this,arguments);
+      try{
+        ensure();
+        const bucket=fnName==='seaImportSaveDraft'?'drafts':'rates';
+        const arr=(bucket==='drafts'?db.drafts.seaImport:db.rates.seaImport)||[];
+        const rec=arr[arr.length-1];
+        if(rec){
+          sourceId(rec);
+          if(bucket==='drafts') syncDraftMirrors(); else syncRateMirrors();
+          persist();
+        }
+      }catch(e){console.warn('Amendment 36 SEA Import bridge skipped:',e);}
+      return result;
+    };
+  });
+
+  // When the existing quotation editor saves a mirrored Import record, propagate
+  // the edited data back to the dedicated Import store.
+  const oldGenericSave=window.saveRecord;
+  if(typeof oldGenericSave==='function' && !window.__AMENDMENT_36_EDIT_SAVE_BRIDGE__){
+    window.__AMENDMENT_36_EDIT_SAVE_BRIDGE__=true;
+    window.saveRecord=function(mode,target,status){
+      const edit=typeof editingRecord!=='undefined' ? editingRecord : null;
+      const m=String(mode||'').toLowerCase();
+      const t=String(target||'').toLowerCase();
+      let mirrorBefore=null;
+      if(edit && edit.target===target && edit.mode===mode && (m==='air'||m==='lcl'||m==='sea-import')){
+        mirrorBefore=db?.[target]?.[mode]?.[edit.index];
+      }
+      const result=oldGenericSave.apply(this,arguments);
+      try{
+        if(mirrorBefore?._importMirror && mirrorBefore.sourceImportRecordId){
+          ensure();
+          const sid=String(mirrorBefore.sourceImportRecordId);
+          const sourceMode=m;
+          const bucket=(t==='rates'||t==='drafts')?t:null;
+          if(bucket && sourceMode!=='sea-import'){
+            const src=db.importQuotes?.[bucket]?.[sourceMode]||[];
+            const si=findBySource(src,sid);
+            const updated=db?.[target]?.[mode]?.[edit.index];
+            if(si>=0 && updated){
+              const clean=clone(updated);
+              delete clean._importMirror; delete clean._importMode; delete clean._importSourceIndex;
+              src[si]={...src[si],...clean,importRecordId:sid,sourceImportRecordId:sid,lastModified:new Date().toISOString()};
+              if(bucket==='drafts') syncDraftMirrors(); else syncRateMirrors();
+              persist();
+            }
+          }
+        }
+      }catch(e){console.warn('Amendment 36 Import edit bridge skipped:',e);}
+      return result;
+    };
+  }
+
+  // Deleting a mirrored Import record must delete its dedicated source record too.
+  const oldDelete=window.deleteRecord;
+  if(typeof oldDelete==='function' && !window.__AMENDMENT_36_DELETE_BRIDGE__){
+    window.__AMENDMENT_36_DELETE_BRIDGE__=true;
+    window.deleteRecord=function(target,mode,idx){
+      const rec=db?.[target]?.[mode]?.[idx];
+      if(!rec?._importMirror || !rec.sourceImportRecordId){
+        return oldDelete.apply(this,arguments);
+      }
+      const sid=String(rec.sourceImportRecordId);
+      const m=String(mode||'').toLowerCase();
+      const t=String(target||'').toLowerCase();
+      showDeleteConfirm(`Delete quotation?<br><br><strong>${rec.client||'?'}</strong> (${rec.pol||'?'} → ${rec.pod||'?'})<br>${rec.quoteNumber||''}`,function(){
+        try{
+          const src=(m==='sea-import') ? (t==='rates'?db.rates.seaImport:db.drafts.seaImport) : (db.importQuotes?.[t]?.[m]||[]);
+          const si=findBySource(src,sid);
+          if(si>=0) src.splice(si,1);
+          if(db[target]?.[mode]) db[target][mode].splice(idx,1);
+          persist();
+          renderRecords(target);
+          renderFollowups();
+        }catch(e){alert('Error: '+e.message);}
+      });
+      return;
+    };
+  }
+
+  // Duplicate an Import Draft into the same Import Draft store, rather than
+  // accidentally turning it into an Export draft.
+  const oldDuplicate=window.duplicateQuote;
+  if(typeof oldDuplicate==='function' && !window.__AMENDMENT_36_DUPLICATE_BRIDGE__){
+    window.__AMENDMENT_36_DUPLICATE_BRIDGE__=true;
+    window.duplicateQuote=function(target,mode,idx){
+      const rec=db?.[target]?.[mode]?.[idx];
+      if(!rec?._importMirror || String(target||'').toLowerCase()!=='drafts'){
+        return oldDuplicate.apply(this,arguments);
+      }
+      const m=String(mode||'').toLowerCase();
+      if(m!=='air'&&m!=='lcl'&&m!=='sea-import') return oldDuplicate.apply(this,arguments);
+      const newRec=clone(rec); delete newRec._importMirror; delete newRec._importMode; delete newRec._importSourceIndex;
+      newRec.importRecordId=id('IMP'); newRec.sourceImportRecordId=newRec.importRecordId;
+      newRec.quoteNumber=(m==='sea-import'?'DRAFT-SI-':'DRAFT-IQ-')+Date.now();
+      newRec.timestamp=new Date().toISOString(); newRec.lastModified=newRec.timestamp; newRec.status='DRAFT'; newRec.direction='IMPORT'; newRec.quoteType=newRec.quoteType||'IMPORT_QUOTE';
+      if(m==='sea-import'){
+        if(!Array.isArray(db.drafts.seaImport)) db.drafts.seaImport=[];
+        db.drafts.seaImport.push(newRec);
+      }else{
+        if(!db.importQuotes.drafts[m]) db.importQuotes.drafts[m]=[];
+        db.importQuotes.drafts[m].push(newRec);
+      }
+      ensure(); syncDraftMirrors(); persist(); renderRecords('drafts');
+      alert(`Import quote duplicated successfully!\nNew Quote No: ${newRec.quoteNumber}\nSaved to Drafts.`);
+    };
+  }
+
+  // Re-render after the document is ready so the existing Draft screen sees the bridge.
+  const refresh=()=>{try{ensure();syncDraftMirrors();syncRateMirrors();persist();if(typeof renderEnhancedDrafts==='function')renderEnhancedDrafts();}catch(e){console.warn('Amendment 36 refresh skipped:',e);}};
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',refresh,{once:true});
+  else setTimeout(refresh,0);
+
+  window.SHAHID_ERP_AMENDMENT_36={
+    importDraftBridge:true,
+    importAirLclDraftsVisible:true,
+    importSeaDraftVisible:true,
+    stableSourceIds:true,
+    editSync:true,
+    deleteSync:true,
+    duplicateSync:true,
+    exportLogicUntouched:true
+  };
+})();
+
+
+/* ============================================================================
+   AMENDMENT 37 — IMPORT QUOTE FINAL DATA FLOW + HEADER CLEANUP
+   ---------------------------------------------------------------------------
+   Scope ONLY:
+     1) Import AIR/LCL: Draft -> Drafts only; Final/Quoted -> Rates Quoted +
+        Rate Sheet, with edit-safe source synchronization and no duplicate mirror.
+     2) Import SEA: preserve the existing dedicated save engine; final Rate Sheet
+        bridge remains governed by the existing add-only architecture.
+     3) Header: remove top Action Center and Alert Center controls; keep only
+        Search -> Dark Mode -> Refresh -> User -> Logout.
+============================================================================ */
+(function(){
+  'use strict';
+  if(window.__AMENDMENT_37_IMPORT_FLOW_HEADER__) return;
+  window.__AMENDMENT_37_IMPORT_FLOW_HEADER__=true;
+
+  const clone=v=>{try{return JSON.parse(JSON.stringify(v));}catch(e){return v;}};
+  const makeId=(prefix)=>`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+
+  // Header cleanup is deliberately DOM-only. Underlying Action/Alert modules
+  // remain available elsewhere in the ERP and are not deleted or refactored.
+  function cleanHeader(){
+    document.querySelector('.header-action-center-btn')?.remove();
+    document.querySelector('.alert-center-wrap')?.remove();
+    const dark=document.getElementById('darkModeBtn');
+    if(dark && !dark.id) dark.id='darkModeBtn';
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',cleanHeader,{once:true});
+  else cleanHeader();
+
+  function ensureImportStores(){
+    if(!db.importQuotes || typeof db.importQuotes!=='object') db.importQuotes={};
+    ['drafts','rates'].forEach(bucket=>{
+      if(!db.importQuotes[bucket] || typeof db.importQuotes[bucket]!=='object') db.importQuotes[bucket]={};
+      ['air','lcl'].forEach(mode=>{
+        if(!Array.isArray(db.importQuotes[bucket][mode])) db.importQuotes[bucket][mode]=[];
+      });
+    });
+    if(!db.drafts || typeof db.drafts!=='object') db.drafts={};
+    if(!db.rates || typeof db.rates!=='object') db.rates={};
+    ['air','lcl'].forEach(mode=>{
+      if(!Array.isArray(db.drafts[mode])) db.drafts[mode]=[];
+      if(!Array.isArray(db.rates[mode])) db.rates[mode]=[];
+    });
+  }
+
+  function sourceId(rec){
+    if(!rec) return '';
+    rec.importRecordId=String(rec.importRecordId||rec.sourceImportRecordId||makeId('IMP'));
+    rec.sourceImportRecordId=rec.importRecordId;
+    return rec.importRecordId;
+  }
+
+  function findSource(arr,sid){
+    return (arr||[]).findIndex(r=>String(r?.sourceImportRecordId||r?.importRecordId||'')===String(sid));
+  }
+
+  function mirrorImport(mode,bucket,rec){
+    ensureImportStores();
+    if(!rec) return;
+    const sid=sourceId(rec);
+    const dest=bucket==='drafts'?db.drafts[mode]:db.rates[mode];
+    const mirror={...clone(rec),direction:'IMPORT',quoteType:'IMPORT_QUOTE',sourceImportRecordId:sid,importRecordId:sid,sourceImportStore:`importQuotes.${bucket}.${mode}`,_importMirror:true,_importMode:mode};
+    const idx=findSource(dest,sid);
+    if(idx<0) dest.push(mirror);
+    else dest[idx]=mirror;
+  }
+
+  function removeMirror(mode,bucket,sid){
+    const arr=bucket==='drafts'?db.drafts?.[mode]:db.rates?.[mode];
+    if(!Array.isArray(arr)) return;
+    const idx=findSource(arr,sid);
+    if(idx>=0) arr.splice(idx,1);
+  }
+
+  function syncExisting(mode,bucket){
+    ensureImportStores();
+    const src=db.importQuotes[bucket][mode]||[];
+    src.forEach(r=>mirrorImport(mode,bucket,r));
+  }
+
+  function importQuoteNumber(mode){
+    ensureImportStores();
+    const prefix=mode==='air'?'A':'L';
+    const now=new Date();
+    const base=`IQ-${prefix}-${String(now.getFullYear()).slice(-2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+    const all=[...(db.importQuotes.drafts[mode]||[]),...(db.importQuotes.rates[mode]||[])];
+    let qn=base,seq=1;
+    while(all.some(x=>x.quoteNumber===qn)){seq++;qn=`${base}-${String(seq).padStart(2,'0')}`;}
+    return qn;
+  }
+
+  function saveImportAirLcl(mode,target,status){
+    ensureImportStores();
+    const data=(window.__multiGetFormData||window.getFormData||getFormData)(mode);
+    data.direction='IMPORT';
+    data.quoteType='IMPORT_QUOTE';
+    data.status=status||'DRAFT';
+
+    if(mode==='air' && !(parseFloat(document.getElementById('air-weight')?.value)>0)) return alert('IMPORT AIR: Gross Weight is required.');
+    if(mode==='lcl'){
+      const wt=parseFloat(document.getElementById('lcl-weight')?.value);
+      const vol=parseFloat(document.getElementById('lcl-volume')?.value);
+      if(!(wt>0)||!(vol>0)) return alert('IMPORT LCL: Gross Weight and CBM are both required.');
+    }
+    if(!data.client && Object.keys(data.charges||{}).length===0) return alert('Fill Client Name or at least one charge.');
+    if(data.marginINR<0 && (data.totalSellINR>0 || data.totalBuyINR>0) && !confirm('⚠️ WARNING: This Import quote has a negative margin (loss). Do you want to proceed?')) return;
+
+    const editing=(typeof editingRecord!=='undefined')?editingRecord:null;
+    const editingTarget=String(editing?.target||'').toLowerCase();
+    const editingMode=String(editing?.mode||'').toLowerCase();
+    let sourceRec=null;
+
+    // Editing an existing Import mirror updates its dedicated source record;
+    // it does not append a duplicate.
+    if(editing && editingMode===mode && (editingTarget==='drafts'||editingTarget==='rates')){
+      const mirror=(editingTarget==='drafts'?db.drafts[mode]:db.rates[mode])?.[editing.index];
+      const sid=mirror?.sourceImportRecordId||mirror?.importRecordId;
+      if(sid){
+        const src=db.importQuotes[editingTarget][mode]||[];
+        const si=findSource(src,sid);
+        if(si>=0){
+          data.importRecordId=String(sid);
+          data.sourceImportRecordId=String(sid);
+          data.quoteNumber=editing.originalQN||src[si].quoteNumber||importQuoteNumber(mode);
+          data.timestamp=src[si].timestamp||new Date().toISOString();
+          data.lastModified=new Date().toISOString();
+          src[si]={...src[si],...data};
+          sourceRec=src[si];
+        }
+      }
+    }
+
+    if(!sourceRec){
+      data.importRecordId=makeId('IMP');
+      data.sourceImportRecordId=data.importRecordId;
+      data.quoteNumber=importQuoteNumber(mode);
+      data.timestamp=data.timestamp||new Date().toISOString();
+      data.lastModified=new Date().toISOString();
+      db.importQuotes[target][mode].push(data);
+      sourceRec=data;
+    }
+
+    // Drafts remain Drafts only. Final/Quoted creates Rates Quoted + Rate Sheet.
+    mirrorImport(mode,target,sourceRec);
+    if(target==='rates' && typeof window.updateRateSheetFromQuote==='function'){
+      // Rate Sheet remains add-only; this call only creates new rows through the
+      // existing Rate Sheet architecture and never overwrites historical rows.
+      window.updateRateSheetFromQuote(clone(sourceRec),mode);
+    }
+
+    try{saveDB();}catch(e){console.warn('Amendment 37 saveDB skipped:',e);}
+    try{autoBackup();}catch(e){}
+    const q=document.getElementById(`${mode}-qn-value`); if(q) q.textContent=sourceRec.quoteNumber||'';
+    document.getElementById(`${mode}-qn-box`)?.classList.add('show');
+    hasUnsavedChanges[mode]=false;
+    if(typeof editingRecord!=='undefined') editingRecord=null;
+    if(target==='drafts' && typeof renderRecords==='function') renderRecords('drafts');
+    if(target==='rates' && typeof renderRecords==='function') renderRecords('rates');
+    if(typeof renderFollowups==='function') renderFollowups();
+    alert(target==='rates'?`Import quotation finalized!\nQuote No: ${sourceRec.quoteNumber}`:'Import quotation saved as Draft.');
+    return sourceRec;
+  }
+
+  const previousSaveRecord=window.saveRecord;
+  if(typeof previousSaveRecord==='function'){
+    window.saveRecord=function(mode,target,status){
+      const dir=String(window.__quoteDirection||'EXPORT').toUpperCase();
+      const m=String(mode||'').toLowerCase();
+      if(dir==='IMPORT' && (m==='air'||m==='lcl') && (String(target||'').toLowerCase()==='drafts'||String(target||'').toLowerCase()==='rates')){
+        return saveImportAirLcl(m,String(target).toLowerCase(),status||'DRAFT');
+      }
+      return previousSaveRecord.apply(this,arguments);
+    };
+  }
+
+  // Make existing Import AIR/LCL records visible immediately after loading and
+  // keep the mirrors idempotent.
+  ['air','lcl'].forEach(mode=>{syncExisting(mode,'drafts');syncExisting(mode,'rates');});
+  try{saveDB();}catch(e){}
+
+  window.SHAHID_ERP_AMENDMENT_37={
+    importSeaAirLclFlow:'DRAFTS_AND_RATES_QUOTED_RATE_SHEET',
+    importAirLclEditSafe:true,
+    importDraftDoesNotPromoteToRateSheet:true,
+    importFinalCreatesRateSheet:true,
+    rateSheetAddOnly:true,
+    header:'SEARCH_DARK_MODE_REFRESH_USER_LOGOUT',
+    actionCenterTopRemoved:true,
+    alertCenterTopRemoved:true,
+    exportQuoteUntouched:true
+  };
 })();
