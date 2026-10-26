@@ -4242,3 +4242,341 @@ body .dg-dgd-card > textarea {
   #previewModal .modal-header .btn-pdf { padding-inline: 6px !important; }
   #previewModal .modal-body { padding: 6px !important; }
 }
+
+
+
+/* SHAHID ERP 3.0 — Planner & Tasks mobile layout correction.
+   Scoped to Planner so unrelated ERP modules keep their existing layout. */
+#planner,
+#planner * {
+  box-sizing: border-box;
+}
+#planner {
+  min-width: 0;
+  max-width: 100%;
+}
+#planner > .tab-heading {
+  align-items: flex-start;
+  gap: 10px;
+}
+#planner > .tab-heading > div {
+  min-width: 0;
+  max-width: 100%;
+}
+#planner .planner-date-summary,
+#planner .planner-date-summary-head,
+#planner .planner-date-filters {
+  min-width: 0;
+  max-width: 100%;
+}
+#planner .planner-summary-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+#planner .planner-summary-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#planner .planner-summary-value {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+#planner .planner-summary-label {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#planner > div[style*="grid-template-columns: 340px 1fr"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr) !important;
+  min-width: 0;
+  max-width: 100%;
+}
+#planner #planner-calendar-grid {
+  min-width: 0;
+}
+#planner #planner-calendar-grid .planner-day {
+  min-width: 0;
+  padding: 6px 0;
+}
+#planner #planner-selected-date,
+#planner #planner-notes-container,
+#planner #planner-tasks-list,
+#planner #planner-milestones-list,
+#planner #planner-quotes-list,
+#planner #planner-shipments-list,
+#planner #planner-expiring-today-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+#planner .planner-note-item,
+#planner .planner-task-item,
+#planner .planner-milestone-item {
+  min-width: 0;
+  gap: 8px;
+}
+#planner input,
+#planner select,
+#planner textarea,
+#planner button {
+  max-width: 100%;
+}
+#planner input[type="date"] {
+  min-width: 0;
+}
+#planner .planner-date-filters input {
+  width: 100%;
+  min-width: 0;
+}
+#planner .planner-date-filters label {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  #planner .planner-summary-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  #planner > div[style*="grid-template-columns: 340px 1fr"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  #planner > div[style*="grid-template-columns: 340px 1fr"] > div {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  #planner > .tab-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #planner > .tab-heading > div {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+    width: 100%;
+  }
+  #planner > .tab-heading > div button,
+  #planner > .tab-heading > div input {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+  }
+  #planner .planner-date-summary {
+    padding: 10px;
+    margin: 8px 0 12px;
+  }
+  #planner .planner-date-summary-head {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  #planner .planner-summary-title,
+  #planner .planner-summary-range {
+    width: 100%;
+    margin: 0;
+    white-space: normal;
+  }
+  #planner .planner-date-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+  #planner .planner-date-filters label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 4px;
+  }
+  #planner .planner-date-filters button {
+    width: 100%;
+    min-height: 36px;
+  }
+  #planner .planner-summary-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  #planner .planner-summary-card {
+    padding: 9px;
+    gap: 8px;
+    min-height: 82px;
+  }
+  #planner .planner-summary-icon {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    font-size: 1rem;
+  }
+  #planner .planner-summary-value {
+    font-size: 1.2rem;
+  }
+  #planner .planner-summary-label {
+    font-size: .64rem;
+    line-height: 1.2;
+  }
+  #planner > div[style*="grid-template-columns: 340px 1fr"] {
+    gap: 10px !important;
+  }
+  #planner > div[style*="grid-template-columns: 340px 1fr"] > div {
+    padding: 9px !important;
+  }
+  #planner #planner-calendar-grid {
+    gap: 2px !important;
+    font-size: .72rem !important;
+  }
+  #planner #planner-calendar-grid .planner-day {
+    padding: 7px 0;
+    font-size: .75rem;
+  }
+  #planner .planner-note-item,
+  #planner .planner-task-item,
+  #planner .planner-milestone-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  #planner .planner-task-item .task-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 360px) {
+  #planner .planner-summary-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #planner > .tab-heading > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #planner .planner-date-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+
+/* SHAHID ERP 3.0 — Planner calendar + Daily Islamic Tracker mobile correction.
+   Root cause: a broad mobile selector forces inline grid-template-columns to one
+   column, overriding the calendar's inline seven-column grid. The Islamic tracker
+   table also uses large fixed typography and automatic table layout, pushing its
+   second column outside the visible mobile area. */
+@media (max-width: 900px) {
+  #planner #planner-calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 3px !important;
+  }
+  #planner #planner-calendar-grid > * {
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    text-align: center;
+  }
+}
+@media (max-width: 600px) {
+  #planner #planner-calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    font-size: 0.72rem !important;
+  }
+  #planner #planner-calendar-grid .planner-day {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 4px 0 !important;
+    line-height: 1.15;
+  }
+
+  #islam-daily-tracker,
+  #islam-daily-tracker * {
+    box-sizing: border-box;
+  }
+  #islam-daily-tracker {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  #islam-daily-tracker .islam-tracker-body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  #islam-daily-tracker .islam-tracker-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed !important;
+    font-size: 12px !important;
+  }
+  #islam-daily-tracker .islam-tracker-table th,
+  #islam-daily-tracker .islam-tracker-table td {
+    min-width: 0 !important;
+    max-width: 100%;
+    padding: 8px 7px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  #islam-daily-tracker .islam-tracker-table th:first-child,
+  #islam-daily-tracker .islam-tracker-table td:first-child {
+    width: 55% !important;
+  }
+  #islam-daily-tracker .islam-tracker-table th:last-child,
+  #islam-daily-tracker .islam-tracker-table td:last-child {
+    width: 45% !important;
+    text-align: center;
+  }
+  #islam-daily-tracker .islam-tracker-table .islam-group td {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+  #islam-daily-tracker .islam-rakat {
+    display: inline-block;
+    margin: 4px 0 0 4px;
+    padding: 2px 5px;
+    font-size: 11px !important;
+  }
+  #islam-daily-tracker .islam-darood-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-width: 100%;
+  }
+  #islam-daily-tracker .islam-tracker-actions {
+    justify-content: stretch;
+  }
+  #islam-daily-tracker .islam-tracker-actions .btn {
+    width: 100%;
+    min-height: 40px;
+  }
+}
+
+
+
+/* SHAHID ERP 3.0 — Prevent bottom action buttons being covered by fixed shortcuts.
+   Root cause: a later mobile rule reset .content-area padding-bottom to 12px,
+   overriding earlier navigation-aware padding. The fixed bottom bar then covered
+   the final action rows (Save/Clear/Quote and subsequent buttons). */
+@media (max-width: 900px) {
+  .app-wrapper > .content-area,
+  .app-wrapper.mobile-nav-hidden > .content-area {
+    padding-bottom: calc(var(--erp-mobile-nav-height, 60px) + 28px + env(safe-area-inset-bottom, 0px)) !important;
+    scroll-padding-bottom: calc(var(--erp-mobile-nav-height, 60px) + 28px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .app-wrapper > .content-area > .tab-panel,
+  .app-wrapper > .content-area > .tab-panel.active {
+    padding-bottom: 8px;
+    scroll-margin-bottom: calc(var(--erp-mobile-nav-height, 60px) + 20px + env(safe-area-inset-bottom, 0px));
+  }
+}
